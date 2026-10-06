@@ -6,9 +6,11 @@
 
 ## antintwrk development rules
 
-After each significant functional milestone, run appropriate checks, update documentation, commit, and push to the configured private `origin` before reporting completion. The owner has authorized these ordinary commits and pushes on an ongoing basis; do not ask again for each milestone. Verify that the remote branch contains the local commit.
+After completed changes, run appropriate checks, update documentation, and create a local commit before reporting completion. This includes functional milestones, fixes, rules, and documentation. Ordinary local commits are authorized on an ongoing basis.
 
-Keep secrets, user data, build artifacts, logs, and unrelated changes out of commits. Never push to the official Element `upstream` or `QSNEmain`. Resolve push failures using an existing authorized method, including GitHub Desktop; do not silently leave completed work unpushed or remove workflows to bypass token restrictions. Do not change visibility, rewrite history, or force-push without a separate instruction.
+Push only upon an explicit command from the owner to send commits. This replaces the earlier automatic-push authorization as of 6 October 2026. A configured private `origin`, a completed milestone, restored connectivity, or an earlier failed push is not authorization to push. Do not automatically send pending commits or resume prior push retries. When explicitly instructed to push, verify that the remote branch contains the sent commit.
+
+Keep secrets, user data, build artifacts, logs, and unrelated changes out of commits. Never push to the official Element `upstream` or `QSNEmain`. If an explicitly requested push fails, resolve it using an existing authorized method while that command remains in effect, including GitHub Desktop; report unconfirmed publication honestly. Do not remove workflows or disable required checks to bypass failures. Do not change visibility, rewrite history, or force-push without a separate instruction.
 
 Rules and substantial documentation changes follow the same process. See [antintwrk milestone workflow](docs/antintwrk-development.md) for the shared Android/iOS procedure.
 
