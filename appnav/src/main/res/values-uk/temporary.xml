@@ -24,4 +24,7 @@
     <string name="screen_antintwrk_credentials_error">Введіть дійсну адресу електронної пошти та пароль із щонайменше 8 символів.</string>
     <string name="screen_antintwrk_profile_error">Укажіть ім’я, виберіть дату народження та прийміть користувацьку угоду.</string>
     <string name="screen_antintwrk_unavailable">Авторизацію ще не підключено до цього попереднього перегляду. Ваші дані не надіслано.</string>
+    <string name="screen_antintwrk_google">Продовжити з Google</string>
+    <string name="screen_antintwrk_passkey">Увійти з Passkey</string>
+    <string name="screen_antintwrk_or_email">Або через електронну пошту</string>
 </resources>

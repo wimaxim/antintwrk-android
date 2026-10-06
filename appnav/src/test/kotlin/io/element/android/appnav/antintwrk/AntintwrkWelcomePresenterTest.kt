@@ -12,6 +12,25 @@ import org.junit.Test
 
 class AntintwrkWelcomePresenterTest {
     @Test
+    fun `provider preview clears passwords without advancing or creating a session`() = runTest {
+        for (event in listOf(AntintwrkWelcomeEvent.GoogleSignIn, AntintwrkWelcomeEvent.PasskeySignIn)) {
+            val presenter = AntintwrkWelcomePresenter { true }
+            moleculeFlow(RecompositionMode.Immediate) { presenter.present() }.test {
+                awaitItem().eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
+                awaitItem().eventSink(AntintwrkWelcomeEvent.Password("example-password"))
+                awaitItem().eventSink(AntintwrkWelcomeEvent.TogglePassword)
+                awaitItem().eventSink(event)
+                val state = awaitItem()
+                assertThat(state.page).isEqualTo(AntintwrkPage.Login)
+                assertThat(state.password).isEmpty()
+                assertThat(state.showPassword).isFalse()
+                assertThat(state.unavailable).isTrue()
+                assertThat(state.error).isFalse()
+            }
+        }
+    }
+
+    @Test
     fun `registration back preserves credentials but leaving registration clears password`() = runTest {
         val presenter = AntintwrkWelcomePresenter { it == "preview@example.test" }
         moleculeFlow(RecompositionMode.Immediate) { presenter.present() }.test {

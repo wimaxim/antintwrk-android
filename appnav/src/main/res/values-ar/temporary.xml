@@ -24,4 +24,7 @@
     <string name="screen_antintwrk_credentials_error">أدخل بريدًا إلكترونيًا صالحًا وكلمة مرور تتكون من 8 أحرف على الأقل.</string>
     <string name="screen_antintwrk_profile_error">أدخل اسمك الأول واختر تاريخ ميلادك ووافق على اتفاقية المستخدم.</string>
     <string name="screen_antintwrk_unavailable">الوصول إلى الحساب غير متصل بعد في هذه المعاينة. لم يتم إرسال بياناتك.</string>
+    <string name="screen_antintwrk_google">المتابعة باستخدام Google</string>
+    <string name="screen_antintwrk_passkey">تسجيل الدخول باستخدام مفتاح مرور</string>
+    <string name="screen_antintwrk_or_email">أو استخدم البريد الإلكتروني</string>
 </resources>

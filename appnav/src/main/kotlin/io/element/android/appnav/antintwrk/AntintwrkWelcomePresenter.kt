@@ -27,6 +27,10 @@ class AntintwrkWelcomePresenter(
                 is AntintwrkWelcomeEvent.Birthdate -> state.copy(birthdate = event.value.take(10), error = false)
                 is AntintwrkWelcomeEvent.Agreement -> state.copy(agreed = event.value, error = false)
                 AntintwrkWelcomeEvent.TogglePassword -> state.copy(showPassword = !state.showPassword)
+                AntintwrkWelcomeEvent.GoogleSignIn, AntintwrkWelcomeEvent.PasskeySignIn -> {
+                    // Provider verification and mobile session exchange are not connected yet.
+                    state.copy(password = "", showPassword = false, unavailable = true, error = false)
+                }
                 AntintwrkWelcomeEvent.Back -> when (state.page) {
                     AntintwrkPage.Profile -> state.copy(page = AntintwrkPage.Register, error = false, unavailable = false)
                     AntintwrkPage.Reset -> AntintwrkWelcomeState(page = AntintwrkPage.Login, email = state.email)

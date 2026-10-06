@@ -24,4 +24,7 @@
     <string name="screen_antintwrk_credentials_error">Introduce un correo electrónico válido y una contraseña de al menos 8 caracteres.</string>
     <string name="screen_antintwrk_profile_error">Introduce tu nombre, elige tu fecha de nacimiento y acepta el acuerdo de usuario.</string>
     <string name="screen_antintwrk_unavailable">El acceso a la cuenta aún no está conectado en esta vista previa. No se han enviado tus datos.</string>
+    <string name="screen_antintwrk_google">Continuar con Google</string>
+    <string name="screen_antintwrk_passkey">Iniciar sesión con una passkey</string>
+    <string name="screen_antintwrk_or_email">O usa tu correo electrónico</string>
 </resources>

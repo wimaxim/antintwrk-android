@@ -24,4 +24,7 @@
     <string name="screen_antintwrk_credentials_error">Enter a valid email and a password with at least 8 characters.</string>
     <string name="screen_antintwrk_profile_error">Enter your first name, choose your date of birth and accept the User Agreement.</string>
     <string name="screen_antintwrk_unavailable">Account access is not connected in this preview yet. Your data has not been sent.</string>
+    <string name="screen_antintwrk_google">Continue with Google</string>
+    <string name="screen_antintwrk_passkey">Sign in with a passkey</string>
+    <string name="screen_antintwrk_or_email">Or use email</string>
 </resources>

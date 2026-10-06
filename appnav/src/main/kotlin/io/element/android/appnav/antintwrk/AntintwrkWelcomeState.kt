@@ -28,6 +28,8 @@ sealed interface AntintwrkWelcomeEvent {
     data class Birthdate(val value: String) : AntintwrkWelcomeEvent
     data class Agreement(val value: Boolean) : AntintwrkWelcomeEvent
     data object TogglePassword : AntintwrkWelcomeEvent
+    data object GoogleSignIn : AntintwrkWelcomeEvent
+    data object PasskeySignIn : AntintwrkWelcomeEvent
     data object Continue : AntintwrkWelcomeEvent
     data object Back : AntintwrkWelcomeEvent
 }

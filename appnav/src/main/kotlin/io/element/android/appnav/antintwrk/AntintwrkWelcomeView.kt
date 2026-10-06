@@ -100,6 +100,17 @@ fun AntintwrkWelcomeView(
             )
         } else {
             Text(stringResource(R.string.screen_antintwrk_preview), color = ElementTheme.colors.textSecondary)
+            if (state.page == AntintwrkPage.Login || state.page == AntintwrkPage.Register) {
+                AntintwrkProviderButtons(
+                    showPasskey = state.page == AntintwrkPage.Login,
+                    onGoogle = { emit(AntintwrkWelcomeEvent.GoogleSignIn) },
+                    onPasskey = { emit(AntintwrkWelcomeEvent.PasskeySignIn) },
+                )
+                if (state.unavailable) {
+                    Text(stringResource(R.string.screen_antintwrk_unavailable), color = ElementTheme.colors.textSecondary)
+                }
+                Text(stringResource(R.string.screen_antintwrk_or_email), color = ElementTheme.colors.textSecondary)
+            }
             if (state.page != AntintwrkPage.Profile) {
                 AntintwrkTextField(
                     state.email,
@@ -178,7 +189,9 @@ fun AntintwrkWelcomeView(
                     R.string.screen_antintwrk_credentials_error
                 }), color = ElementTheme.colors.textCriticalPrimary)
             }
-            if (state.unavailable) Text(stringResource(R.string.screen_antintwrk_unavailable), color = ElementTheme.colors.textSecondary)
+            if (state.unavailable && state.page != AntintwrkPage.Login && state.page != AntintwrkPage.Register) {
+                Text(stringResource(R.string.screen_antintwrk_unavailable), color = ElementTheme.colors.textSecondary)
+            }
             AntintwrkPrimaryButton(
                 stringResource(if (state.page == AntintwrkPage.Profile) R.string.screen_antintwrk_register else R.string.screen_antintwrk_continue),
                 { emit(AntintwrkWelcomeEvent.Continue) },
@@ -198,6 +211,7 @@ internal class AntintwrkWelcomePreviewStates : PreviewParameterProvider<Antintwr
         AntintwrkWelcomeState(page = AntintwrkPage.Register, error = true),
         AntintwrkWelcomeState(page = AntintwrkPage.Profile),
         AntintwrkWelcomeState(page = AntintwrkPage.Login),
+        AntintwrkWelcomeState(page = AntintwrkPage.Login, unavailable = true),
         AntintwrkWelcomeState(page = AntintwrkPage.Reset, unavailable = true),
     )
 }

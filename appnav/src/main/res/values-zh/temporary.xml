@@ -24,4 +24,7 @@
     <string name="screen_antintwrk_credentials_error">请输入有效的电子邮箱地址和至少包含 8 个字符的密码。</string>
     <string name="screen_antintwrk_profile_error">请输入名字、选择出生日期并同意用户协议。</string>
     <string name="screen_antintwrk_unavailable">此预览尚未连接账号登录服务。你的数据未被发送。</string>
+    <string name="screen_antintwrk_google">使用 Google 继续</string>
+    <string name="screen_antintwrk_passkey">使用通行密钥登录</string>
+    <string name="screen_antintwrk_or_email">或使用电子邮箱</string>
 </resources>
