@@ -11,12 +11,11 @@ import com.bumble.appyx.core.node.Node
 /** UI-only entry. Never creates or changes a Matrix session. */
 class AntintwrkWelcomeNode(
     buildContext: BuildContext,
-    private val openMatrixLogin: () -> Unit,
 ) : Node(buildContext = buildContext) {
     private val presenter = AntintwrkWelcomePresenter()
 
     @Composable
     override fun View(modifier: Modifier) {
-        AntintwrkWelcomeView(presenter.present(), openMatrixLogin, modifier)
+        AntintwrkWelcomeView(presenter.present(), modifier)
     }
 }

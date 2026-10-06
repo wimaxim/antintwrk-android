@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="screen_antintwrk_loading">Opening antintwrk…</string>
-    <string name="screen_antintwrk_welcome">Your people. Your conversations.</string>
+    <string name="screen_antintwrk_welcome">The social network against social networks.</string>
     <string name="screen_antintwrk_intro">Discover communities, share what matters and stay in touch.</string>
     <string name="screen_antintwrk_register">Create account</string>
     <string name="screen_antintwrk_login">Sign in</string>
@@ -20,7 +20,6 @@
     <string name="screen_antintwrk_choose_date">Choose date</string>
     <string name="screen_antintwrk_terms">Read the User Agreement</string>
     <string name="screen_antintwrk_agree">I have read and agree to the User Agreement</string>
-    <string name="screen_antintwrk_matrix_login">Messenger sign-in</string>
     <string name="screen_antintwrk_preview">Interface preview. No account will be created and no data will be sent.</string>
     <string name="screen_antintwrk_credentials_error">Enter a valid email and a password with at least 8 characters.</string>
     <string name="screen_antintwrk_profile_error">Enter your first name, choose your date of birth and accept the User Agreement.</string>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="screen_antintwrk_loading">Открываем antintwrk…</string>
-    <string name="screen_antintwrk_welcome">Свои люди. Живое общение.</string>
+    <string name="screen_antintwrk_welcome">Социальная сеть против социальных сетей.</string>
     <string name="screen_antintwrk_intro">Находите сообщества, делитесь важным и оставайтесь на связи.</string>
     <string name="screen_antintwrk_register">Создать аккаунт</string>
     <string name="screen_antintwrk_login">Войти</string>
@@ -20,7 +20,6 @@
     <string name="screen_antintwrk_choose_date">Выбрать дату</string>
     <string name="screen_antintwrk_terms">Прочитать пользовательское соглашение</string>
     <string name="screen_antintwrk_agree">Я прочитал(а) и принимаю пользовательское соглашение</string>
-    <string name="screen_antintwrk_matrix_login">Вход в мессенджер</string>
     <string name="screen_antintwrk_preview">Предпросмотр интерфейса. Аккаунт не создаётся, данные не отправляются.</string>
     <string name="screen_antintwrk_credentials_error">Введите корректный email и пароль длиной не менее 8 символов.</string>
     <string name="screen_antintwrk_profile_error">Укажите имя, выберите дату рождения и примите пользовательское соглашение.</string>

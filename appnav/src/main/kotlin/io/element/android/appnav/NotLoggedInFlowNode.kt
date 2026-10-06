@@ -20,7 +20,6 @@ import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.plugin.Plugin
 import com.bumble.appyx.navmodel.backstack.BackStack
-import com.bumble.appyx.navmodel.backstack.operation.push
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
@@ -89,9 +88,7 @@ class NotLoggedInFlowNode(
         return when (navTarget) {
             NavTarget.Root -> {
                 if (BuildConfig.ANTINTWRK_ONBOARDING && inputs.loginParams == null) {
-                    return AntintwrkWelcomeNode(buildContext) {
-                        backstack.push(NavTarget.MatrixLogin)
-                    }
+                    return AntintwrkWelcomeNode(buildContext)
                 }
                 createMatrixLogin(buildContext)
             }

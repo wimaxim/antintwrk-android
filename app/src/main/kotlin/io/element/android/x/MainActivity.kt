@@ -29,6 +29,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.bumble.appyx.core.integrationpoint.NodeActivity
 import com.bumble.appyx.core.plugin.NodeReadyObserver
 import io.element.android.appnav.antintwrk.AntintwrkLoadingView
+import io.element.android.appnav.antintwrk.LocalAntintwrkActivity
 import io.element.android.compound.colors.SemanticColorsLightDark
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.features.lockscreen.api.LockScreenEntryPoint
@@ -86,6 +87,7 @@ class MainActivity : NodeActivity() {
             buildMeta = appBindings.buildMeta()
         ) {
             CompositionLocalProvider(
+                LocalAntintwrkActivity provides if (AppNavBuildConfig.ANTINTWRK_ONBOARDING) this@MainActivity else null,
                 LocalSnackbarDispatcher provides appBindings.snackbarDispatcher(),
                 LocalUriHandler provides SafeUriHandler(this),
                 LocalAnalyticsService provides appBindings.analyticsService(),

@@ -4,6 +4,7 @@
 package io.element.android.appnav.antintwrk
 
 import android.app.DatePickerDialog
+import android.view.ContextThemeWrapper
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,19 +39,18 @@ import io.element.android.appnav.R
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
-import io.element.android.libraries.designsystem.theme.components.Button
 import io.element.android.libraries.designsystem.theme.components.CircularProgressIndicator
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
-import io.element.android.libraries.designsystem.theme.components.TextField
 import java.util.Calendar
 import java.util.Locale
 
 @Composable
-fun AntintwrkLoadingView(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize().background(ElementTheme.colors.bgCanvasDefault), contentAlignment = Alignment.Center) {
+fun AntintwrkLoadingView(modifier: Modifier = Modifier) = AntintwrkBrandTheme {
+    Box(modifier.fillMaxSize().background(AntintwrkBackground), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(24.dp)) {
-            Text("anti·ntwrk", style = ElementTheme.typography.fontHeadingLgBold)
+            AntintwrkBrandMark(72.dp)
+            AntintwrkWordmark()
             CircularProgressIndicator()
             Text(stringResource(R.string.screen_antintwrk_loading), style = ElementTheme.typography.fontBodyMdRegular)
         }
@@ -60,23 +60,23 @@ fun AntintwrkLoadingView(modifier: Modifier = Modifier) {
 @Composable
 fun AntintwrkWelcomeView(
     state: AntintwrkWelcomeState,
-    openMatrixLogin: () -> Unit,
     modifier: Modifier = Modifier,
-) {
-    val context = LocalContext.current
+) = AntintwrkBrandTheme {
+    val context = LocalAntintwrkActivity.current ?: LocalContext.current
     val uriHandler = LocalUriHandler.current
     val emit = state.eventSink
     BackHandler(enabled = state.page != AntintwrkPage.Welcome) { emit(AntintwrkWelcomeEvent.Back) }
     Column(
-        modifier.fillMaxSize().background(ElementTheme.colors.bgCanvasDefault).safeDrawingPadding().imePadding()
+        modifier.fillMaxSize().background(AntintwrkBackground).safeDrawingPadding().imePadding()
             .verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (state.page != AntintwrkPage.Welcome) {
             TextButton(stringResource(R.string.screen_antintwrk_back), { emit(AntintwrkWelcomeEvent.Back) })
         }
-        Spacer(Modifier.height(if (state.page == AntintwrkPage.Welcome) 64.dp else 8.dp))
-        Text("anti·ntwrk", style = ElementTheme.typography.fontHeadingLgBold)
+        Spacer(Modifier.height(if (state.page == AntintwrkPage.Welcome) 24.dp else 8.dp))
+        AntintwrkBrandMark(if (state.page == AntintwrkPage.Welcome) 80.dp else 40.dp)
+        AntintwrkWordmark()
         val title = when (state.page) {
             AntintwrkPage.Welcome -> R.string.screen_antintwrk_welcome
             AntintwrkPage.Register -> R.string.screen_antintwrk_register
@@ -88,13 +88,20 @@ fun AntintwrkWelcomeView(
         if (state.page == AntintwrkPage.Welcome) {
             Text(stringResource(R.string.screen_antintwrk_intro), style = ElementTheme.typography.fontBodyLgRegular)
             Spacer(Modifier.height(32.dp))
-            Button(stringResource(R.string.screen_antintwrk_register), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Register)) }, Modifier.fillMaxWidth())
-            TextButton(stringResource(R.string.screen_antintwrk_login), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) }, Modifier.fillMaxWidth())
-            TextButton(stringResource(R.string.screen_antintwrk_matrix_login), openMatrixLogin, Modifier.fillMaxWidth())
+            AntintwrkPrimaryButton(
+                stringResource(R.string.screen_antintwrk_register),
+                { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Register)) },
+                Modifier.fillMaxWidth()
+            )
+            AntintwrkSecondaryButton(
+                stringResource(R.string.screen_antintwrk_login),
+                { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) },
+                Modifier.fillMaxWidth()
+            )
         } else {
             Text(stringResource(R.string.screen_antintwrk_preview), color = ElementTheme.colors.textSecondary)
             if (state.page != AntintwrkPage.Profile) {
-                TextField(
+                AntintwrkTextField(
                     state.email,
                     { emit(AntintwrkWelcomeEvent.Email(it)) },
                     Modifier.fillMaxWidth(),
@@ -104,7 +111,7 @@ fun AntintwrkWelcomeView(
                 )
             }
             if (state.page == AntintwrkPage.Register || state.page == AntintwrkPage.Login) {
-                TextField(
+                AntintwrkTextField(
                     state.password,
                     { emit(AntintwrkWelcomeEvent.Password(it)) },
                     Modifier.fillMaxWidth(),
@@ -122,21 +129,21 @@ fun AntintwrkWelcomeView(
                 )
             }
             if (state.page == AntintwrkPage.Profile) {
-                TextField(
+                AntintwrkTextField(
                     state.firstName,
                     { emit(AntintwrkWelcomeEvent.FirstName(it)) },
                     Modifier.fillMaxWidth(),
                     label = stringResource(R.string.screen_antintwrk_first_name),
                     singleLine = true
                 )
-                TextField(
+                AntintwrkTextField(
                     state.surname,
                     { emit(AntintwrkWelcomeEvent.Surname(it)) },
                     Modifier.fillMaxWidth(),
                     label = stringResource(R.string.screen_antintwrk_surname),
                     singleLine = true
                 )
-                TextField(
+                AntintwrkTextField(
                     state.birthdate,
                     { emit(AntintwrkWelcomeEvent.Birthdate(it)) },
                     Modifier.fillMaxWidth(),
@@ -146,7 +153,7 @@ fun AntintwrkWelcomeView(
                     trailingIcon = {
                         TextButton(stringResource(R.string.screen_antintwrk_choose_date), {
                             val calendar = Calendar.getInstance().apply { add(Calendar.YEAR, -18) }
-                            DatePickerDialog(context, { _, year, month, day ->
+                            DatePickerDialog(ContextThemeWrapper(context, R.style.Antintwrk_DatePicker), { _, year, month, day ->
                                 emit(AntintwrkWelcomeEvent.Birthdate(String.format(Locale.ROOT, "%04d-%02d-%02d", year, month + 1, day)))
                             }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
                         })
@@ -172,7 +179,7 @@ fun AntintwrkWelcomeView(
                 }), color = ElementTheme.colors.textCriticalPrimary)
             }
             if (state.unavailable) Text(stringResource(R.string.screen_antintwrk_unavailable), color = ElementTheme.colors.textSecondary)
-            Button(
+            AntintwrkPrimaryButton(
                 stringResource(if (state.page == AntintwrkPage.Profile) R.string.screen_antintwrk_register else R.string.screen_antintwrk_continue),
                 { emit(AntintwrkWelcomeEvent.Continue) },
                 Modifier.fillMaxWidth()
@@ -198,7 +205,7 @@ internal class AntintwrkWelcomePreviewStates : PreviewParameterProvider<Antintwr
 @PreviewsDayNight
 @Composable
 internal fun AntintwrkWelcomePreview(@PreviewParameter(AntintwrkWelcomePreviewStates::class) state: AntintwrkWelcomeState) = ElementPreview {
-    AntintwrkWelcomeView(state, {})
+    AntintwrkWelcomeView(state)
 }
 
 @PreviewsDayNight

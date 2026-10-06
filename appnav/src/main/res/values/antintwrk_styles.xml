@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Antintwrk.DatePicker" parent="android:style/Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">#F06B55</item>
+        <item name="android:windowBackground">#1B1E22</item>
+        <item name="android:textColorPrimary">#F1F1ED</item>
+    </style>
+</resources>
