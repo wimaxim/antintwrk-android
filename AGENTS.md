@@ -4,6 +4,14 @@
 
 ---
 
+## antintwrk development rules
+
+After each significant functional milestone, run appropriate checks, update documentation, commit, and push to the configured private `origin` before reporting completion. The owner has authorized these ordinary commits and pushes on an ongoing basis; do not ask again for each milestone. Verify that the remote branch contains the local commit.
+
+Keep secrets, user data, build artifacts, logs, and unrelated changes out of commits. Never push to the official Element `upstream` or `QSNEmain`. Resolve push failures using an existing authorized method, including GitHub Desktop; do not silently leave completed work unpushed or remove workflows to bypass token restrictions. Do not change visibility, rewrite history, or force-push without a separate instruction.
+
+Rules and substantial documentation changes follow the same process. See [antintwrk milestone workflow](docs/antintwrk-development.md) for the shared Android/iOS procedure.
+
 ## Strong Conventions
 
 PRs must meet these rules.
