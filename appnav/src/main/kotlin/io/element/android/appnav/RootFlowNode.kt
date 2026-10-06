@@ -32,6 +32,7 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.JoinedRoom
 import io.element.android.annotations.ContributesNode
+import io.element.android.appnav.antintwrk.AntintwrkLoadingView
 import io.element.android.appnav.intent.IntentResolver
 import io.element.android.appnav.intent.ResolvedIntent
 import io.element.android.appnav.room.RoomFlowNode
@@ -347,7 +348,14 @@ class RootFlowNode(
                     ),
                 )
             }
-            NavTarget.SplashScreen -> emptyNode(buildContext)
+            NavTarget.SplashScreen -> if (BuildConfig.ANTINTWRK_ONBOARDING) {
+                object : Node(buildContext = buildContext) {
+                    @Composable
+                    override fun View(modifier: Modifier) = AntintwrkLoadingView(modifier)
+                }
+            } else {
+                emptyNode(buildContext)
+            }
             NavTarget.BugReport -> {
                 val callback = object : BugReportEntryPoint.Callback {
                     override fun onDone() {

@@ -19,6 +19,14 @@ plugins {
 
 android {
     namespace = "io.element.android.appnav"
+    buildFeatures { buildConfig = true }
+    defaultConfig {
+        buildConfigField(
+            "boolean",
+            "ANTINTWRK_ONBOARDING",
+            providers.gradleProperty("antintwrkOnboarding").map { it.toBoolean().toString() }.orElse("false").get()
+        )
+    }
 }
 
 setupDependencyInjection()

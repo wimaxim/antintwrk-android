@@ -20,10 +20,12 @@ import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.plugin.Plugin
 import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.push
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
+import io.element.android.appnav.antintwrk.AntintwrkWelcomeNode
 import io.element.android.features.login.api.LoginEntryPoint
 import io.element.android.features.login.api.LoginParams
 import io.element.android.libraries.architecture.BackstackView
@@ -78,31 +80,44 @@ class NotLoggedInFlowNode(
     sealed interface NavTarget : Parcelable {
         @Parcelize
         data object Root : NavTarget
+
+        @Parcelize
+        data object MatrixLogin : NavTarget
     }
 
     override fun resolve(navTarget: NavTarget, buildContext: BuildContext): Node {
         return when (navTarget) {
             NavTarget.Root -> {
-                val callback = object : LoginEntryPoint.Callback {
-                    override fun navigateToBugReport() {
-                        callback.navigateToBugReport()
-                    }
-
-                    override fun onDone() {
-                        callback.onDone()
+                if (BuildConfig.ANTINTWRK_ONBOARDING && inputs.loginParams == null) {
+                    return AntintwrkWelcomeNode(buildContext) {
+                        backstack.push(NavTarget.MatrixLogin)
                     }
                 }
-                loginEntryPoint.createNode(
-                    parentNode = this,
-                    buildContext = buildContext,
-                    params = LoginEntryPoint.Params(
-                        accountProvider = inputs.loginParams?.accountProvider,
-                        loginHint = inputs.loginParams?.loginHint,
-                    ),
-                    callback = callback,
-                )
+                createMatrixLogin(buildContext)
+            }
+            NavTarget.MatrixLogin -> createMatrixLogin(buildContext)
+        }
+    }
+
+    private fun createMatrixLogin(buildContext: BuildContext): Node {
+        val callback = object : LoginEntryPoint.Callback {
+            override fun navigateToBugReport() {
+                callback.navigateToBugReport()
+            }
+
+            override fun onDone() {
+                callback.onDone()
             }
         }
+        return loginEntryPoint.createNode(
+            parentNode = this,
+            buildContext = buildContext,
+            params = LoginEntryPoint.Params(
+                accountProvider = inputs.loginParams?.accountProvider,
+                loginHint = inputs.loginParams?.loginHint,
+            ),
+            callback = callback,
+        )
     }
 
     @Composable

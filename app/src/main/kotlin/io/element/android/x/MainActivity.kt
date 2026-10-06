@@ -28,6 +28,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.bumble.appyx.core.integrationpoint.NodeActivity
 import com.bumble.appyx.core.plugin.NodeReadyObserver
+import io.element.android.appnav.antintwrk.AntintwrkLoadingView
 import io.element.android.compound.colors.SemanticColorsLightDark
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.features.lockscreen.api.LockScreenEntryPoint
@@ -44,6 +45,7 @@ import io.element.android.x.di.AppBindings
 import io.element.android.x.intent.SafeUriHandler
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import io.element.android.appnav.BuildConfig as AppNavBuildConfig
 
 private val loggerTag = LoggerTag("MainActivity")
 
@@ -95,6 +97,8 @@ class MainActivity : NodeActivity() {
                 ) {
                     if (migrationState.migrationAction.isSuccess()) {
                         MainNodeHost()
+                    } else if (AppNavBuildConfig.ANTINTWRK_ONBOARDING && migrationState.migrationAction.isLoading()) {
+                        AntintwrkLoadingView()
                     } else {
                         appBindings.migrationEntryPoint().Render(
                             state = migrationState,

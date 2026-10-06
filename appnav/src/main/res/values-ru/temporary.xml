@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">Открываем antintwrk…</string>
+    <string name="screen_antintwrk_welcome">Свои люди. Живое общение.</string>
+    <string name="screen_antintwrk_intro">Находите сообщества, делитесь важным и оставайтесь на связи.</string>
+    <string name="screen_antintwrk_register">Создать аккаунт</string>
+    <string name="screen_antintwrk_login">Войти</string>
+    <string name="screen_antintwrk_profile">О вас</string>
+    <string name="screen_antintwrk_reset">Восстановить пароль</string>
+    <string name="screen_antintwrk_back">Назад</string>
+    <string name="screen_antintwrk_continue">Продолжить</string>
+    <string name="screen_antintwrk_email">Email</string>
+    <string name="screen_antintwrk_password">Пароль</string>
+    <string name="screen_antintwrk_password_hint">Не менее 8 символов</string>
+    <string name="screen_antintwrk_show">Показать</string>
+    <string name="screen_antintwrk_hide">Скрыть</string>
+    <string name="screen_antintwrk_first_name">Имя</string>
+    <string name="screen_antintwrk_surname">Фамилия (необязательно)</string>
+    <string name="screen_antintwrk_birthdate">Дата рождения</string>
+    <string name="screen_antintwrk_choose_date">Выбрать дату</string>
+    <string name="screen_antintwrk_terms">Прочитать пользовательское соглашение</string>
+    <string name="screen_antintwrk_agree">Я прочитал(а) и принимаю пользовательское соглашение</string>
+    <string name="screen_antintwrk_matrix_login">Вход в мессенджер</string>
+    <string name="screen_antintwrk_preview">Предпросмотр интерфейса. Аккаунт не создаётся, данные не отправляются.</string>
+    <string name="screen_antintwrk_credentials_error">Введите корректный email и пароль длиной не менее 8 символов.</string>
+    <string name="screen_antintwrk_profile_error">Укажите имя, выберите дату рождения и примите пользовательское соглашение.</string>
+    <string name="screen_antintwrk_unavailable">Авторизация пока не подключена к этому предпросмотру. Ваши данные не отправлены.</string>
+</resources>

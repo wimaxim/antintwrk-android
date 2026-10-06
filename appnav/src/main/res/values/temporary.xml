@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">Opening antintwrk…</string>
+    <string name="screen_antintwrk_welcome">Your people. Your conversations.</string>
+    <string name="screen_antintwrk_intro">Discover communities, share what matters and stay in touch.</string>
+    <string name="screen_antintwrk_register">Create account</string>
+    <string name="screen_antintwrk_login">Sign in</string>
+    <string name="screen_antintwrk_profile">About you</string>
+    <string name="screen_antintwrk_reset">Reset password</string>
+    <string name="screen_antintwrk_back">Back</string>
+    <string name="screen_antintwrk_continue">Continue</string>
+    <string name="screen_antintwrk_email">Email</string>
+    <string name="screen_antintwrk_password">Password</string>
+    <string name="screen_antintwrk_password_hint">At least 8 characters</string>
+    <string name="screen_antintwrk_show">Show</string>
+    <string name="screen_antintwrk_hide">Hide</string>
+    <string name="screen_antintwrk_first_name">First name</string>
+    <string name="screen_antintwrk_surname">Surname (optional)</string>
+    <string name="screen_antintwrk_birthdate">Date of birth</string>
+    <string name="screen_antintwrk_choose_date">Choose date</string>
+    <string name="screen_antintwrk_terms">Read the User Agreement</string>
+    <string name="screen_antintwrk_agree">I have read and agree to the User Agreement</string>
+    <string name="screen_antintwrk_matrix_login">Messenger sign-in</string>
+    <string name="screen_antintwrk_preview">Interface preview. No account will be created and no data will be sent.</string>
+    <string name="screen_antintwrk_credentials_error">Enter a valid email and a password with at least 8 characters.</string>
+    <string name="screen_antintwrk_profile_error">Enter your first name, choose your date of birth and accept the User Agreement.</string>
+    <string name="screen_antintwrk_unavailable">Account access is not connected in this preview yet. Your data has not been sent.</string>
+</resources>
