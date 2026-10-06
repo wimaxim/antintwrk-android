@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">Відкриваємо antintwrk…</string>
+    <string name="screen_antintwrk_welcome">Соціальна мережа та месенджер</string>
+    <string name="screen_antintwrk_intro">Знаходьте спільноти, діліться важливим і залишайтеся на зв’язку.</string>
+    <string name="screen_antintwrk_register">Створити обліковий запис</string>
+    <string name="screen_antintwrk_login">Увійти</string>
+    <string name="screen_antintwrk_profile">Про вас</string>
+    <string name="screen_antintwrk_reset">Відновити пароль</string>
+    <string name="screen_antintwrk_back">Назад</string>
+    <string name="screen_antintwrk_continue">Продовжити</string>
+    <string name="screen_antintwrk_email">Електронна пошта</string>
+    <string name="screen_antintwrk_password">Пароль</string>
+    <string name="screen_antintwrk_password_hint">Щонайменше 8 символів</string>
+    <string name="screen_antintwrk_show">Показати</string>
+    <string name="screen_antintwrk_hide">Приховати</string>
+    <string name="screen_antintwrk_first_name">Ім’я</string>
+    <string name="screen_antintwrk_surname">Прізвище (необов’язково)</string>
+    <string name="screen_antintwrk_birthdate">Дата народження</string>
+    <string name="screen_antintwrk_choose_date">Вибрати дату</string>
+    <string name="screen_antintwrk_terms">Прочитати користувацьку угоду</string>
+    <string name="screen_antintwrk_agree">Я прочитав(-ла) і приймаю користувацьку угоду</string>
+    <string name="screen_antintwrk_preview">Попередній перегляд інтерфейсу. Обліковий запис не створюється, дані не надсилаються.</string>
+    <string name="screen_antintwrk_credentials_error">Введіть дійсну адресу електронної пошти та пароль із щонайменше 8 символів.</string>
+    <string name="screen_antintwrk_profile_error">Укажіть ім’я, виберіть дату народження та прийміть користувацьку угоду.</string>
+    <string name="screen_antintwrk_unavailable">Авторизацію ще не підключено до цього попереднього перегляду. Ваші дані не надіслано.</string>
+</resources>

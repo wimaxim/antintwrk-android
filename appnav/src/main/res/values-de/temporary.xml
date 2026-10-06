@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">antintwrk wird geöffnet…</string>
+    <string name="screen_antintwrk_welcome">Soziales Netzwerk und Messenger</string>
+    <string name="screen_antintwrk_intro">Entdecke Communitys, teile, was dir wichtig ist, und bleib in Kontakt.</string>
+    <string name="screen_antintwrk_register">Konto erstellen</string>
+    <string name="screen_antintwrk_login">Anmelden</string>
+    <string name="screen_antintwrk_profile">Über dich</string>
+    <string name="screen_antintwrk_reset">Passwort zurücksetzen</string>
+    <string name="screen_antintwrk_back">Zurück</string>
+    <string name="screen_antintwrk_continue">Weiter</string>
+    <string name="screen_antintwrk_email">E-Mail</string>
+    <string name="screen_antintwrk_password">Passwort</string>
+    <string name="screen_antintwrk_password_hint">Mindestens 8 Zeichen</string>
+    <string name="screen_antintwrk_show">Anzeigen</string>
+    <string name="screen_antintwrk_hide">Ausblenden</string>
+    <string name="screen_antintwrk_first_name">Vorname</string>
+    <string name="screen_antintwrk_surname">Nachname (optional)</string>
+    <string name="screen_antintwrk_birthdate">Geburtsdatum</string>
+    <string name="screen_antintwrk_choose_date">Datum auswählen</string>
+    <string name="screen_antintwrk_terms">Nutzungsvereinbarung lesen</string>
+    <string name="screen_antintwrk_agree">Ich habe die Nutzungsvereinbarung gelesen und akzeptiere sie</string>
+    <string name="screen_antintwrk_preview">Vorschau der Oberfläche. Es wird kein Konto erstellt und es werden keine Daten gesendet.</string>
+    <string name="screen_antintwrk_credentials_error">Gib eine gültige E-Mail-Adresse und ein Passwort mit mindestens 8 Zeichen ein.</string>
+    <string name="screen_antintwrk_profile_error">Gib deinen Vornamen ein, wähle dein Geburtsdatum und akzeptiere die Nutzungsvereinbarung.</string>
+    <string name="screen_antintwrk_unavailable">Der Kontozugang ist in dieser Vorschau noch nicht angebunden. Deine Daten wurden nicht gesendet.</string>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">Ouverture d’antintwrk…</string>
+    <string name="screen_antintwrk_welcome">Réseau social et messagerie</string>
+    <string name="screen_antintwrk_intro">Découvrez des communautés, partagez ce qui compte et restez en contact.</string>
+    <string name="screen_antintwrk_register">Créer un compte</string>
+    <string name="screen_antintwrk_login">Se connecter</string>
+    <string name="screen_antintwrk_profile">À propos de vous</string>
+    <string name="screen_antintwrk_reset">Réinitialiser le mot de passe</string>
+    <string name="screen_antintwrk_back">Retour</string>
+    <string name="screen_antintwrk_continue">Continuer</string>
+    <string name="screen_antintwrk_email">Adresse e-mail</string>
+    <string name="screen_antintwrk_password">Mot de passe</string>
+    <string name="screen_antintwrk_password_hint">Au moins 8 caractères</string>
+    <string name="screen_antintwrk_show">Afficher</string>
+    <string name="screen_antintwrk_hide">Masquer</string>
+    <string name="screen_antintwrk_first_name">Prénom</string>
+    <string name="screen_antintwrk_surname">Nom de famille (facultatif)</string>
+    <string name="screen_antintwrk_birthdate">Date de naissance</string>
+    <string name="screen_antintwrk_choose_date">Choisir une date</string>
+    <string name="screen_antintwrk_terms">Lire les conditions d’utilisation</string>
+    <string name="screen_antintwrk_agree">J’ai lu et j’accepte les conditions d’utilisation</string>
+    <string name="screen_antintwrk_preview">Aperçu de l’interface. Aucun compte ne sera créé et aucune donnée ne sera envoyée.</string>
+    <string name="screen_antintwrk_credentials_error">Saisissez une adresse e-mail valide et un mot de passe d’au moins 8 caractères.</string>
+    <string name="screen_antintwrk_profile_error">Saisissez votre prénom, choisissez votre date de naissance et acceptez les conditions d’utilisation.</string>
+    <string name="screen_antintwrk_unavailable">L’accès au compte n’est pas encore connecté dans cet aperçu. Vos données n’ont pas été envoyées.</string>
+</resources>

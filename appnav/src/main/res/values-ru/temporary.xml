@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="screen_antintwrk_loading">Открываем antintwrk…</string>
-    <string name="screen_antintwrk_welcome">Социальная сеть против социальных сетей.</string>
+    <string name="screen_antintwrk_welcome">Социальная сеть и мессенджер</string>
     <string name="screen_antintwrk_intro">Находите сообщества, делитесь важным и оставайтесь на связи.</string>
     <string name="screen_antintwrk_register">Создать аккаунт</string>
     <string name="screen_antintwrk_login">Войти</string>

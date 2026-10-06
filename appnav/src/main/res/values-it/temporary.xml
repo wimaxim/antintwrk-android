@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">Apertura di antintwrk…</string>
+    <string name="screen_antintwrk_welcome">Social network e messaggistica</string>
+    <string name="screen_antintwrk_intro">Scopri le comunità, condividi ciò che conta e resta in contatto.</string>
+    <string name="screen_antintwrk_register">Crea account</string>
+    <string name="screen_antintwrk_login">Accedi</string>
+    <string name="screen_antintwrk_profile">Informazioni su di te</string>
+    <string name="screen_antintwrk_reset">Reimposta password</string>
+    <string name="screen_antintwrk_back">Indietro</string>
+    <string name="screen_antintwrk_continue">Continua</string>
+    <string name="screen_antintwrk_email">Email</string>
+    <string name="screen_antintwrk_password">Password</string>
+    <string name="screen_antintwrk_password_hint">Almeno 8 caratteri</string>
+    <string name="screen_antintwrk_show">Mostra</string>
+    <string name="screen_antintwrk_hide">Nascondi</string>
+    <string name="screen_antintwrk_first_name">Nome</string>
+    <string name="screen_antintwrk_surname">Cognome (facoltativo)</string>
+    <string name="screen_antintwrk_birthdate">Data di nascita</string>
+    <string name="screen_antintwrk_choose_date">Scegli la data</string>
+    <string name="screen_antintwrk_terms">Leggi le condizioni d’uso</string>
+    <string name="screen_antintwrk_agree">Ho letto e accetto le condizioni d’uso</string>
+    <string name="screen_antintwrk_preview">Anteprima dell’interfaccia. Non verrà creato alcun account e non verranno inviati dati.</string>
+    <string name="screen_antintwrk_credentials_error">Inserisci un indirizzo email valido e una password di almeno 8 caratteri.</string>
+    <string name="screen_antintwrk_profile_error">Inserisci il tuo nome, scegli la tua data di nascita e accetta le condizioni d’uso.</string>
+    <string name="screen_antintwrk_unavailable">L’accesso all’account non è ancora collegato in questa anteprima. I tuoi dati non sono stati inviati.</string>
+</resources>

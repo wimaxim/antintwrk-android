@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">جارٍ فتح antintwrk…</string>
+    <string name="screen_antintwrk_welcome">شبكة اجتماعية ومراسلة</string>
+    <string name="screen_antintwrk_intro">اكتشف المجتمعات وشارك ما يهمك وابقَ على تواصل.</string>
+    <string name="screen_antintwrk_register">إنشاء حساب</string>
+    <string name="screen_antintwrk_login">تسجيل الدخول</string>
+    <string name="screen_antintwrk_profile">معلومات عنك</string>
+    <string name="screen_antintwrk_reset">إعادة تعيين كلمة المرور</string>
+    <string name="screen_antintwrk_back">رجوع</string>
+    <string name="screen_antintwrk_continue">متابعة</string>
+    <string name="screen_antintwrk_email">البريد الإلكتروني</string>
+    <string name="screen_antintwrk_password">كلمة المرور</string>
+    <string name="screen_antintwrk_password_hint">8 أحرف على الأقل</string>
+    <string name="screen_antintwrk_show">إظهار</string>
+    <string name="screen_antintwrk_hide">إخفاء</string>
+    <string name="screen_antintwrk_first_name">الاسم الأول</string>
+    <string name="screen_antintwrk_surname">اسم العائلة (اختياري)</string>
+    <string name="screen_antintwrk_birthdate">تاريخ الميلاد</string>
+    <string name="screen_antintwrk_choose_date">اختيار التاريخ</string>
+    <string name="screen_antintwrk_terms">قراءة اتفاقية المستخدم</string>
+    <string name="screen_antintwrk_agree">قرأت اتفاقية المستخدم وأوافق عليها</string>
+    <string name="screen_antintwrk_preview">معاينة للواجهة. لن يتم إنشاء حساب أو إرسال أي بيانات.</string>
+    <string name="screen_antintwrk_credentials_error">أدخل بريدًا إلكترونيًا صالحًا وكلمة مرور تتكون من 8 أحرف على الأقل.</string>
+    <string name="screen_antintwrk_profile_error">أدخل اسمك الأول واختر تاريخ ميلادك ووافق على اتفاقية المستخدم.</string>
+    <string name="screen_antintwrk_unavailable">الوصول إلى الحساب غير متصل بعد في هذه المعاينة. لم يتم إرسال بياناتك.</string>
+</resources>

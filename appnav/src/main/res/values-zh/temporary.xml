@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_antintwrk_loading">正在打开 antintwrk…</string>
+    <string name="screen_antintwrk_welcome">社交网络与即时通讯</string>
+    <string name="screen_antintwrk_intro">发现社区，分享重要的事，保持联系。</string>
+    <string name="screen_antintwrk_register">创建账号</string>
+    <string name="screen_antintwrk_login">登录</string>
+    <string name="screen_antintwrk_profile">关于你</string>
+    <string name="screen_antintwrk_reset">重置密码</string>
+    <string name="screen_antintwrk_back">返回</string>
+    <string name="screen_antintwrk_continue">继续</string>
+    <string name="screen_antintwrk_email">电子邮箱</string>
+    <string name="screen_antintwrk_password">密码</string>
+    <string name="screen_antintwrk_password_hint">至少 8 个字符</string>
+    <string name="screen_antintwrk_show">显示</string>
+    <string name="screen_antintwrk_hide">隐藏</string>
+    <string name="screen_antintwrk_first_name">名字</string>
+    <string name="screen_antintwrk_surname">姓氏（可选）</string>
+    <string name="screen_antintwrk_birthdate">出生日期</string>
+    <string name="screen_antintwrk_choose_date">选择日期</string>
+    <string name="screen_antintwrk_terms">阅读用户协议</string>
+    <string name="screen_antintwrk_agree">我已阅读并同意用户协议</string>
+    <string name="screen_antintwrk_preview">界面预览。不会创建账号，也不会发送任何数据。</string>
+    <string name="screen_antintwrk_credentials_error">请输入有效的电子邮箱地址和至少包含 8 个字符的密码。</string>
+    <string name="screen_antintwrk_profile_error">请输入名字、选择出生日期并同意用户协议。</string>
+    <string name="screen_antintwrk_unavailable">此预览尚未连接账号登录服务。你的数据未被发送。</string>
+</resources>
