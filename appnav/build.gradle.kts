@@ -27,6 +27,11 @@ android {
             "ANTINTWRK_ONBOARDING",
             providers.gradleProperty("antintwrkOnboarding").map { it.toBoolean().toString() }.orElse("false").get()
         )
+        buildConfigField(
+            "boolean",
+            "ANTINTWRK_SHELL_PREVIEW",
+            providers.gradleProperty("antintwrkShellPreview").map { it.toBoolean().toString() }.orElse("false").get()
+        )
     }
 }
 

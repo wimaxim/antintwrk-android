@@ -42,7 +42,7 @@ import java.util.WeakHashMap
 // Share the activity window across overlapping Appyx loading/welcome screens.
 val LocalAntintwrkActivity = staticCompositionLocalOf<ComponentActivity?> { null }
 
-// Public antintwrk web palette; scoped to account previews, never to Matrix screens.
+// Public antintwrk web palette; scoped to account/social previews, never to Matrix screens.
 internal val AntintwrkBackground = Color(0xFF101214)
 private val AntintwrkPanel = Color(0xFF1B1E22)
 private val AntintwrkField = Color(0xFF2B3036)
