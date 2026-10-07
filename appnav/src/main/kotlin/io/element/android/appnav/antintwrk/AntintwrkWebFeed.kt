@@ -45,6 +45,8 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import io.element.android.appnav.BuildConfig
 import io.element.android.appnav.R
 import io.element.android.libraries.designsystem.theme.components.Text
@@ -300,6 +302,10 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         }
                     }
                     AntintwrkNativeWebSignals.attach(this, controller, policy) { authRequired() }
+                    if (BuildConfig.ANTINTWRK_NATIVE_AUTH &&
+                        runCatching { WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION) }.getOrDefault(false)) {
+                        WebSettingsCompat.setWebAuthenticationSupport(settings, WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP)
+                    }
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                             if (!request.isForMainFrame) return false
