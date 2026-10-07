@@ -56,4 +56,6 @@
     <string name="screen_ant_shell_author_two">Демо · Учасник</string>
     <string name="screen_ant_shell_title_two">Знайдіть свою спільноту</string>
     <string name="screen_ant_shell_body_two">Обговорюйте цікаві вам теми, діліться ідеями та знайомтеся з людьми зі схожими інтересами.</string>
+    <string name="screen_ant_web_error">Не вдалося завантажити стрічку. Перевірте з’єднання та спробуйте ще раз.</string>
+    <string name="screen_ant_web_retry">Повторити</string>
 </resources>

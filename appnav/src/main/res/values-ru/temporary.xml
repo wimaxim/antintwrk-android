@@ -56,4 +56,6 @@
     <string name="screen_ant_shell_author_two">Демо · Участник</string>
     <string name="screen_ant_shell_title_two">Найдите своё сообщество</string>
     <string name="screen_ant_shell_body_two">Обсуждайте интересные вам темы, делитесь идеями и знакомьтесь с людьми, которым близки ваши интересы.</string>
+    <string name="screen_ant_web_error">Не удалось загрузить ленту. Проверьте соединение и повторите попытку.</string>
+    <string name="screen_ant_web_retry">Повторить</string>
 </resources>

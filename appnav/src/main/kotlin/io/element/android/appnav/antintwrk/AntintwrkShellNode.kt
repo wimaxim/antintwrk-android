@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
+import io.element.android.appnav.BuildConfig
 
 /** Debug-only preview destination; never authenticates or creates a Matrix session. */
 class AntintwrkShellNode(buildContext: BuildContext) : Node(buildContext = buildContext) {
@@ -14,6 +15,6 @@ class AntintwrkShellNode(buildContext: BuildContext) : Node(buildContext = build
 
     @Composable
     override fun View(modifier: Modifier) {
-        AntintwrkShellView(presenter.present(), modifier)
+        AntintwrkShellView(presenter.present(), modifier, webFeed = BuildConfig.DEBUG && BuildConfig.ANTINTWRK_WEB_FEED)
     }
 }

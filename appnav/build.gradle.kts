@@ -32,6 +32,12 @@ android {
             "ANTINTWRK_SHELL_PREVIEW",
             providers.gradleProperty("antintwrkShellPreview").map { it.toBoolean().toString() }.orElse("false").get()
         )
+        buildConfigField("String", "ANTINTWRK_SOCIAL_ORIGIN", "\"https://antintwrk.com\"")
+        buildConfigField(
+            "boolean",
+            "ANTINTWRK_WEB_FEED",
+            providers.gradleProperty("antintwrkWebFeed").map { it.toBoolean().toString() }.orElse("false").get()
+        )
     }
 }
 

@@ -1,0 +1,126 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+@file:OptIn(ExperimentalTestApi::class)
+
+package io.element.android.appnav.antintwrk
+
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.v2.runAndroidComposeUiTest
+import com.google.common.truth.Truth.assertThat
+import io.element.android.compound.theme.ElementTheme
+import io.element.android.tests.testutils.robolectric.RobolectricTest
+import io.element.android.tests.testutils.setSafeContent
+import org.junit.Test
+
+class AntintwrkWebFeedTest : RobolectricTest() {
+    private val policy = AntintwrkWebPolicy("https://antintwrk.com")
+
+    @Test
+    fun `feed uses configured origin supported language and guest presentation`() {
+        assertThat(policy.feed("ru")).isEqualTo("https://antintwrk.com/ru/hero-feed?app=1")
+        assertThat(policy.feed("ja")).isEqualTo("https://antintwrk.com/en/hero-feed?app=1")
+        assertThat(AntintwrkWebPolicy("https://social.example.org").feed("ar"))
+            .isEqualTo("https://social.example.org/ar/hero-feed?app=1")
+    }
+
+    @Test
+    fun `internal navigation retains filters repeated query values and fragment`() {
+        val target = policy.embedded("https://antintwrk.com/ru/hero-feed?view=memes&scope=latest&tag=a&tag=b&app=0#comments")
+        assertThat(target).isEqualTo("https://antintwrk.com/ru/hero-feed?view=memes&scope=latest&tag=a&tag=b&app=1#comments")
+        assertThat(policy.embedded(target!!)).isEqualTo(target)
+        assertThat(policy.embedded("https://antintwrk.com/en/discover?q=hello%20world"))
+            .isEqualTo("https://antintwrk.com/en/discover?q=hello%20world&app=1")
+    }
+
+    @Test
+    fun `foreign origins insecure urls account routes and arbitrary schemes are not embedded`() {
+        listOf(
+            "http://antintwrk.com/ru/hero-feed",
+            "https://antintwrk.com.evil.org/ru/hero-feed",
+            "https://evil.org/ru/hero-feed",
+            "https://name@antintwrk.com/ru/hero-feed",
+            "https://antintwrk.com:444/ru/hero-feed",
+            "https://antintwrk.com/en/?auth=login",
+            "https://antintwrk.com/en/goto",
+            "https://antintwrk.com/register.php",
+            "https://antintwrk.com/en/profile",
+            "javascript:alert(1)",
+            "file:///etc/passwd",
+            "intent://anything",
+            "https://antintwrk.com/xx/hero-feed",
+        ).forEach { assertThat(policy.embedded(it)).isNull() }
+        assertThat(policy.external("https://example.org/article")).isTrue()
+        assertThat(policy.external("javascript:alert(1)")).isFalse()
+        assertThat(policy.external("intent://anything")).isFalse()
+    }
+
+    @Test
+    fun `first visit challenge stays inside without granting foreign redirects`() {
+        val url = "https://antintwrk.com/_firstvisit.html?url=https%3A%2F%2Fantintwrk.com%2Fru%2Fhero-feed%3Fapp%3D1&token=test"
+        assertThat(policy.embedded(url)).isEqualTo(url)
+        assertThat(policy.embedded("https://antintwrk.com/_firstvisit.html?url=https%3A%2F%2Fevil.org")).isNull()
+        assertThat(policy.embedded("https://antintwrk.com/_firstvisit.html?url=https%3A%2F%2Fantintwrk.com%2F_firstvisit.html")).isNull()
+    }
+
+    @Test
+    fun `main document errors show retry but subresource errors do not hide content`() = runAndroidComposeUiTest {
+        lateinit var controller: AntintwrkWebFeedController
+        setSafeContent {
+            ElementTheme {
+                controller = rememberAntintwrkWebFeedController()
+                AntintwrkWebFeed(controller, backEnabled = true)
+            }
+        }
+        val error = android.webkit.WebResourceResponse("text/plain", "utf-8", java.io.ByteArrayInputStream(byteArrayOf())).apply {
+            setStatusCodeAndReasonPhrase(503, "Service Unavailable")
+        }
+        runOnIdle {
+            val view = controller.view!!
+            view.webViewClient.onReceivedHttpError(view, request(false), error)
+            assertThat(controller.failed).isFalse()
+            view.webViewClient.onReceivedHttpError(view, request(true), error)
+        }
+        onNodeWithText("Could not load the feed. Check your connection and try again.").assertIsDisplayed()
+        onNodeWithText("Retry").performClick()
+        runOnIdle { assertThat(controller.failed).isFalse() }
+    }
+
+    private fun request(main: Boolean) = object : android.webkit.WebResourceRequest {
+        override fun getUrl() = android.net.Uri.parse("https://antintwrk.com/en/hero-feed?app=1")
+        override fun isForMainFrame() = main
+        override fun isRedirect() = false
+        override fun hasGesture() = false
+        override fun getMethod() = "GET"
+        override fun getRequestHeaders(): Map<String, String> = emptyMap()
+    }
+
+    @Test
+    fun `webview loads real content and keeps its instance while switching sections`() = runAndroidComposeUiTest {
+        val visible = mutableStateOf(true)
+        lateinit var controller: AntintwrkWebFeedController
+        setSafeContent {
+            ElementTheme {
+                controller = rememberAntintwrkWebFeedController()
+                if (visible.value) AntintwrkWebFeed(controller, backEnabled = true)
+            }
+        }
+        lateinit var original: android.webkit.WebView
+        runOnIdle {
+            original = controller.view!!
+            assertThat(original.url).contains("/hero-feed?app=1")
+            assertThat(original.settings.javaScriptEnabled).isTrue()
+            assertThat(original.settings.domStorageEnabled).isTrue()
+            assertThat(original.settings.allowFileAccess).isFalse()
+            assertThat(original.settings.allowContentAccess).isFalse()
+            assertThat(original.settings.mixedContentMode).isEqualTo(android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW)
+            visible.value = false
+        }
+        runOnIdle { visible.value = true }
+        runOnIdle { assertThat(controller.view).isSameInstanceAs(original) }
+    }
+}

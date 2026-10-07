@@ -56,4 +56,6 @@
     <string name="screen_ant_shell_author_two">Démo · Membre</string>
     <string name="screen_ant_shell_title_two">Trouvez votre communauté</string>
     <string name="screen_ant_shell_body_two">Discutez des sujets qui vous intéressent, partagez des idées et rencontrez des personnes qui partagent vos intérêts.</string>
+    <string name="screen_ant_web_error">Impossible de charger le fil. Vérifiez votre connexion et réessayez.</string>
+    <string name="screen_ant_web_retry">Réessayer</string>
 </resources>

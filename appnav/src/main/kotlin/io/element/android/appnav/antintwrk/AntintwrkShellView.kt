@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import io.element.android.appnav.BuildConfig
 import io.element.android.appnav.R
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.compound.tokens.generated.CompoundIcons
@@ -45,16 +46,28 @@ import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 
 @Composable
-fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier) = AntintwrkBrandTheme {
+fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier, webFeed: Boolean = false) = AntintwrkBrandTheme {
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
+    val language = LocalConfiguration.current.locales[0].language
+    val webController = if (webFeed) rememberAntintwrkWebFeedController() else null
     BackHandler(state.overlay != AntintwrkOverlay.None || state.mode != AntintwrkMode.Social || state.section != AntintwrkSection.Feed) {
         emit(AntintwrkShellEvent.Back)
     }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = AntintwrkBackground,
-        topBar = { ShellHeader(state) },
+        topBar = {
+            ShellHeader(state) {
+                if (webController != null) {
+                    emit(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
+                    val url = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).feed(language).replace("/hero-feed?", "/discover?")
+                    webController.view?.loadUrl(url)
+                } else {
+                    emit(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Search))
+                }
+            }
+        },
         bottomBar = {
             if (state.mode == AntintwrkMode.Social) {
                 NavigationBar(containerColor = AntintwrkBackground) {
@@ -94,18 +107,25 @@ fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier
         },
     ) { padding ->
         Column(Modifier.padding(padding)) {
-            Text(
+            if (!webFeed) {
+                Text(
                 stringResource(R.string.screen_ant_shell_preview),
                 Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 color = ElementTheme.colors.textSecondary,
                 style = ElementTheme.typography.fontBodyXsRegular,
             )
+            }
             if (state.mode == AntintwrkMode.Messenger) {
                 ShellEmpty(R.string.screen_ant_shell_messenger, R.string.screen_ant_shell_messenger_pending)
             } else {
                 holder.SaveableStateProvider(state.section.name) {
                     when (state.section) {
-                        AntintwrkSection.Feed -> AntintwrkFeedView(state)
+                        AntintwrkSection.Feed -> if (webController !=
+                            null) {
+                                AntintwrkWebFeed(webController, backEnabled = state.overlay == AntintwrkOverlay.None)
+                            } else {
+                                AntintwrkFeedView(state)
+                            }
                         AntintwrkSection.Communities -> ShellEmpty(state.section.label, R.string.screen_ant_shell_communities_pending)
                         AntintwrkSection.Profile -> ShellEmpty(state.section.label, R.string.screen_ant_shell_profile_pending)
                     }
@@ -117,15 +137,15 @@ fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun ShellHeader(state: AntintwrkShellState) {
+private fun ShellHeader(state: AntintwrkShellState, onSearch: () -> Unit) {
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             ShellModeTabs(state, Modifier.weight(1f))
-            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(state)
+            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(state, onSearch)
         }
         if (expanded && state.mode == AntintwrkMode.Social) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(state) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(state, onSearch) }
         }
     }
 }
@@ -157,8 +177,8 @@ private fun ShellModeTabs(state: AntintwrkShellState, modifier: Modifier) {
 }
 
 @Composable
-private fun ShellSocialActions(state: AntintwrkShellState) {
-    IconButton(onClick = { state.eventSink(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Search)) }) {
+private fun ShellSocialActions(state: AntintwrkShellState, onSearch: () -> Unit) {
+    IconButton(onClick = onSearch) {
         Icon(CompoundIcons.Search(), stringResource(R.string.screen_ant_shell_search))
     }
     IconButton(onClick = { state.eventSink(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Notifications)) }) {

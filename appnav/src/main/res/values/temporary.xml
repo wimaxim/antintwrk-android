@@ -56,4 +56,6 @@
     <string name="screen_ant_shell_author_two">Demo · Member</string>
     <string name="screen_ant_shell_title_two">Find your community</string>
     <string name="screen_ant_shell_body_two">Discuss topics that interest you, share ideas and meet people who care about the same things.</string>
+    <string name="screen_ant_web_error">Could not load the feed. Check your connection and try again.</string>
+    <string name="screen_ant_web_retry">Retry</string>
 </resources>

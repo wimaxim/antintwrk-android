@@ -56,4 +56,6 @@
     <string name="screen_ant_shell_author_two">تجريبي · عضو</string>
     <string name="screen_ant_shell_title_two">اعثر على مجتمعك</string>
     <string name="screen_ant_shell_body_two">ناقش الموضوعات التي تهمك وشارك الأفكار وتعرّف على أشخاص يشاركونك اهتماماتك.</string>
+    <string name="screen_ant_web_error">تعذّر تحميل المنشورات. تحقّق من اتصالك وحاول مرة أخرى.</string>
+    <string name="screen_ant_web_retry">إعادة المحاولة</string>
 </resources>

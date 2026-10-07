@@ -56,4 +56,6 @@
     <string name="screen_ant_shell_author_two">演示 · 成员</string>
     <string name="screen_ant_shell_title_two">寻找你的社区</string>
     <string name="screen_ant_shell_body_two">讨论你感兴趣的话题，分享想法，结识志同道合的人。</string>
+    <string name="screen_ant_web_error">无法加载动态。请检查网络连接后重试。</string>
+    <string name="screen_ant_web_retry">重试</string>
 </resources>

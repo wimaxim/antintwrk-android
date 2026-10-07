@@ -56,4 +56,6 @@
     <string name="screen_ant_shell_author_two">Demo · Membro</string>
     <string name="screen_ant_shell_title_two">Trova la tua comunità</string>
     <string name="screen_ant_shell_body_two">Parla dei temi che ti interessano, condividi idee e incontra persone con interessi simili ai tuoi.</string>
+    <string name="screen_ant_web_error">Impossibile caricare il feed. Controlla la connessione e riprova.</string>
+    <string name="screen_ant_web_retry">Riprova</string>
 </resources>
