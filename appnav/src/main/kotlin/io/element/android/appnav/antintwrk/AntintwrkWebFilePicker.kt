@@ -3,7 +3,10 @@
  */
 package io.element.android.appnav.antintwrk
 
-import android.webkit.WebChromeClient
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
+import timber.log.Timber
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -18,11 +21,11 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val callback = controller.fileCallback
         controller.fileCallback = null
-        val ownAuthority = controller.view?.context?.packageName.orEmpty() + "."
-        val selected = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-            ?.filter { it.scheme == "content" && it.authority?.startsWith(ownAuthority, ignoreCase = true) != true }
-            ?.let { if (controller.allowMultipleFiles) it else it.take(1) }
-            ?.toTypedArray()?.takeIf { it.isNotEmpty() }
+        val selected = selectedSocialFiles(
+            result.resultCode, result.data, controller.allowMultipleFiles,
+            controller.view?.context?.packageName.orEmpty(),
+        )
+        Timber.d("Social file picker callback=%s result=%d selected=%d", callback != null, result.resultCode, selected?.size ?: 0)
         callback?.onReceiveValue(selected)
     }
     controller.launchFilePicker = launcher::launch
@@ -43,4 +46,20 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
         }
     }
     controller.launchDocumentSave = saver::launch
+}
+
+/** Photo Picker returns multiple selections in ClipData, without Intent.data. */
+internal fun selectedSocialFiles(resultCode: Int, data: Intent?, multiple: Boolean, packageName: String): Array<Uri>? {
+    if (resultCode != Activity.RESULT_OK || data == null || packageName.isEmpty()) return null
+    val clip = data.clipData
+    val uris = if (clip != null) {
+        (0 until clip.itemCount.coerceAtMost(50)).mapNotNull { clip.getItemAt(it).uri }
+    } else {
+        listOfNotNull(data.data)
+    }
+    return uris.filter {
+        val authority = it.authority.orEmpty()
+        it.scheme == "content" && authority.isNotEmpty() &&
+            !authority.equals(packageName, ignoreCase = true) && !authority.startsWith("$packageName.", ignoreCase = true)
+    }.distinct().let { if (multiple) it else it.take(1) }.toTypedArray().takeIf { it.isNotEmpty() }
 }
