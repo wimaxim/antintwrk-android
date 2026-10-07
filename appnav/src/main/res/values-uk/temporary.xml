@@ -83,4 +83,15 @@
     <string name="screen_ant_menu_settings">Налаштування облікового запису</string>
     <string name="screen_ant_push_title">Сповіщення соцмережі</string>
     <string name="screen_ant_push_new">Нові сповіщення</string>
+    <string name="screen_ant_push_device">На цьому пристрої</string>
+    <string name="screen_ant_push_unavailable">Для push потрібна версія застосунку з Google Play.</string>
+    <string name="screen_ant_push_system_settings">Налаштування сповіщень Android</string>
+    <string name="screen_ant_push_failed">Не вдалося оновити сповіщення. Спробуйте ще раз.</string>
+    <string name="screen_ant_push_loading">Завантаження…</string>
+    <string name="screen_ant_push_categories">Категорії діють на всіх ваших пристроях.</string>
+    <string name="screen_ant_push_friends">Друзі</string>
+    <string name="screen_ant_push_messages">Повідомлення</string>
+    <string name="screen_ant_push_comments">Коментарі</string>
+    <string name="screen_ant_push_votes">Вподобання</string>
+    <string name="screen_ant_push_important">Важливі події</string>
 </resources>

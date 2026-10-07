@@ -5,6 +5,7 @@ package io.element.android.appnav.antintwrk
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,9 +21,11 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import io.element.android.appnav.R
+import io.element.android.libraries.architecture.bindings
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 /** Social authentication stays independent of Matrix session storage and callbacks. */
 class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = buildContext) {
@@ -31,6 +34,16 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
         val client = remember { AntintwrkNativeAuthClient() }
         val context = LocalAntintwrkActivity.current ?: LocalContext.current
         val credentials = remember { AntintwrkNativeCredentials(context) }
+        val pushStore = remember { AntintwrkSocialPushStore(context.applicationContext) }
+        val pushRegistrar =
+            remember {
+                context.bindings<AntintwrkSocialPushBindings>().socialPushRegistrars().let { options ->
+                    options.firstOrNull { it.available }
+            ?: options.first()
+                }
+            }
+        var pushOpen by remember { mutableStateOf(false) }
+        val pushRequests by AntintwrkSocialPushRoutes.opens.collectAsState()
         val presenter = remember { AntintwrkWelcomePresenter() }
         val shell = remember { AntintwrkShellPresenter() }
         val shellState = shell.present()
@@ -55,7 +68,11 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             try {
                 session = request()
                 webController.ownProfileIdentity = session?.profileIdentity
-                if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) webController.destroy()
+                if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) {
+                    pushStore.clear()
+                    pushOpen = false
+                    webController.destroy()
+                }
                 if (session?.stage == AntintwrkAuthStage.DEVICE) client.startDevice(session!!.csrf)
             } catch (required: AntintwrkRegistrationRequired) {
                 googleRegistration = required.ticket
@@ -120,6 +137,31 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             }
         }
         LifecycleEventEffect(Lifecycle.Event.ON_STOP) { if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) busy = true }
+        LaunchedEffect(session?.stage, busy) {
+            if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy && pushStore.enabled && pushRegistrar.available) {
+                pushRegistrar.register()
+            }
+        }
+        LaunchedEffect(pushRequests, session?.stage, busy) {
+            if (pushRequests > 0 && session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
+                AntintwrkSocialPushRoutes.consume()
+                shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
+                webController.navigate(AntintwrkWebPolicy(io.element.android.appnav.BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "notifications"))
+            }
+        }
+        AntintwrkPushSettings(
+            client,
+            session?.takeIf { it.stage == AntintwrkAuthStage.AUTHENTICATED }?.csrf,
+            pushOpen,
+            !busy,
+            pushRegistrar,
+            pushStore,
+            onDismiss = { pushOpen = false },
+            onAuthRequired = {
+                pushStore.clear()
+                scope.launch { runRequest { client.session() } }
+            }
+        )
         if (busy && (session == null || session?.stage == AntintwrkAuthStage.AUTHENTICATED)) {
             AntintwrkLoadingView(modifier)
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
@@ -130,8 +172,12 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 session = null
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
                 scope.launch { runRequest { client.session() } }
-            }, onSignOut = {
+            }, onPushSettings = { pushOpen = true }, onSignOut = {
                 val current = session!!
+                val pushFid = pushStore.fid
+                AntintwrkSocialPushRoutes.consume()
+                pushStore.clear()
+                pushOpen = false
                 // Hide content immediately, even if the revocation request fails.
                 shellState.eventSink(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
                 session = null
@@ -139,6 +185,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 scope.launch {
                     runRequest {
                     try {
+                        if (pushFid.isNotEmpty()) runCatching { withTimeout(5_000) { client.push("push-unsubscribe", current.csrf, mapOf("fid" to pushFid)) } }
                         client.logout(current.csrf)
                     } finally {
                         runCatching { credentials.clear() }

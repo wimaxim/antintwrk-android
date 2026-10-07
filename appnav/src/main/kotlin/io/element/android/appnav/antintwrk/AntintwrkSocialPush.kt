@@ -29,6 +29,9 @@ internal object AntintwrkSocialPushRoutes {
     fun open() {
         requests.value++
     }
+    fun consume() {
+        requests.value = 0
+    }
 }
 
 internal class AntintwrkSocialPushStore(val context: Context) {

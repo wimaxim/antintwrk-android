@@ -56,6 +56,7 @@ fun AntintwrkShellView(
     webFeed: Boolean = false,
     onAuthRequired: () -> Unit = {},
     onSignOut: (() -> Unit)? = null,
+    onPushSettings: (() -> Unit)? = null,
     retainedWebController: AntintwrkWebFeedController? = null,
 ) = AntintwrkBrandTheme {
     val emit = state.eventSink
@@ -99,8 +100,11 @@ fun AntintwrkShellView(
                 }
             }, onRoute = if (webController != null) {
                 { path ->
-                val url = policy.route(language, path)
-                webController.navigate(url)
+                if (path == "native-push") {
+                    onPushSettings?.invoke()
+                } else {
+                    webController.navigate(policy.route(language, path))
+                }
             }
             } else {
                 null

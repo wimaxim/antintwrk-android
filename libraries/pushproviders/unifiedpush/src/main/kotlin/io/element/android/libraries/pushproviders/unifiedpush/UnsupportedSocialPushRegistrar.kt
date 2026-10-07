@@ -2,10 +2,10 @@
 package io.element.android.libraries.pushproviders.unifiedpush
 
 import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ContributesIntoSet
 import io.element.android.libraries.push.api.SocialPushRegistrar
 
-@ContributesBinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 class UnsupportedSocialPushRegistrar : SocialPushRegistrar {
     override val available = false
     override suspend fun register(): Result<Unit> = Result.failure(UnsupportedOperationException())

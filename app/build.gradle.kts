@@ -52,7 +52,9 @@ android {
                 "Native gplay builds require antintwrkFirebaseResources for our Firebase project."
             }
         }
-        if (firebaseResources != null) sourceSets.getByName("gplay").res.srcDir(file(firebaseResources))
+        if (firebaseResources != null) sourceSets.configureEach {
+            if (name == "gplay") res.srcDir(file(firebaseResources))
+        }
     }
 
     defaultConfig {

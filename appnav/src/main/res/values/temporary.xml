@@ -83,4 +83,15 @@
     <string name="screen_ant_menu_settings">Account settings</string>
     <string name="screen_ant_push_title">Social notifications</string>
     <string name="screen_ant_push_new">New notifications</string>
+    <string name="screen_ant_push_device">On this device</string>
+    <string name="screen_ant_push_unavailable">Push requires the Google Play version of this app.</string>
+    <string name="screen_ant_push_system_settings">Android notification settings</string>
+    <string name="screen_ant_push_failed">Could not update notifications. Please try again.</string>
+    <string name="screen_ant_push_loading">Loading…</string>
+    <string name="screen_ant_push_categories">Categories apply to all your devices.</string>
+    <string name="screen_ant_push_friends">Friends</string>
+    <string name="screen_ant_push_messages">Messages</string>
+    <string name="screen_ant_push_comments">Comments</string>
+    <string name="screen_ant_push_votes">Likes</string>
+    <string name="screen_ant_push_important">Important events</string>
 </resources>

@@ -83,4 +83,15 @@
     <string name="screen_ant_menu_settings">إعدادات الحساب</string>
     <string name="screen_ant_push_title">إشعارات الشبكة الاجتماعية</string>
     <string name="screen_ant_push_new">إشعارات جديدة</string>
+    <string name="screen_ant_push_device">على هذا الجهاز</string>
+    <string name="screen_ant_push_unavailable">تتطلب إشعارات الدفع إصدار Google Play من هذا التطبيق.</string>
+    <string name="screen_ant_push_system_settings">إعدادات إشعارات Android</string>
+    <string name="screen_ant_push_failed">تعذر تحديث الإشعارات. حاول مرة أخرى.</string>
+    <string name="screen_ant_push_loading">جارٍ التحميل…</string>
+    <string name="screen_ant_push_categories">تنطبق الفئات على جميع أجهزتك.</string>
+    <string name="screen_ant_push_friends">الأصدقاء</string>
+    <string name="screen_ant_push_messages">الرسائل</string>
+    <string name="screen_ant_push_comments">التعليقات</string>
+    <string name="screen_ant_push_votes">الإعجابات</string>
+    <string name="screen_ant_push_important">أحداث مهمة</string>
 </resources>

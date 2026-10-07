@@ -2,10 +2,10 @@
 package io.element.android.libraries.pushproviders.firebase
 
 import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ContributesIntoSet
 import io.element.android.libraries.push.api.SocialPushRegistrar
 
-@ContributesBinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 class FirebaseSocialPushRegistrar(private val registerFirebaseSession: RegisterFirebaseSession) : SocialPushRegistrar {
     override val available = true
     override suspend fun register() = registerFirebaseSession()

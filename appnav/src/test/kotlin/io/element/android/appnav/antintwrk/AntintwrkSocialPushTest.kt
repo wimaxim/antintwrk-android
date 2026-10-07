@@ -32,7 +32,9 @@ class AntintwrkSocialPushTest : RobolectricTest() {
         val store = AntintwrkSocialPushStore(context)
         store.clear()
         store.bind("a".repeat(32), store.generation)
-        assertThat(AntintwrkSocialPushReceiver(context).receive(mapOf("kind" to "antintwrk.social.v1", "binding" to "b".repeat(32)))).isTrue()
+        assertThat(
+            AntintwrkSocialPushReceiver(context).receive(mapOf("kind" to "antintwrk.social.v1", "binding" to "b".repeat(32)))
+        ).isEqualTo(io.element.android.appnav.BuildConfig.ANTINTWRK_NATIVE_AUTH)
         store.clear()
     }
 }

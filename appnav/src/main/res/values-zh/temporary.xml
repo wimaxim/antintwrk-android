@@ -83,4 +83,15 @@
     <string name="screen_ant_menu_settings">账户设置</string>
     <string name="screen_ant_push_title">社交网络通知</string>
     <string name="screen_ant_push_new">新通知</string>
+    <string name="screen_ant_push_device">在此设备上</string>
+    <string name="screen_ant_push_unavailable">推送需要此应用的 Google Play 版本。</string>
+    <string name="screen_ant_push_system_settings">Android 通知设置</string>
+    <string name="screen_ant_push_failed">无法更新通知，请重试。</string>
+    <string name="screen_ant_push_loading">加载中…</string>
+    <string name="screen_ant_push_categories">通知类别适用于您的所有设备。</string>
+    <string name="screen_ant_push_friends">好友</string>
+    <string name="screen_ant_push_messages">消息</string>
+    <string name="screen_ant_push_comments">评论</string>
+    <string name="screen_ant_push_votes">点赞</string>
+    <string name="screen_ant_push_important">重要事件</string>
 </resources>

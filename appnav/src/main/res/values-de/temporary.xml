@@ -83,4 +83,15 @@
     <string name="screen_ant_menu_settings">Kontoeinstellungen</string>
     <string name="screen_ant_push_title">Benachrichtigungen des sozialen Netzwerks</string>
     <string name="screen_ant_push_new">Neue Benachrichtigungen</string>
+    <string name="screen_ant_push_device">Auf diesem Gerät</string>
+    <string name="screen_ant_push_unavailable">Push erfordert die Google-Play-Version dieser App.</string>
+    <string name="screen_ant_push_system_settings">Android-Benachrichtigungseinstellungen</string>
+    <string name="screen_ant_push_failed">Benachrichtigungen konnten nicht aktualisiert werden. Bitte erneut versuchen.</string>
+    <string name="screen_ant_push_loading">Wird geladen…</string>
+    <string name="screen_ant_push_categories">Kategorien gelten für alle deine Geräte.</string>
+    <string name="screen_ant_push_friends">Freunde</string>
+    <string name="screen_ant_push_messages">Nachrichten</string>
+    <string name="screen_ant_push_comments">Kommentare</string>
+    <string name="screen_ant_push_votes">Likes</string>
+    <string name="screen_ant_push_important">Wichtige Ereignisse</string>
 </resources>

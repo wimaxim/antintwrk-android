@@ -83,4 +83,15 @@
     <string name="screen_ant_menu_settings">Настройки аккаунта</string>
     <string name="screen_ant_push_title">Уведомления соцсети</string>
     <string name="screen_ant_push_new">Новые уведомления</string>
+    <string name="screen_ant_push_device">На этом устройстве</string>
+    <string name="screen_ant_push_unavailable">Для push нужна версия приложения с Google Play.</string>
+    <string name="screen_ant_push_system_settings">Настройки уведомлений Android</string>
+    <string name="screen_ant_push_failed">Не удалось обновить уведомления. Повторите попытку.</string>
+    <string name="screen_ant_push_loading">Загрузка…</string>
+    <string name="screen_ant_push_categories">Категории действуют на всех ваших устройствах.</string>
+    <string name="screen_ant_push_friends">Друзья</string>
+    <string name="screen_ant_push_messages">Сообщения</string>
+    <string name="screen_ant_push_comments">Комментарии</string>
+    <string name="screen_ant_push_votes">Лайки</string>
+    <string name="screen_ant_push_important">Важные события</string>
 </resources>
