@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,7 +29,10 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -74,7 +79,14 @@ fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier
                                     contentDescription = null
                                 )
                             },
-                            label = { Text(stringResource(section.label)) },
+                            label = {
+                                Text(
+                                    stringResource(section.label),
+                                    modifier = Modifier.requiredWidth((LocalConfiguration.current.screenWidthDp / 3).dp),
+                                    style = ElementTheme.typography.fontBodyXsRegular,
+                                    textAlign = TextAlign.Center,
+                                )
+                            },
                         )
                     }
                 }
@@ -106,37 +118,51 @@ fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier
 
 @Composable
 private fun ShellHeader(state: AntintwrkShellState) {
-    Row(Modifier.statusBarsPadding().padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        TabRow(
-            selectedTabIndex = state.mode.ordinal,
-            modifier = Modifier.weight(1f).clip(RoundedCornerShape(8.dp)),
-            containerColor = ElementTheme.colors.bgCanvasDefaultLevel1,
-            indicator = {},
-            divider = {},
-        ) {
-            AntintwrkMode.entries.forEach { mode ->
-                Tab(
-                    selected = state.mode == mode,
-                    onClick = { state.eventSink(AntintwrkShellEvent.Mode(mode)) },
-                    selectedContentColor = ElementTheme.materialColors.primary,
-                    unselectedContentColor = ElementTheme.colors.textSecondary,
-                    text = {
-                        Text(
-                            stringResource(if (mode == AntintwrkMode.Social) R.string.screen_ant_shell_social else R.string.screen_ant_shell_messenger),
-                        style = ElementTheme.typography.fontBodySmRegular
-                        )
-                    },
+    val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
+    Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ShellModeTabs(state, Modifier.weight(1f))
+            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(state)
+        }
+        if (expanded && state.mode == AntintwrkMode.Social) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(state) }
+        }
+    }
+}
+
+@Composable
+private fun ShellModeTabs(state: AntintwrkShellState, modifier: Modifier) {
+    TabRow(
+        selectedTabIndex = state.mode.ordinal,
+        modifier = modifier.clip(RoundedCornerShape(8.dp)),
+        containerColor = ElementTheme.colors.bgCanvasDefaultLevel1,
+        indicator = {},
+        divider = {},
+    ) {
+        AntintwrkMode.entries.forEach { mode ->
+            Tab(
+                selected = state.mode == mode,
+                onClick = { state.eventSink(AntintwrkShellEvent.Mode(mode)) },
+                selectedContentColor = ElementTheme.materialColors.primary,
+                unselectedContentColor = ElementTheme.colors.textSecondary,
+            ) {
+                Text(
+                    stringResource(if (mode == AntintwrkMode.Social) R.string.screen_ant_shell_social else R.string.screen_ant_shell_messenger),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+                    style = ElementTheme.typography.fontBodySmRegular,
                 )
             }
         }
-        if (state.mode == AntintwrkMode.Social) {
-            IconButton(onClick = { state.eventSink(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Search)) }) {
-                Icon(CompoundIcons.Search(), stringResource(R.string.screen_ant_shell_search))
-            }
-            IconButton(onClick = { state.eventSink(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Notifications)) }) {
-                Icon(CompoundIcons.Notifications(), stringResource(R.string.screen_ant_shell_notifications))
-            }
-        }
+    }
+}
+
+@Composable
+private fun ShellSocialActions(state: AntintwrkShellState) {
+    IconButton(onClick = { state.eventSink(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Search)) }) {
+        Icon(CompoundIcons.Search(), stringResource(R.string.screen_ant_shell_search))
+    }
+    IconButton(onClick = { state.eventSink(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Notifications)) }) {
+        Icon(CompoundIcons.Notifications(), stringResource(R.string.screen_ant_shell_notifications))
     }
 }
 

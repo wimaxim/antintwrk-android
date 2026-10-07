@@ -11,6 +11,7 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.getBoundsInRoot
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
@@ -73,11 +74,23 @@ class AntintwrkShellViewTest : RobolectricTest() {
     }
 
     @Test
+    fun `search matches localized demo text`() = runAndroidComposeUiTest {
+        val presenter = AntintwrkShellPresenter()
+        setSafeContent { ElementTheme { AntintwrkShellView(presenter.present()) } }
+        onNode(hasText("Profile") and hasClickAction()).performClick()
+        onNodeWithContentDescription("Search").performClick()
+        onNode(hasSetTextAction()).performTextInput("  CONVERSATIONS  ")
+        onNodeWithText("A place for conversations").assertIsDisplayed()
+        onNodeWithText("Find your community").assertDoesNotExist()
+    }
+
+    @Test
     fun `local vote and feed scope survive switching away from the feed`() = runAndroidComposeUiTest {
         val presenter = AntintwrkShellPresenter()
         setSafeContent { ElementTheme { AntintwrkShellView(presenter.present()) } }
         onNodeWithText("My network").performClick()
         onNodeWithTag("demo-post-2").assertDoesNotExist()
+        onNodeWithTag("antintwrk-feed").performScrollToNode(hasContentDescription("Interesting"))
         onAllNodesWithContentDescription("Interesting")[0].performClick()
         onNodeWithTag("demo-vote-1").assertTextEquals("1")
         onNode(hasText("Messenger") and hasClickAction()).performClick()
