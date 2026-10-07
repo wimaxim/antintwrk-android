@@ -81,4 +81,6 @@
     <string name="screen_ant_auth_password_requirements">Используйте 8–128 символов: заглавную и строчную буквы, цифру и специальный символ.</string>
     <string name="screen_ant_auth_request_error">Не удалось выполнить запрос. Проверьте данные и подключение, затем повторите.</string>
     <string name="screen_ant_menu_settings">Настройки аккаунта</string>
+    <string name="screen_ant_push_title">Уведомления соцсети</string>
+    <string name="screen_ant_push_new">Новые уведомления</string>
 </resources>

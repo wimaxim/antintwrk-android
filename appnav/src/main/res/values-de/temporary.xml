@@ -81,4 +81,6 @@
     <string name="screen_ant_auth_password_requirements">Verwende 8–128 Zeichen mit Groß- und Kleinbuchstaben, einer Zahl und einem Sonderzeichen.</string>
     <string name="screen_ant_auth_request_error">Die Anfrage konnte nicht abgeschlossen werden. Prüfe deine Angaben und Verbindung und versuche es erneut.</string>
     <string name="screen_ant_menu_settings">Kontoeinstellungen</string>
+    <string name="screen_ant_push_title">Benachrichtigungen des sozialen Netzwerks</string>
+    <string name="screen_ant_push_new">Neue Benachrichtigungen</string>
 </resources>

@@ -41,10 +41,26 @@ plugins {
 android {
     namespace = "io.element.android.x"
 
+    // Own FCM resources override upstream values only in the native social build.
+    if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) {
+        val firebaseResources = providers.gradleProperty("antintwrkFirebaseResources").orNull
+        if (gradle.startParameter.taskNames.any {
+                it.contains("Gplay", ignoreCase = true) ||
+                    ((it.contains("assemble", ignoreCase = true) || it.contains("bundle", ignoreCase = true)) && !it.contains("fdroid", ignoreCase = true))
+            }) {
+            require(firebaseResources != null && file("$firebaseResources/values/firebase.xml").isFile) {
+                "Native gplay builds require antintwrkFirebaseResources for our Firebase project."
+            }
+        }
+        if (firebaseResources != null) sourceSets.getByName("gplay").res.srcDir(file(firebaseResources))
+    }
+
     defaultConfig {
         applicationId =
             if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) "com.antintwrk.app" else BuildTimeConfig.APPLICATION_ID
         targetSdk = Versions.TARGET_SDK
+        manifestPlaceholders["antintwrkFirebaseAutoInit"] =
+            !providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()
         resValue(
             "string",
             "antintwrk_native_asset_statements",

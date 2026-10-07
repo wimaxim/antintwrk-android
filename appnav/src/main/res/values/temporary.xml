@@ -81,4 +81,6 @@
     <string name="screen_ant_auth_password_requirements">Use 8–128 characters with uppercase, lowercase, a number and a special character.</string>
     <string name="screen_ant_auth_request_error">Could not complete the request. Check your details and connection, then try again.</string>
     <string name="screen_ant_menu_settings">Account settings</string>
+    <string name="screen_ant_push_title">Social notifications</string>
+    <string name="screen_ant_push_new">New notifications</string>
 </resources>

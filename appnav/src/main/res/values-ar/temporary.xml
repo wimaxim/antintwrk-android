@@ -81,4 +81,6 @@
     <string name="screen_ant_auth_password_requirements">استخدم 8–128 رمزًا تتضمن حرفًا كبيرًا وحرفًا صغيرًا ورقمًا ورمزًا خاصًا.</string>
     <string name="screen_ant_auth_request_error">تعذر إكمال الطلب. تحقق من البيانات والاتصال ثم حاول مجددًا.</string>
     <string name="screen_ant_menu_settings">إعدادات الحساب</string>
+    <string name="screen_ant_push_title">إشعارات الشبكة الاجتماعية</string>
+    <string name="screen_ant_push_new">إشعارات جديدة</string>
 </resources>

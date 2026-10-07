@@ -81,4 +81,6 @@
     <string name="screen_ant_auth_password_requirements">请使用8至128个字符，包含大写字母、小写字母、数字和特殊字符。</string>
     <string name="screen_ant_auth_request_error">无法完成请求。请检查信息和网络连接，然后重试。</string>
     <string name="screen_ant_menu_settings">账户设置</string>
+    <string name="screen_ant_push_title">社交网络通知</string>
+    <string name="screen_ant_push_new">新通知</string>
 </resources>

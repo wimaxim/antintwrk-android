@@ -15,6 +15,7 @@ import dev.zacsweers.metro.Inject
 import io.element.android.libraries.architecture.bindings
 import io.element.android.libraries.core.log.logger.LoggerTag
 import io.element.android.libraries.di.annotations.AppCoroutineScope
+import io.element.android.libraries.push.api.SocialPushReceiver
 import io.element.android.libraries.push.api.push.FetchPushForegroundServiceManager
 import io.element.android.libraries.pushproviders.api.PushHandler
 import kotlinx.coroutines.CoroutineScope
@@ -27,6 +28,7 @@ class VectorFirebaseMessagingService : FirebaseMessagingService() {
     @Inject lateinit var firebaseNewInstallationIdHandler: FirebaseNewInstallationIdHandler
     @Inject lateinit var pushParser: FirebasePushParser
     @Inject lateinit var pushHandler: PushHandler
+    @Inject lateinit var socialPushReceiver: SocialPushReceiver
     @Inject lateinit var fetchPushForegroundServiceManager: FetchPushForegroundServiceManager
     @AppCoroutineScope
     @Inject lateinit var coroutineScope: CoroutineScope
@@ -41,11 +43,13 @@ class VectorFirebaseMessagingService : FirebaseMessagingService() {
 
         Timber.tag(loggerTag.value).w("New Firebase installation id")
         coroutineScope.launch {
+            socialPushReceiver.registered(installationId)
             firebaseNewInstallationIdHandler.handle(installationId)
         }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
+        if (socialPushReceiver.receive(message.data)) return
         Timber.tag(loggerTag.value).w("New Firebase message. Priority: ${message.priority}/${message.originalPriority}")
 
         val isHighPriority = message.priority == PRIORITY_HIGH

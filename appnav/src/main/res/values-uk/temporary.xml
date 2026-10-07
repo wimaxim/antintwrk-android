@@ -81,4 +81,6 @@
     <string name="screen_ant_auth_password_requirements">Використовуйте 8–128 символів: велику й малу літери, цифру та спеціальний символ.</string>
     <string name="screen_ant_auth_request_error">Не вдалося виконати запит. Перевірте дані й з’єднання та повторіть.</string>
     <string name="screen_ant_menu_settings">Налаштування облікового запису</string>
+    <string name="screen_ant_push_title">Сповіщення соцмережі</string>
+    <string name="screen_ant_push_new">Нові сповіщення</string>
 </resources>

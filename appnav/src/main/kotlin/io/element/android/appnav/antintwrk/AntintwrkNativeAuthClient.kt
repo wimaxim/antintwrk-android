@@ -114,6 +114,11 @@ internal class AntintwrkNativeAuthClient(
         post("device-start", mapOf("csrf" to csrf))
     }
 
+    suspend fun push(action: String, csrf: String, fields: Map<String, String> = emptyMap()): JSONObject {
+        require(action in setOf("push-settings", "push-preferences", "push-subscribe", "push-unsubscribe"))
+        return JSONObject(post(action, fields + ("csrf" to csrf)))
+    }
+
     suspend fun confirm(stage: AntintwrkAuthStage, code: String, csrf: String): AntintwrkAuthSession {
         val result = post(if (stage == AntintwrkAuthStage.DEVICE) "device-verify" else "totp", mapOf("code" to code, "csrf" to csrf))
         if (stage == AntintwrkAuthStage.TOTP) require(org.json.JSONArray(result).optString(0) == "OK")

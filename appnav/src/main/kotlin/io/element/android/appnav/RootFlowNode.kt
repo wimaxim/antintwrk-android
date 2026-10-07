@@ -33,6 +33,7 @@ import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.JoinedRoom
 import io.element.android.annotations.ContributesNode
 import io.element.android.appnav.antintwrk.AntintwrkLoadingView
+import io.element.android.appnav.antintwrk.AntintwrkSocialPushRoutes
 import io.element.android.appnav.intent.IntentResolver
 import io.element.android.appnav.intent.ResolvedIntent
 import io.element.android.appnav.room.RoomFlowNode
@@ -401,6 +402,10 @@ class RootFlowNode(
     }
 
     suspend fun handleIntent(intent: Intent) {
+        if (BuildConfig.ANTINTWRK_NATIVE_AUTH && intent.action == AntintwrkSocialPushRoutes.ACTION) {
+            AntintwrkSocialPushRoutes.open()
+            return
+        }
         val resolvedIntent = intentResolver.resolve(intent) ?: return
         when (resolvedIntent) {
             is ResolvedIntent.Navigation -> {

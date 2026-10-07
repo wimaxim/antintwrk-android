@@ -29,6 +29,7 @@
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/automotive_app_desc" />
         <meta-data android:name="asset_statements" android:resource="@string/antintwrk_native_asset_statements" />
+        <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="${antintwrkFirebaseAutoInit}" />
 
         <provider
             android:name="androidx.startup.InitializationProvider"
