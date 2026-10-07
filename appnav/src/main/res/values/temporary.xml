@@ -98,4 +98,5 @@
     <string name="screen_ant_source">Source code</string>
     <string name="screen_ant_licences_failed">Licences could not be loaded.</string>
     <string name="screen_ant_menu_privacy">Privacy</string>
+    <string name="screen_ant_auth_login_fields">Enter a valid email address and your password.</string>
 </resources>

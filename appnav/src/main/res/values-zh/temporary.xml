@@ -98,4 +98,5 @@
     <string name="screen_ant_source">源代码</string>
     <string name="screen_ant_licences_failed">无法加载许可证。</string>
     <string name="screen_ant_menu_privacy">隐私</string>
+    <string name="screen_ant_auth_login_fields">请输入有效的电子邮箱地址和你的密码。</string>
 </resources>

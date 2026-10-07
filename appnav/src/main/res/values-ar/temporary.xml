@@ -98,4 +98,5 @@
     <string name="screen_ant_source">الشيفرة المصدرية</string>
     <string name="screen_ant_licences_failed">تعذر تحميل التراخيص.</string>
     <string name="screen_ant_menu_privacy">الخصوصية</string>
+    <string name="screen_ant_auth_login_fields">أدخل عنوان بريد إلكتروني صالحًا وكلمة مرورك.</string>
 </resources>

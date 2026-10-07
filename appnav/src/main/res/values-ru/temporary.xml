@@ -98,4 +98,5 @@
     <string name="screen_ant_source">Исходный код</string>
     <string name="screen_ant_licences_failed">Не удалось загрузить лицензии.</string>
     <string name="screen_ant_menu_privacy">Конфиденциальность</string>
+    <string name="screen_ant_auth_login_fields">Введите корректный email и ваш пароль.</string>
 </resources>

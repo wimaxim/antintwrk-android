@@ -1,5 +1,11 @@
 # Сохранение этапов разработки antintwrk
 
+## Real-account audit started — 7 October 2026
+
+The owner explicitly requested registering a designated test mailbox in the app and checking registration/email activation, sign-in/sign-out/repeat sign-in and internal social screens. This overrides the earlier prohibition on creating QA accounts for this designated flow only. The mailbox is available in the owner's Chrome tab; no registration or credential submission has been performed yet.
+
+Static audit confirmed that native login dispatched incomplete credentials and used a potentially expired remembered CSRF. The presenter now validates email/nonempty password without imposing new-account password rules on existing accounts. The native node suppresses invalid requests and fetches a fresh protected session before each password submission. A dedicated field message is translated into all9 social locales; existing network/server messages are not duplicated.45 social tests pass with no failures/errors/skipped, all9 locale keysets match, and own Firebase gplayDebug builds. These checks do not establish a successful real-account flow. Interactive emulator access remains pending: the computer-use tool does not recognize the standalone emulator app; Android Studio's native file-dialog input is unreliable. The owner has been asked whether ADB UI control is allowed for this audit. No security or attempt limits were disabled. No push.
+
 ## Нативная регистрация и восстановление — 7 октября 2026
 
 Email register/reset подключены к защищённому native adapter прежнего register.php. Нативные формы больше не являются предпросмотром в native-сборке; есть сообщения о следующем шаге в письме и возврат ко входу. Google newcomer проходит отдельный профиль/18+/согласие, затем одноразовый cookie-bound ticket допускается прежним writer. Реальный email/Google account не создавался для QA. После Google-входа/регистрации клиент снова проверяет admission; 2FA сохраняется. Новые строки на девяти языках. Проверены35 Android-тестов, PHP lint, профиль +9 отказных границ и16 живых отрицательных HTTP-проверок. File picker зарегистрирован выше сменяющихся auth-экранов, чтобы выбор не терялся при проверке после фона. Полный этап соцсети и итоговая приёмка ещё продолжаются; push не выполнялся.

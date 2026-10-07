@@ -98,4 +98,5 @@
     <string name="screen_ant_source">Вихідний код</string>
     <string name="screen_ant_licences_failed">Не вдалося завантажити ліцензії.</string>
     <string name="screen_ant_menu_privacy">Конфіденційність</string>
+    <string name="screen_ant_auth_login_fields">Введіть дійсну адресу електронної пошти та свій пароль.</string>
 </resources>

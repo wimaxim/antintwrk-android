@@ -98,4 +98,5 @@
     <string name="screen_ant_source">Code source</string>
     <string name="screen_ant_licences_failed">Impossible de charger les licences.</string>
     <string name="screen_ant_menu_privacy">Confidentialité</string>
+    <string name="screen_ant_auth_login_fields">Saisissez une adresse e-mail valide et votre mot de passe.</string>
 </resources>

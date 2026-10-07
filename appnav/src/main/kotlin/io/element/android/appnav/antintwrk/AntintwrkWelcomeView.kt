@@ -201,6 +201,8 @@ fun AntintwrkWelcomeView(
             if (state.error) {
                 Text(stringResource(if (state.page == AntintwrkPage.Profile) {
                     R.string.screen_antintwrk_profile_error
+                } else if (state.page == AntintwrkPage.Login) {
+                    R.string.screen_ant_auth_login_fields
                 } else {
                     R.string.screen_antintwrk_credentials_error
                 }), color = ElementTheme.colors.textCriticalPrimary)

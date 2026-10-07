@@ -228,10 +228,16 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                     !AntintwrkRegistrationRules.strongPassword(state.password)) {
                     serverMessage = passwordError
                 } else if (!busy && event == AntintwrkWelcomeEvent.Continue && state.page == AntintwrkPage.Login) {
-                    val email = state.email
-                    val password = state.password
-                    state.eventSink(AntintwrkWelcomeEvent.Password(""))
-                    scope.launch { runRequest { client.login(email, password, language, (session ?: client.session()).csrf) } }
+                    if (!presenter.canSignIn(state)) {
+                        failed = false
+                        serverMessage = ""
+                        state.eventSink(event)
+                    } else {
+                        val email = state.email
+                        val password = state.password
+                        state.eventSink(AntintwrkWelcomeEvent.Password(""))
+                        scope.launch { runRequest { client.login(email, password, language, client.session().csrf) } }
+                    }
                 } else if (!busy && event == AntintwrkWelcomeEvent.Continue && state.page in setOf(AntintwrkPage.Profile, AntintwrkPage.Reset)) {
                     if (state.page == AntintwrkPage.Profile && (state.firstName.isBlank() || state.birthdate.isBlank() || !state.agreed)) {
                         state.eventSink(event)

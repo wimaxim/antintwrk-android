@@ -98,4 +98,5 @@
     <string name="screen_ant_source">Quellcode</string>
     <string name="screen_ant_licences_failed">Lizenzen konnten nicht geladen werden.</string>
     <string name="screen_ant_menu_privacy">Datenschutz</string>
+    <string name="screen_ant_auth_login_fields">Gib eine gültige E-Mail-Adresse und dein Passwort ein.</string>
 </resources>
