@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">Habla de los temas que te interesan, comparte ideas y conoce a personas con intereses similares.</string>
     <string name="screen_ant_web_error">No se pudo cargar el inicio. Comprueba la conexión e inténtalo de nuevo.</string>
     <string name="screen_ant_web_retry">Reintentar</string>
+    <string name="screen_ant_auth_device">Introduce el código enviado por correo</string>
+    <string name="screen_ant_auth_totp">Introduce el código de tu autenticador</string>
+    <string name="screen_ant_auth_setup">Configura la autenticación de dos factores en el sitio web y vuelve a la aplicación</string>
+    <string name="screen_ant_auth_code">Código</string>
+    <string name="screen_ant_auth_error">No se pudo iniciar sesión. Revisa tus datos o la conexión e inténtalo de nuevo.</string>
+    <string name="screen_ant_auth_logout">Cerrar sesión</string>
 </resources>

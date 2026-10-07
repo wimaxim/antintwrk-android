@@ -103,7 +103,7 @@ internal fun rememberAntintwrkWebFeedController(): AntintwrkWebFeedController {
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnabled: Boolean) {
+internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnabled: Boolean, onAuthRequired: () -> Unit = {}) {
     val policy = remember { AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN) }
     val language = LocalConfiguration.current.locales[0].language
     val uriHandler = LocalUriHandler.current
@@ -117,6 +117,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                     controller.view = this
                     setBackgroundColor(Color(0xFF101214).toArgb())
                     settings.apply {
+                        if (BuildConfig.ANTINTWRK_NATIVE_AUTH) userAgentString = AntintwrkNativeAuthClient.USER_AGENT
                         javaScriptEnabled = true
                         domStorageEnabled = true
                         allowFileAccess = false
@@ -160,6 +161,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             if (request.isForMainFrame) {
                                 controller.failed = true
                                 controller.loading = false
+                                if (response.statusCode == 401) onAuthRequired()
                             }
                         }
                     }

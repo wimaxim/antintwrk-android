@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">Discuss topics that interest you, share ideas and meet people who care about the same things.</string>
     <string name="screen_ant_web_error">Could not load the feed. Check your connection and try again.</string>
     <string name="screen_ant_web_retry">Retry</string>
+    <string name="screen_ant_auth_device">Enter the code sent to your email</string>
+    <string name="screen_ant_auth_totp">Enter your authenticator code</string>
+    <string name="screen_ant_auth_setup">Set up two-factor authentication on the website, then return to the app</string>
+    <string name="screen_ant_auth_code">Code</string>
+    <string name="screen_ant_auth_error">Sign-in failed. Check your details or connection and try again.</string>
+    <string name="screen_ant_auth_logout">Sign out</string>
 </resources>

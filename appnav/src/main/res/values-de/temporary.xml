@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">Diskutiere Themen, die dich interessieren, teile Ideen und lerne Menschen mit ähnlichen Interessen kennen.</string>
     <string name="screen_ant_web_error">Der Feed konnte nicht geladen werden. Prüfe die Verbindung und versuche es erneut.</string>
     <string name="screen_ant_web_retry">Erneut versuchen</string>
+    <string name="screen_ant_auth_device">Gib den Code aus der E-Mail ein</string>
+    <string name="screen_ant_auth_totp">Gib den Code deiner Authenticator-App ein</string>
+    <string name="screen_ant_auth_setup">Richte die Zwei-Faktor-Authentifizierung auf der Website ein und kehre zur App zurück</string>
+    <string name="screen_ant_auth_code">Code</string>
+    <string name="screen_ant_auth_error">Anmeldung fehlgeschlagen. Prüfe deine Angaben oder Verbindung und versuche es erneut.</string>
+    <string name="screen_ant_auth_logout">Abmelden</string>
 </resources>

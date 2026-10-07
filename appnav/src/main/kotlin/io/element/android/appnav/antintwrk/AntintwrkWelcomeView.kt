@@ -85,6 +85,7 @@ fun AntintwrkWelcomeView(
             AntintwrkPage.Reset -> R.string.screen_antintwrk_reset
         }
         Text(stringResource(title), style = ElementTheme.typography.fontHeadingMdBold)
+        if (state.networkError) Text(stringResource(R.string.screen_ant_auth_error), color = ElementTheme.colors.textCriticalPrimary)
         if (state.page == AntintwrkPage.Welcome) {
             Text(stringResource(R.string.screen_antintwrk_intro), style = ElementTheme.typography.fontBodyLgRegular)
             Spacer(Modifier.height(32.dp))
@@ -99,7 +100,9 @@ fun AntintwrkWelcomeView(
                 Modifier.fillMaxWidth()
             )
         } else {
-            Text(stringResource(R.string.screen_antintwrk_preview), color = ElementTheme.colors.textSecondary)
+            if (!state.nativeLogin || state.page != AntintwrkPage.Login) {
+                Text(stringResource(R.string.screen_antintwrk_preview), color = ElementTheme.colors.textSecondary)
+            }
             if (state.page == AntintwrkPage.Login || state.page == AntintwrkPage.Register) {
                 AntintwrkProviderButtons(
                     showPasskey = state.page == AntintwrkPage.Login,
@@ -197,6 +200,7 @@ fun AntintwrkWelcomeView(
                 { emit(AntintwrkWelcomeEvent.Continue) },
                 Modifier.fillMaxWidth()
             )
+            if (state.busy) CircularProgressIndicator()
             if (state.page == AntintwrkPage.Login) {
                 TextButton(stringResource(R.string.screen_antintwrk_reset), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Reset)) })
             }

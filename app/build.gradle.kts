@@ -42,7 +42,8 @@ android {
     namespace = "io.element.android.x"
 
     defaultConfig {
-        applicationId = BuildTimeConfig.APPLICATION_ID
+        applicationId =
+            if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) "com.antintwrk.app" else BuildTimeConfig.APPLICATION_ID
         targetSdk = Versions.TARGET_SDK
         versionCode = Versions.VERSION_CODE
         versionName = Versions.VERSION_NAME
@@ -84,7 +85,11 @@ android {
         getByName("debug") {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
-            storeFile = file("./signature/debug.keystore")
+            storeFile = if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) {
+                file(providers.gradleProperty("antintwrkNativeKeystore").get())
+            } else {
+                file("./signature/debug.keystore")
+            }
             storePassword = "android"
         }
         register("nightly") {

@@ -16,6 +16,9 @@ data class AntintwrkWelcomeState(
     val showPassword: Boolean = false,
     val error: Boolean = false,
     val unavailable: Boolean = false,
+    val nativeLogin: Boolean = false,
+    val busy: Boolean = false,
+    val networkError: Boolean = false,
     val eventSink: (AntintwrkWelcomeEvent) -> Unit = {},
 )
 

@@ -24,6 +24,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
+import io.element.android.appnav.antintwrk.AntintwrkNativeAuthNode
 import io.element.android.appnav.antintwrk.AntintwrkShellNode
 import io.element.android.appnav.antintwrk.AntintwrkWelcomeNode
 import io.element.android.features.login.api.LoginEntryPoint
@@ -89,6 +90,7 @@ class NotLoggedInFlowNode(
         return when (navTarget) {
             NavTarget.Root -> {
                 if (BuildConfig.ANTINTWRK_ONBOARDING && inputs.loginParams == null) {
+                    if (BuildConfig.ANTINTWRK_NATIVE_AUTH) return AntintwrkNativeAuthNode(buildContext)
                     if (BuildConfig.DEBUG && BuildConfig.ANTINTWRK_SHELL_PREVIEW) return AntintwrkShellNode(buildContext)
                     return AntintwrkWelcomeNode(buildContext)
                 }

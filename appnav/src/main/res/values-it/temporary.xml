@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">Parla dei temi che ti interessano, condividi idee e incontra persone con interessi simili ai tuoi.</string>
     <string name="screen_ant_web_error">Impossibile caricare il feed. Controlla la connessione e riprova.</string>
     <string name="screen_ant_web_retry">Riprova</string>
+    <string name="screen_ant_auth_device">Inserisci il codice ricevuto via email</string>
+    <string name="screen_ant_auth_totp">Inserisci il codice della tua app di autenticazione</string>
+    <string name="screen_ant_auth_setup">Configura l’autenticazione a due fattori sul sito, poi torna all’app</string>
+    <string name="screen_ant_auth_code">Codice</string>
+    <string name="screen_ant_auth_error">Accesso non riuscito. Controlla i dati o la connessione e riprova.</string>
+    <string name="screen_ant_auth_logout">Esci</string>
 </resources>

@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">Обговорюйте цікаві вам теми, діліться ідеями та знайомтеся з людьми зі схожими інтересами.</string>
     <string name="screen_ant_web_error">Не вдалося завантажити стрічку. Перевірте з’єднання та спробуйте ще раз.</string>
     <string name="screen_ant_web_retry">Повторити</string>
+    <string name="screen_ant_auth_device">Введіть код із листа</string>
+    <string name="screen_ant_auth_totp">Введіть код із застосунку-автентифікатора</string>
+    <string name="screen_ant_auth_setup">Налаштуйте двофакторну авторизацію на сайті, потім поверніться до застосунку</string>
+    <string name="screen_ant_auth_code">Код</string>
+    <string name="screen_ant_auth_error">Не вдалося ввійти. Перевірте дані або з’єднання та повторіть спробу.</string>
+    <string name="screen_ant_auth_logout">Вийти</string>
 </resources>

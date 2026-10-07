@@ -5,6 +5,7 @@ package io.element.android.appnav.antintwrk
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,7 +47,13 @@ import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 
 @Composable
-fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier, webFeed: Boolean = false) = AntintwrkBrandTheme {
+fun AntintwrkShellView(
+    state: AntintwrkShellState,
+    modifier: Modifier = Modifier,
+    webFeed: Boolean = false,
+    onAuthRequired: () -> Unit = {},
+    onSignOut: (() -> Unit)? = null,
+) = AntintwrkBrandTheme {
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
     val language = LocalConfiguration.current.locales[0].language
@@ -122,12 +129,15 @@ fun AntintwrkShellView(state: AntintwrkShellState, modifier: Modifier = Modifier
                     when (state.section) {
                         AntintwrkSection.Feed -> if (webController !=
                             null) {
-                                AntintwrkWebFeed(webController, backEnabled = state.overlay == AntintwrkOverlay.None)
+                                AntintwrkWebFeed(webController, backEnabled = state.overlay == AntintwrkOverlay.None, onAuthRequired = onAuthRequired)
                             } else {
                                 AntintwrkFeedView(state)
                             }
                         AntintwrkSection.Communities -> ShellEmpty(state.section.label, R.string.screen_ant_shell_communities_pending)
-                        AntintwrkSection.Profile -> ShellEmpty(state.section.label, R.string.screen_ant_shell_profile_pending)
+                        AntintwrkSection.Profile -> Column(Modifier.fillMaxSize()) {
+                            Box(Modifier.weight(1f)) { ShellEmpty(state.section.label, R.string.screen_ant_shell_profile_pending) }
+                            if (onSignOut != null) TextButton(stringResource(R.string.screen_ant_auth_logout), onSignOut)
+                        }
                     }
                 }
             }

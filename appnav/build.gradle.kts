@@ -33,6 +33,7 @@ android {
             providers.gradleProperty("antintwrkShellPreview").map { it.toBoolean().toString() }.orElse("false").get()
         )
         buildConfigField("String", "ANTINTWRK_SOCIAL_ORIGIN", "\"https://antintwrk.com\"")
+        buildConfigField("boolean", "ANTINTWRK_NATIVE_AUTH", providers.gradleProperty("antintwrkNativeAuth").orElse("false").get())
         buildConfigField(
             "boolean",
             "ANTINTWRK_WEB_FEED",
@@ -68,6 +69,8 @@ dependencies {
     implementation(projects.features.login.api)
 
     implementation(libs.coil)
+    implementation(platform(libs.network.okhttp.bom))
+    implementation(libs.network.okhttp)
 
     implementation(projects.features.announcement.api)
     implementation(projects.features.ftue.api)
@@ -79,6 +82,7 @@ dependencies {
     implementation(projects.services.analytics.api)
 
     testCommonDependencies(libs, true)
+    testImplementation(libs.network.mockwebserver)
     testImplementation(projects.features.login.test)
     testImplementation(projects.features.share.test)
     testImplementation(projects.libraries.accountselect.test)

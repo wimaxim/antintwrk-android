@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">Discutez des sujets qui vous intéressent, partagez des idées et rencontrez des personnes qui partagent vos intérêts.</string>
     <string name="screen_ant_web_error">Impossible de charger le fil. Vérifiez votre connexion et réessayez.</string>
     <string name="screen_ant_web_retry">Réessayer</string>
+    <string name="screen_ant_auth_device">Saisissez le code envoyé par e-mail</string>
+    <string name="screen_ant_auth_totp">Saisissez le code de votre application d’authentification</string>
+    <string name="screen_ant_auth_setup">Configurez l’authentification à deux facteurs sur le site, puis revenez dans l’application</string>
+    <string name="screen_ant_auth_code">Code</string>
+    <string name="screen_ant_auth_error">Connexion impossible. Vérifiez vos identifiants ou votre connexion et réessayez.</string>
+    <string name="screen_ant_auth_logout">Se déconnecter</string>
 </resources>

@@ -132,9 +132,10 @@ internal fun AntintwrkWordmark() {
 }
 
 @Composable
-internal fun AntintwrkPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+internal fun AntintwrkPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     androidx.compose.material3.Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = modifier.heightIn(min = 52.dp),
         shape = RoundedCornerShape(4.dp),
         colors = ButtonDefaults.buttonColors(containerColor = AntintwrkCoral, contentColor = AntintwrkOnCoral),

@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">ناقش الموضوعات التي تهمك وشارك الأفكار وتعرّف على أشخاص يشاركونك اهتماماتك.</string>
     <string name="screen_ant_web_error">تعذّر تحميل المنشورات. تحقّق من اتصالك وحاول مرة أخرى.</string>
     <string name="screen_ant_web_retry">إعادة المحاولة</string>
+    <string name="screen_ant_auth_device">أدخل الرمز المرسل إلى بريدك الإلكتروني</string>
+    <string name="screen_ant_auth_totp">أدخل رمز تطبيق المصادقة</string>
+    <string name="screen_ant_auth_setup">فعّل المصادقة الثنائية على الموقع ثم ارجع إلى التطبيق</string>
+    <string name="screen_ant_auth_code">الرمز</string>
+    <string name="screen_ant_auth_error">تعذّر تسجيل الدخول. تحقق من بياناتك أو الاتصال وحاول مجددًا.</string>
+    <string name="screen_ant_auth_logout">تسجيل الخروج</string>
 </resources>

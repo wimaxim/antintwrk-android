@@ -58,4 +58,10 @@
     <string name="screen_ant_shell_body_two">Обсуждайте интересные вам темы, делитесь идеями и знакомьтесь с людьми, которым близки ваши интересы.</string>
     <string name="screen_ant_web_error">Не удалось загрузить ленту. Проверьте соединение и повторите попытку.</string>
     <string name="screen_ant_web_retry">Повторить</string>
+    <string name="screen_ant_auth_device">Введите код из письма</string>
+    <string name="screen_ant_auth_totp">Введите код из приложения-аутентификатора</string>
+    <string name="screen_ant_auth_setup">Настройте двухфакторную авторизацию на сайте, затем вернитесь в приложение</string>
+    <string name="screen_ant_auth_code">Код</string>
+    <string name="screen_ant_auth_error">Не удалось войти. Проверьте данные или соединение и повторите попытку.</string>
+    <string name="screen_ant_auth_logout">Выйти</string>
 </resources>
