@@ -80,11 +80,51 @@ class AntintwrkNativeAuthClientTest {
 
     @Test
     fun `device success redirect is not followed and still requires server admission`() = runTest {
-        server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "https://example.invalid"))
+        server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "/"))
         server.enqueue(session("AUTHENTICATED"))
         assertThat(client.confirm(AntintwrkAuthStage.DEVICE, "1234", csrf).stage).isEqualTo(AntintwrkAuthStage.AUTHENTICATED)
         assertThat(server.takeRequest().body.readUtf8()).contains("action=device-verify")
         assertThat(server.takeRequest().body.readUtf8()).isEqualTo("action=session")
+    }
+
+    @Test
+    fun `local engine login redirects require cookie backed admission and are never followed`() = runTest {
+        for (stage in listOf("DEVICE", "TOTP", "AUTHENTICATED", "LOGIN")) {
+            server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "/"))
+            server.enqueue(session(stage))
+            val result = runCatching { client.login("member@example.invalid", "fixture-password", "en", csrf) }
+            if (stage == "LOGIN") assertThat(result.isFailure).isTrue()
+            else assertThat(result.getOrThrow().stage.name).isEqualTo(stage)
+            assertThat(server.takeRequest().path).isEqualTo("/antintwrk_mobile.php")
+            assertThat(server.takeRequest().body.readUtf8()).isEqualTo("action=session")
+        }
+        server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "/"))
+        server.enqueue(session("TOTP"))
+        assertThat(client.providerSignIn("passkey", "fixture", "ticket", csrf).stage).isEqualTo(AntintwrkAuthStage.TOTP)
+        server.takeRequest()
+        server.takeRequest()
+    }
+
+    @Test
+    fun `unexpected redirects never trigger admission or follow external links`() = runTest {
+        for (location in listOf("https://example.invalid", "/other", "//example.invalid")) {
+            server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", location))
+            assertThat(runCatching { client.login("member@example.invalid", "fixture", "en", csrf) }.isFailure).isTrue()
+            server.takeRequest()
+        }
+        assertThat(server.requestCount).isEqualTo(3)
+    }
+
+    @Test
+    fun `engine password refusal and lockout are displayed as plain text without granting admission`() = runTest {
+        for (message in listOf("Incorrect username or password!", "Your account is locked for 15 minutes.")) {
+            server.enqueue(MockResponse().setBody("<b>$message</b>"))
+            val error = runCatching { client.login("member@example.invalid", "fixture", "en", csrf) }.exceptionOrNull()
+            assertThat(error).isInstanceOf(AntintwrkAccountError::class.java)
+            assertThat((error as AntintwrkAccountError).messageForUser).isEqualTo(message)
+            server.takeRequest()
+        }
+        assertThat(server.requestCount).isEqualTo(2)
     }
 
     @Test

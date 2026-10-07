@@ -39,8 +39,10 @@ internal class AntintwrkNativeAuthClient(
         http.newCall(request).execute().use { response ->
             response.headers.values("Set-Cookie").forEach { cookies.setCookie(origin, it) }
             cookies.flush()
-            // Device confirmation deliberately uses the existing engine's success redirect.
-            if (response.code == 302 && action == "device-verify") return@withContext ""
+            // The engine completes these actions with a local redirect. Never follow it;
+            // callers must still fetch the cookie-backed admission stage.
+            if (response.code == 302 && response.header("Location") == "/" &&
+                action in setOf("login", "passkey", "device-verify")) return@withContext ""
             require(response.body.contentLength() <= 65536) { "Response size" }
             val source = response.body.source()
             source.request(65537)
@@ -64,7 +66,7 @@ internal class AntintwrkNativeAuthClient(
 
     suspend fun login(email: String, password: String, language: String, csrf: String): AntintwrkAuthSession {
         val result = post("login", mapOf("email" to email.trim(), "password" to password, "lng" to language, "csrf" to csrf)).trim()
-        require(result.isEmpty() || result == "OK") { "Sign in failed" }
+        if (result.isNotEmpty() && result != "OK") throw accountError(result)
         return session().also { require(it.stage != AntintwrkAuthStage.LOGIN) { "Sign in failed" } }
     }
 
@@ -92,10 +94,13 @@ internal class AntintwrkNativeAuthClient(
         require(action in setOf("register", "reset"))
         val result = post(action, fields + ("csrf" to csrf)).trim()
         if (result != "OK") {
-            val text = android.text.Html.fromHtml(result, android.text.Html.FROM_HTML_MODE_LEGACY).toString().trim().take(300)
-            throw AntintwrkAccountError(text)
+            throw accountError(result)
         }
     }
+
+    private fun accountError(result: String) = AntintwrkAccountError(
+        android.text.Html.fromHtml(result, android.text.Html.FROM_HTML_MODE_LEGACY).toString().trim().take(300)
+    )
 
     suspend fun registerGoogle(fields: Map<String, String>, ticket: String, csrf: String): AntintwrkAuthSession {
         require(JSONObject(post("google-register", fields + mapOf("ticket" to ticket, "csrf" to csrf))).optBoolean("ok"))
