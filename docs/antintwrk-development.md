@@ -1,5 +1,10 @@
 # Сохранение этапов разработки antintwrk
 
+## Recovery validation and device opt-in follow-up — 7 October 2026
+
+Recovery now validates email locally and clears obsolete request errors; all nine locales have an email-only message. The confirmation address/spam hint and prefilled login were verified on the emulator, and the recovery email arrived without changing the password. Firebase opt-in succeeded after the thread fix: one server subscription and local binding, then one designated test device notification in the background with FCM200. Wrong-password rejection followed by correct login succeeded. 48 social tests and42 Firebase tests pass. Notification routing and additional media flows are still being audited.
+
+
 ## Email confirmation and real-account QA — 7 October 2026
 
 Both registration and password-reset confirmation screens show the recipient address and advise checking Spam and marking the message as Not spam. All nine locales are included; the email carries into login while the password is cleared. Registration from the emulator, email activation, native password login, matching web profile, logout/relogin and restart persistence succeeded for the owner-designated test account. Search, communities, empty notifications and the composer were opened without publishing. Firebase social registration now runs on Dispatchers.IO because SDK FID resolution rejects the UI thread; device opt-in is being rechecked. The server distinguishes expired sessions, throttling and unavailable requests without weakening CSRF or budgets. 47 social and42 Firebase unit tests pass; PHP7.3/7.4 guard checks pass. Google/Passkey success and background delivery remain unverified. No push to GitHub.

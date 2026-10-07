@@ -211,6 +211,8 @@ fun AntintwrkWelcomeView(
                     }
                 } else if (state.page == AntintwrkPage.Login) {
                     R.string.screen_ant_auth_login_fields
+                } else if (state.page == AntintwrkPage.Reset) {
+                    R.string.screen_ant_auth_email_required
                 } else {
                     R.string.screen_antintwrk_credentials_error
                 }), color = ElementTheme.colors.textCriticalPrimary)

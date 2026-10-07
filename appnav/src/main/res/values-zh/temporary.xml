@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">关于 antintwrk</string>
     <string name="screen_ant_menu_terms">条款与隐私</string>
     <string name="screen_ant_auth_check_email">请查收邮件</string>
+    <string name="screen_ant_auth_email_required">请输入有效的电子邮件地址。</string>
     <string name="screen_ant_auth_email_spam_hint">如果没有收到邮件，请检查垃圾邮件文件夹。如果邮件在其中，请将其标记为“非垃圾邮件”。</string>
     <string name="screen_ant_auth_register_sent">打开邮件中的激活链接，然后返回这里登录。</string>
     <string name="screen_ant_auth_reset_sent">打开邮件中的密码重置链接，设置新密码，然后返回这里登录。</string>

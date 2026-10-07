@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">À propos de antintwrk</string>
     <string name="screen_ant_menu_terms">Conditions et confidentialité</string>
     <string name="screen_ant_auth_check_email">Consultez vos e-mails</string>
+    <string name="screen_ant_auth_email_required">Saisissez une adresse e-mail valide.</string>
     <string name="screen_ant_auth_email_spam_hint">Si vous ne trouvez pas le message, vérifiez le dossier Spam. Si le message s’y trouve, marquez-le comme « Non spam ».</string>
     <string name="screen_ant_auth_register_sent">Ouvrez le lien d’activation dans l’e-mail, puis revenez ici pour vous connecter.</string>
     <string name="screen_ant_auth_reset_sent">Ouvrez le lien de réinitialisation dans l’e-mail, choisissez un nouveau mot de passe, puis revenez ici pour vous connecter.</string>

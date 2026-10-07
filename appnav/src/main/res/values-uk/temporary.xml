@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">Про antintwrk</string>
     <string name="screen_ant_menu_terms">Умови та конфіденційність</string>
     <string name="screen_ant_auth_check_email">Перевірте пошту</string>
+    <string name="screen_ant_auth_email_required">Введіть коректну адресу електронної пошти.</string>
     <string name="screen_ant_auth_email_spam_hint">Якщо листа немає, перевірте папку «Спам». Якщо лист опинився там, позначте його як «Не спам».</string>
     <string name="screen_ant_auth_register_sent">Відкрийте посилання активації в листі, потім поверніться сюди й увійдіть.</string>
     <string name="screen_ant_auth_reset_sent">Відкрийте посилання відновлення в листі, задайте новий пароль, потім поверніться сюди й увійдіть.</string>

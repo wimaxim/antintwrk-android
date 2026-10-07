@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">حول antintwrk</string>
     <string name="screen_ant_menu_terms">الشروط والخصوصية</string>
     <string name="screen_ant_auth_check_email">تحقق من بريدك الإلكتروني</string>
+    <string name="screen_ant_auth_email_required">أدخل عنوان بريد إلكتروني صالحًا.</string>
     <string name="screen_ant_auth_email_spam_hint">إذا لم تجد الرسالة، فتحقق من مجلد الرسائل غير المرغوب فيها. إذا كانت هناك، فضع علامة «ليست رسالة غير مرغوب فيها» عليها.</string>
     <string name="screen_ant_auth_register_sent">افتح رابط التفعيل في الرسالة، ثم عد إلى هنا وسجّل الدخول.</string>
     <string name="screen_ant_auth_reset_sent">افتح رابط استعادة كلمة المرور في الرسالة، وعيّن كلمة مرور جديدة، ثم عد إلى هنا وسجّل الدخول.</string>

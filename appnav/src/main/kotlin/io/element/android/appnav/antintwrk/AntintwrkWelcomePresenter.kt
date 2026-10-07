@@ -13,7 +13,8 @@ import androidx.compose.runtime.setValue
 class AntintwrkWelcomePresenter(
     private val isValidEmail: (String) -> Boolean = { Patterns.EMAIL_ADDRESS.matcher(it).matches() },
 ) {
-    internal fun canSignIn(state: AntintwrkWelcomeState): Boolean = isValidEmail(state.email.trim()) && state.password.isNotEmpty()
+    internal fun canRequestEmail(state: AntintwrkWelcomeState): Boolean = isValidEmail(state.email.trim())
+    internal fun canSignIn(state: AntintwrkWelcomeState): Boolean = canRequestEmail(state) && state.password.isNotEmpty()
 
     @Composable
     fun present(): AntintwrkWelcomeState {
@@ -53,6 +54,8 @@ class AntintwrkWelcomePresenter(
                     } else if (state.page == AntintwrkPage.Register) {
                         state.copy(error = true, unavailable = false)
                     } else if (state.page == AntintwrkPage.Login && !canSignIn(state)) {
+                        state.copy(error = true, unavailable = false)
+                    } else if (state.page == AntintwrkPage.Reset && !canRequestEmail(state)) {
                         state.copy(error = true, unavailable = false)
                     } else if (state.page == AntintwrkPage.Profile && (state.firstName.isBlank() || state.birthdate.isBlank() || !state.agreed)) {
                         state.copy(error = true, unavailable = false)

@@ -12,6 +12,24 @@ import org.junit.Test
 
 class AntintwrkWelcomePresenterTest {
     @Test
+    fun `password recovery requires only a valid email before requesting`() = runTest {
+        val presenter = AntintwrkWelcomePresenter { it == "preview@example.test" }
+        moleculeFlow(RecompositionMode.Immediate) { presenter.present() }.test {
+            awaitItem().eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Reset))
+            awaitItem().eventSink(AntintwrkWelcomeEvent.Continue)
+            val invalid = awaitItem()
+            assertThat(invalid.error).isTrue()
+            assertThat(invalid.unavailable).isFalse()
+            assertThat(presenter.canRequestEmail(invalid)).isFalse()
+            invalid.eventSink(AntintwrkWelcomeEvent.Email("preview@example.test"))
+            val valid = awaitItem()
+            assertThat(valid.error).isFalse()
+            assertThat(presenter.canRequestEmail(valid)).isTrue()
+            assertThat(valid.password).isEmpty()
+        }
+    }
+
+    @Test
     fun `email confirmation retains address for login but clears credentials`() = runTest {
         for (page in listOf(AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent)) {
             val presenter = AntintwrkWelcomePresenter { true }
@@ -110,7 +128,7 @@ class AntintwrkWelcomePresenterTest {
 
     @Test
     fun `switching to password reset removes sign in credentials`() = runTest {
-        val presenter = AntintwrkWelcomePresenter { true }
+        val presenter = AntintwrkWelcomePresenter { it.isNotBlank() }
         moleculeFlow(RecompositionMode.Immediate) { presenter.present() }.test {
             awaitItem().eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
             awaitItem().eventSink(AntintwrkWelcomeEvent.Password("example-password"))
@@ -118,7 +136,9 @@ class AntintwrkWelcomePresenterTest {
             val reset = awaitItem()
             assertThat(reset.password).isEmpty()
             reset.eventSink(AntintwrkWelcomeEvent.Continue)
-            assertThat(awaitItem().unavailable).isTrue()
+            val error = awaitItem()
+            assertThat(error.error).isTrue()
+            assertThat(error.unavailable).isFalse()
         }
     }
 }

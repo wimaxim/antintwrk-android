@@ -243,7 +243,10 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                         scope.launch { runRequest { client.login(email, password, language, client.session().csrf) } }
                     }
                 } else if (!busy && event == AntintwrkWelcomeEvent.Continue && state.page in setOf(AntintwrkPage.Profile, AntintwrkPage.Reset)) {
-                    if (state.page == AntintwrkPage.Profile && (state.firstName.isBlank() || state.birthdate.isBlank() || !state.agreed)) {
+                    if (state.page == AntintwrkPage.Reset && !presenter.canRequestEmail(state) ||
+                        state.page == AntintwrkPage.Profile && (state.firstName.isBlank() || state.birthdate.isBlank() || !state.agreed)) {
+                        failed = false
+                        serverMessage = ""
                         state.eventSink(event)
                     } else {
                         val fields = mapOf(

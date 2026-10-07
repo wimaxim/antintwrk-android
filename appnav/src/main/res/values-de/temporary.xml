@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">Über antintwrk</string>
     <string name="screen_ant_menu_terms">Bedingungen und Datenschutz</string>
     <string name="screen_ant_auth_check_email">E-Mails prüfen</string>
+    <string name="screen_ant_auth_email_required">Geben Sie eine gültige E-Mail-Adresse ein.</string>
     <string name="screen_ant_auth_email_spam_hint">Wenn die E-Mail fehlt, prüfen Sie Ihren Spam-Ordner. Falls sie dort liegt, markieren Sie sie als „Kein Spam“.</string>
     <string name="screen_ant_auth_register_sent">Öffne den Aktivierungslink in der E-Mail, kehre hierher zurück und melde dich an.</string>
     <string name="screen_ant_auth_reset_sent">Öffne den Link zum Zurücksetzen in der E-Mail, lege ein neues Passwort fest und melde dich hier an.</string>
