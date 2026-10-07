@@ -96,7 +96,13 @@ class AntintwrkWebFeedController {
     }
     fun selectSection(destination: AntintwrkSection, root: String) {
         crossSectionHistory.clear()
-        select(destination, urls[destination] ?: root)
+        if (destination == section) {
+            val previousUrl = currentUrl
+            select(destination, root)
+            if (previousUrl != root) view?.loadUrl(root) else view?.scrollTo(0, 0)
+        } else {
+            select(destination, urls[destination] ?: root)
+        }
     }
     private fun select(destination: AntintwrkSection, url: String) {
         closeFullscreen()

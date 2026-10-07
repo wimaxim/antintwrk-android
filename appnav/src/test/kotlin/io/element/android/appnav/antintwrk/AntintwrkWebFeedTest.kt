@@ -18,6 +18,19 @@ import io.element.android.tests.testutils.setSafeContent
 import org.junit.Test
 
 class AntintwrkWebFeedTest : RobolectricTest() {
+    @Test
+    fun `reselecting active tab returns to its root while other tabs retain their route`() {
+        val controller = AntintwrkWebFeedController()
+        val people = policy.route("en", "people")
+        controller.navigate(people)
+        controller.selectSection(AntintwrkSection.Communities, policy.root("en", AntintwrkSection.Communities))
+        controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
+        assertThat(controller.currentUrl).isEqualTo(people)
+        controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
+        assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
+        assertThat(controller.section).isEqualTo(AntintwrkSection.Feed)
+    }
+
     private val policy = AntintwrkWebPolicy("https://antintwrk.com")
 
     @Test

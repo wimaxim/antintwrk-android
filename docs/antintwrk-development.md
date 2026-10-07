@@ -1,5 +1,10 @@
 # Сохранение этапов разработки antintwrk
 
+## Active bottom tab returns to its root — 7 October 2026
+
+Re-selecting the active native bottom tab now returns from an auxiliary web page to its section root; selecting a different tab retains its page, and tapping an existing root scrolls to the top. This fixes the real emulator case where tapping Feed left People open. 49 social tests pass. Background notification tapping opened Notifications after admission; disabling this device removed its sole subscription while account-wide enabled stayed on. Shared Android/iOS documentation updated.
+
+
 ## Recovery validation and device opt-in follow-up — 7 October 2026
 
 Recovery now validates email locally and clears obsolete request errors; all nine locales have an email-only message. The confirmation address/spam hint and prefilled login were verified on the emulator, and the recovery email arrived without changing the password. Firebase opt-in succeeded after the thread fix: one server subscription and local binding, then one designated test device notification in the background with FCM200. Wrong-password rejection followed by correct login succeeded. 48 social tests and42 Firebase tests pass. Notification routing and additional media flows are still being audited.
