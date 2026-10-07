@@ -80,4 +80,5 @@
     <string name="screen_ant_auth_registration_expired">Esta inscripción con Google ha caducado. Vuelve atrás y selecciona de nuevo tu cuenta de Google.</string>
     <string name="screen_ant_auth_password_requirements">Usa entre 8 y 128 caracteres con mayúsculas, minúsculas, un número y un símbolo.</string>
     <string name="screen_ant_auth_request_error">No se pudo completar la solicitud. Revisa los datos y la conexión e inténtalo de nuevo.</string>
+    <string name="screen_ant_menu_settings">Configuración de cuenta</string>
 </resources>

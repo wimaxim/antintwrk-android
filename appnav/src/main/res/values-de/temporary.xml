@@ -80,4 +80,5 @@
     <string name="screen_ant_auth_registration_expired">Diese Google-Registrierung ist abgelaufen. Gehe zurück und wähle dein Google-Konto erneut.</string>
     <string name="screen_ant_auth_password_requirements">Verwende 8–128 Zeichen mit Groß- und Kleinbuchstaben, einer Zahl und einem Sonderzeichen.</string>
     <string name="screen_ant_auth_request_error">Die Anfrage konnte nicht abgeschlossen werden. Prüfe deine Angaben und Verbindung und versuche es erneut.</string>
+    <string name="screen_ant_menu_settings">Kontoeinstellungen</string>
 </resources>

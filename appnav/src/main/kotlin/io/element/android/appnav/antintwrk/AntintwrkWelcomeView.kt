@@ -178,7 +178,10 @@ fun AntintwrkWelcomeView(
                             val calendar = Calendar.getInstance().apply { add(Calendar.YEAR, -18) }
                             DatePickerDialog(ContextThemeWrapper(context, R.style.Antintwrk_DatePicker), { _, year, month, day ->
                                 emit(AntintwrkWelcomeEvent.Birthdate(String.format(Locale.ROOT, "%04d-%02d-%02d", year, month + 1, day)))
-                            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+                            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).apply {
+                                datePicker.maxDate = calendar.timeInMillis
+                                datePicker.minDate = Calendar.getInstance().apply { set(1900, Calendar.JANUARY, 1) }.timeInMillis
+                            }.show()
                         })
                     }
                 )

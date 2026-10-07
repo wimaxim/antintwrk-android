@@ -7,6 +7,10 @@ import android.webkit.WebChromeClient
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Registered above the admission screen so a picker survives foreground session checks. */
 @Composable
@@ -22,4 +26,21 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
         callback?.onReceiveValue(selected)
     }
     controller.launchFilePicker = launcher::launch
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    val saver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/html")) { uri ->
+        val document = controller.document
+        controller.document = null
+        if (document != null) {
+            scope.launch {
+                val saved = uri != null && withContext(Dispatchers.IO) {
+                    runCatching {
+                        requireNotNull(context.contentResolver.openOutputStream(uri)).use { it.write(document.content.toByteArray(Charsets.UTF_8)) }
+                    }.isSuccess
+                }
+                document.complete(saved)
+            }
+        }
+    }
+    controller.launchDocumentSave = saver::launch
 }

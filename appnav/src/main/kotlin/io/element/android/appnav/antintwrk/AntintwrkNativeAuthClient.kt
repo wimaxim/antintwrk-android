@@ -14,10 +14,11 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 internal enum class AntintwrkAuthStage { LOGIN, DEVICE, TOTP, SETUP_REQUIRED, AUTHENTICATED }
+internal data class AntintwrkSocialStatus(val notifications: Int, val profileIdentity: String?)
 internal class AntintwrkRegistrationRequired(val ticket: String, val email: String, val firstName: String, val surname: String) : Exception()
 internal class AntintwrkRequestError(val code: String) : Exception()
 internal class AntintwrkAccountError(val messageForUser: String) : Exception()
-internal data class AntintwrkAuthSession(val stage: AntintwrkAuthStage, val csrf: String)
+internal data class AntintwrkAuthSession(val stage: AntintwrkAuthStage, val csrf: String, val profileIdentity: String? = null)
 
 /** No logging interceptor, password persistence, browser redirects or bearer tokens. */
 internal class AntintwrkNativeAuthClient(
@@ -54,7 +55,11 @@ internal class AntintwrkNativeAuthClient(
         val json = JSONObject(post("session"))
         val csrf = json.getString("csrf")
         require(csrf.matches(Regex("[a-f0-9]{64}")))
-        return AntintwrkAuthSession(AntintwrkAuthStage.valueOf(json.getString("stage")), csrf)
+        return AntintwrkAuthSession(
+            AntintwrkAuthStage.valueOf(json.getString("stage")),
+            csrf,
+            json.optString("profileIdentity").takeIf { it.matches(Regex("[A-Za-z0-9._-]{1,100}")) }
+        )
     }
 
     suspend fun login(email: String, password: String, language: String, csrf: String): AntintwrkAuthSession {
@@ -95,6 +100,14 @@ internal class AntintwrkNativeAuthClient(
     suspend fun registerGoogle(fields: Map<String, String>, ticket: String, csrf: String): AntintwrkAuthSession {
         require(JSONObject(post("google-register", fields + mapOf("ticket" to ticket, "csrf" to csrf))).optBoolean("ok"))
         return session().also { require(it.stage != AntintwrkAuthStage.LOGIN) }
+    }
+
+    suspend fun status(csrf: String): AntintwrkSocialStatus {
+        val json = JSONObject(post("status", mapOf("csrf" to csrf)))
+        return AntintwrkSocialStatus(
+            json.getInt("notifications").coerceIn(0, 9999),
+            json.optString("profileIdentity").takeIf { it.matches(Regex("[A-Za-z0-9._-]{1,100}")) }
+        )
     }
 
     suspend fun startDevice(csrf: String) {

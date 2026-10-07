@@ -7,9 +7,12 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Message
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.JsResult
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
@@ -28,6 +31,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -47,50 +51,139 @@ import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 
 class AntintwrkWebFeedController {
-    var view: WebView? = null
+    private val pages = mutableMapOf<AntintwrkSection, WebView>()
+    private val urls = mutableMapOf<AntintwrkSection, String>()
+    private val crossSectionHistory = ArrayDeque<AntintwrkSection>()
+    var ownProfileIdentity: String? = null
+    internal val popups = mutableSetOf<WebView>()
+    var section by mutableStateOf(AntintwrkSection.Feed)
+    var view: WebView?
+        get() = pages[section]
+        set(value) {
+            if (value == null) pages.remove(section) else pages[section] = value
+        }
     var loading by mutableStateOf(true)
     var failed by mutableStateOf(false)
     var canGoBack by mutableStateOf(false)
-    var section by mutableStateOf(AntintwrkSection.Feed)
     var launchFilePicker: ((Intent) -> Unit)? = null
+    internal var document by mutableStateOf<AntintwrkWebDocument?>(null)
+    var launchDocumentSave: ((String) -> Unit)? = null
     var fileCallback: ValueCallback<Array<Uri>>? = null
     var allowMultipleFiles = false
+    internal var prompt by mutableStateOf<AntintwrkWebPrompt?>(null)
+    var fullscreen by mutableStateOf<View?>(null)
+    var fullscreenCallback: WebChromeClient.CustomViewCallback? = null
+    var notifications by mutableStateOf(0)
+    var refreshVersion by mutableStateOf(0)
     var currentUrl by mutableStateOf<String?>(null)
     var onSection: (AntintwrkSection) -> Unit = {}
-    private val historySections = mutableMapOf<Pair<Int, String>, AntintwrkSection>()
-    fun navigate(url: String, destination: AntintwrkSection? = null) {
-        destination?.let {
-            section = it
-            onSection(it)
+    private val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+    fun closeFullscreen() {
+        fullscreen = null
+        fullscreenCallback?.onCustomViewHidden()
+        fullscreenCallback = null
+    }
+    internal fun nativeSection(url: String): AntintwrkSection? {
+        val parts = Uri.parse(url).pathSegments
+        return if (ownProfileIdentity != null && parts.getOrNull(1) == "hero" &&
+            parts.getOrNull(2) == ownProfileIdentity) {
+                AntintwrkSection.Profile
+            } else {
+                policy.section(url)
+            }
+    }
+    fun selectSection(destination: AntintwrkSection, root: String) {
+        crossSectionHistory.clear()
+        select(destination, urls[destination] ?: root)
+    }
+    private fun select(destination: AntintwrkSection, url: String) {
+        closeFullscreen()
+        section = destination
+        currentUrl = url
+        urls[destination] = url
+        failed = false
+        loading = pages[destination] == null
+        canGoBack = pages[destination]?.canGoBack() == true || crossSectionHistory.isNotEmpty()
+        onSection(destination)
+    }
+    fun navigate(url: String) {
+        val destination = nativeSection(url)
+        if (destination != null && destination != section) {
+            crossSectionHistory.addLast(section)
+            select(destination, url)
         }
+        currentUrl = url
+        urls[section] = url
         view?.loadUrl(url)
     }
     internal fun visited(url: String, policy: AntintwrkWebPolicy) {
         if (policy.embedded(url) == null) return
-        val index = view?.copyBackForwardList()?.currentIndex ?: 0
-        section = policy.section(url) ?: historySections[index to url] ?: section
-        historySections[index to url] = section
+        val destination = nativeSection(url)
+        if (destination != null && destination != section) {
+            val current = view
+            crossSectionHistory.addLast(section)
+            pages.remove(section)
+            pages.remove(destination)?.takeIf { it !== current }?.destroy()
+            section = destination
+            current?.let { pages[destination] = it }
+        }
         currentUrl = url
-        canGoBack = view?.canGoBack() == true
+        urls[section] = url
+        canGoBack = view?.canGoBack() == true || crossSectionHistory.isNotEmpty()
         onSection(section)
     }
     fun back() {
-        view?.goBack()
+        if (view?.canGoBack() == true) {
+            view?.goBack()
+        } else if (crossSectionHistory.isNotEmpty()) {
+            val previous = crossSectionHistory.removeLast()
+            select(previous, urls[previous] ?: policy.root("en", previous))
+        }
     }
     fun retry() {
         failed = false
+        loading = true
         view?.reload()
     }
+    fun rendererGone(renderer: WebView) {
+        val active = view === renderer
+        if (active) {
+            fileCallback?.onReceiveValue(null)
+            fileCallback = null
+            prompt?.result?.cancel()
+            prompt = null
+            document?.complete?.let { runCatching { it(false) } }
+            document = null
+            closeFullscreen()
+            loading = false
+            failed = true
+            canGoBack = crossSectionHistory.isNotEmpty()
+        }
+        val tab = pages.entries.firstOrNull { it.value === renderer }?.key
+        tab?.let { pages.remove(it) }
+        renderer.destroy()
+    }
     fun destroy() {
+        closeFullscreen()
+        prompt?.result?.cancel()
+        prompt = null
+        document?.complete?.invoke(false)
+        document = null
         fileCallback?.onReceiveValue(null)
         fileCallback = null
-        view?.stopLoading()
-        view?.destroy()
-        view = null
+        pages.values.forEach {
+            it.stopLoading()
+            it.destroy()
+        }
+        pages.clear()
+        popups.toList().forEach(WebView::destroy)
+        popups.clear()
+        urls.clear()
+        crossSectionHistory.clear()
         currentUrl = null
         canGoBack = false
-        historySections.clear()
         section = AntintwrkSection.Feed
+        notifications = 0
     }
 }
 
@@ -107,11 +200,13 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
     val policy = remember { AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN) }
     val language = LocalConfiguration.current.locales[0].language
     val uriHandler = LocalUriHandler.current
-    val startUrl = policy.feed(language)
+    val startUrl = controller.currentUrl?.let(policy::embedded) ?: policy.root(language, controller.section, controller.ownProfileIdentity)
     val authRequired by rememberUpdatedState(onAuthRequired)
     BackHandler(backEnabled && controller.canGoBack) { controller.back() }
     Box(Modifier.fillMaxSize()) {
-        AndroidView(
+        key(controller.section) {
+        if (controller.view != null || !controller.failed) {
+            AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
                 (controller.view ?: WebView(context).apply {
@@ -125,9 +220,65 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         allowContentAccess = false
                         mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
                         mediaPlaybackRequiresUserGesture = true
+                        setSupportMultipleWindows(true)
+                        javaScriptCanOpenWindowsAutomatically = false
                     }
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
                     webChromeClient = object : WebChromeClient() {
+                        override fun onCreateWindow(view: WebView, dialog: Boolean, userGesture: Boolean, result: Message): Boolean {
+                            if (!userGesture || controller.view !== view) return false
+                            val transport = result.obj as? WebView.WebViewTransport ?: return false
+                            val popup = WebView(view.context)
+                            controller.popups.add(popup)
+                            popup.settings.allowFileAccess = false
+                            popup.settings.allowContentAccess = false
+                            popup.webViewClient = object : WebViewClient() {
+                                override fun shouldOverrideUrlLoading(child: WebView, request: WebResourceRequest): Boolean {
+                                    val url = request.url.toString()
+                                    val target = policy.embedded(url)
+                                    if (target != null) {
+                                        controller.navigate(target)
+                                    } else if (policy.external(url)) {
+                                        runCatching { uriHandler.openUri(url) }
+                                    }
+                                    controller.popups.remove(popup)
+                                    popup.destroy()
+                                    return true
+                                }
+                            }
+                            transport.webView = popup
+                            result.sendToTarget()
+                            return true
+                        }
+                        override fun onCloseWindow(window: WebView) {
+                            if (controller.popups.remove(window)) window.destroy()
+                        }
+                        override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
+                            if (controller.view !== view) {
+                                result.cancel()
+                                return true
+                            }
+                            controller.prompt?.result?.cancel()
+                            controller.prompt = AntintwrkWebPrompt(message.take(2000), result, false)
+                            return true
+                        }
+                        override fun onJsConfirm(view: WebView, url: String, message: String, result: JsResult): Boolean {
+                            if (controller.view !== view) {
+                                result.cancel()
+                                return true
+                            }
+                            controller.prompt?.result?.cancel()
+                            controller.prompt = AntintwrkWebPrompt(message.take(2000), result, true)
+                            return true
+                        }
+                        override fun onJsBeforeUnload(view: WebView, url: String, message: String, result: JsResult): Boolean =
+                            onJsConfirm(view, url, message, result)
+                        override fun onShowCustomView(view: View, callback: CustomViewCallback) {
+                            controller.closeFullscreen()
+                            controller.fullscreen = view
+                            controller.fullscreenCallback = callback
+                        }
+                        override fun onHideCustomView() = controller.closeFullscreen()
                         override fun onShowFileChooser(
                             webView: WebView,
                             callback: ValueCallback<Array<Uri>>,
@@ -135,7 +286,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         ): Boolean {
                             controller.fileCallback?.onReceiveValue(null)
                             controller.fileCallback = null
-                            if (policy.embedded(webView.url.orEmpty()) == null) {
+                            if (controller.view !== webView || policy.embedded(webView.url.orEmpty()) == null) {
                                 callback.onReceiveValue(null)
                                 return true
                             }
@@ -148,6 +299,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             return true
                         }
                     }
+                    AntintwrkNativeWebSignals.attach(this, controller, policy) { authRequired() }
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                             if (!request.isForMainFrame) return false
@@ -158,9 +310,13 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             }
                             val target = policy.embedded(url)
                             if (target != null) {
-                                if (target == url) return false
-                                controller.navigate(target, policy.section(target))
-                            } else if (policy.external(url) && (request.hasGesture() || policy.outbound(url))) {
+                                if (target == url &&
+                                    (controller.nativeSection(target) == null || controller.nativeSection(target) == controller.section)) {
+                                        return false
+                                    }
+                                controller.navigate(target)
+                            } else if (policy.external(url) &&
+                                (request.hasGesture() || policy.outbound(url) || (request.isRedirect && policy.embedded(view.url.orEmpty()) != null))) {
                                 runCatching { uriHandler.openUri(url) }
                             } else {
                                 controller.failed = true
@@ -169,24 +325,32 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             return true
                         }
                         override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
-                            controller.visited(url, policy)
+                            if (controller.view === view) controller.visited(url, policy)
+                        }
+                        override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                            controller.rendererGone(view)
+                            return true
                         }
                         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-                            controller.loading = true
-                            controller.failed = false
+                            if (controller.view === view) {
+                                controller.loading = true
+                                controller.failed = false
+                            }
                         }
                         override fun onPageFinished(view: WebView, url: String?) {
-                            controller.loading = false
-                            url?.let { controller.visited(it, policy) }
+                            if (controller.view === view) {
+                                controller.loading = false
+                                url?.let { controller.visited(it, policy) }
+                            }
                         }
                         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
-                            if (request.isForMainFrame) {
+                            if (request.isForMainFrame && controller.view === view) {
                                 controller.failed = true
                                 controller.loading = false
                             }
                         }
                         override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
-                            if (request.isForMainFrame) {
+                            if (request.isForMainFrame && controller.view === view) {
                                 controller.failed = true
                                 controller.loading = false
                                 if (response.statusCode == 401) authRequired()
@@ -205,6 +369,15 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
             update = { it.visibility = if (controller.failed) View.INVISIBLE else View.VISIBLE },
             onRelease = { it.onPause() },
         )
+        }
+        }
+        controller.fullscreen?.let { customView ->
+            AndroidView(modifier = Modifier.fillMaxSize(), factory = {
+                (customView.parent as? ViewGroup)?.removeView(customView)
+                customView
+            })
+        }
+        AntintwrkWebDialogs(controller)
         if (controller.loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (controller.failed) {
             Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {

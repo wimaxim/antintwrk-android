@@ -149,4 +149,57 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         runOnIdle { visible.value = true }
         runOnIdle { assertThat(controller.view).isSameInstanceAs(original) }
     }
+    @Test
+    fun `native tabs keep separate webviews and web cross-section back restores the original page`() = runAndroidComposeUiTest {
+        lateinit var controller: AntintwrkWebFeedController
+        setSafeContent {
+            ElementTheme {
+                controller = rememberAntintwrkWebFeedController()
+                AntintwrkWebFeed(controller, backEnabled = true)
+            }
+        }
+        lateinit var feed: android.webkit.WebView
+        runOnIdle {
+            feed = controller.view!!
+            controller.selectSection(AntintwrkSection.Communities, policy.root("en", AntintwrkSection.Communities))
+        }
+        lateinit var communities: android.webkit.WebView
+        runOnIdle {
+            communities = controller.view!!
+            assertThat(communities).isNotSameInstanceAs(feed)
+            controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
+        }
+        runOnIdle {
+            assertThat(controller.view).isSameInstanceAs(feed)
+            controller.navigate("https://antintwrk.com/en/group/example?app=1")
+        }
+        runOnIdle {
+            assertThat(controller.section).isEqualTo(AntintwrkSection.Communities)
+            assertThat(controller.view).isSameInstanceAs(communities)
+            controller.back()
+        }
+        runOnIdle {
+            assertThat(controller.section).isEqualTo(AntintwrkSection.Feed)
+            assertThat(controller.view).isSameInstanceAs(feed)
+        }
+    }
+
+    @Test
+    fun `native web signals reject foreign origins iframes invented urls and oversized input`() {
+        val controller = AntintwrkWebFeedController()
+        var auth = 0
+        val current = "https://antintwrk.com/en/hero-feed?app=1"
+        fun send(origin: String, main: Boolean, message: String) =
+            AntintwrkNativeWebSignals.accept(controller, policy, current, origin, main, message, onAuthRequired = { auth++ })
+        send("https://evil.org", true, """{"type":"auth-required"}""")
+        send("https://antintwrk.com", false, """{"type":"auth-required"}""")
+        send("https://antintwrk.com", true, """{"type":"navigation","url":"https://antintwrk.com/en/profile?app=1"}""")
+        send("https://antintwrk.com", true, "x".repeat(2049))
+        assertThat(auth).isEqualTo(0)
+        assertThat(controller.currentUrl).isNull()
+        send("https://antintwrk.com", true, """{"type":"changed"}""")
+        assertThat(controller.refreshVersion).isEqualTo(1)
+        send("https://antintwrk.com", true, """{"type":"auth-required"}""")
+        assertThat(auth).isEqualTo(1)
+    }
 }

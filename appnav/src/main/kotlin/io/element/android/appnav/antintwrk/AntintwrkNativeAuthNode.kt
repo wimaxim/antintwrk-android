@@ -4,6 +4,7 @@
 package io.element.android.appnav.antintwrk
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,6 +21,7 @@ import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import io.element.android.appnav.R
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /** Social authentication stays independent of Matrix session storage and callbacks. */
@@ -52,6 +54,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             serverMessage = ""
             try {
                 session = request()
+                webController.ownProfileIdentity = session?.profileIdentity
                 if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) webController.destroy()
                 if (session?.stage == AntintwrkAuthStage.DEVICE) client.startDevice(session!!.csrf)
             } catch (required: AntintwrkRegistrationRequired) {
@@ -90,6 +93,27 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 code = ""
             }
         }
+        LaunchedEffect(session?.stage, busy, webController.refreshVersion, webController.currentUrl) {
+            if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
+                while (true) {
+                    try {
+                        val status = client.status(session!!.csrf)
+                        webController.notifications = status.notifications
+                        webController.ownProfileIdentity = status.profileIdentity
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (error: AntintwrkRequestError) {
+                        if (error.code == "AUTH_REQUIRED") {
+                            runRequest { client.session() }
+                            break
+                        }
+                    } catch (_: Exception) {
+                        // A failed optional count refresh never grants or changes account admission.
+                    }
+                    delay(30_000)
+                }
+            }
+        }
         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
             if (session?.stage == AntintwrkAuthStage.AUTHENTICATED || !busy || (session == null && state.page == AntintwrkPage.Welcome)) {
                 scope.launch { runRequest { client.session() } }
@@ -100,13 +124,16 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             AntintwrkLoadingView(modifier)
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
             AntintwrkShellView(shellState, modifier, webFeed = true, retainedWebController = webController, onAuthRequired = {
+                val returnUrl = webController.currentUrl
                 webController.destroy()
+                webController.currentUrl = returnUrl
                 session = null
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
                 scope.launch { runRequest { client.session() } }
             }, onSignOut = {
                 val current = session!!
                 // Hide content immediately, even if the revocation request fails.
+                shellState.eventSink(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
                 session = null
                 webController.destroy()
                 scope.launch {

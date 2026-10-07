@@ -46,12 +46,12 @@ internal class AntintwrkWebPolicy(private val origin: String) {
     fun route(language: String, path: String): String =
         "$origin/${language.takeIf { it in languages } ?: "en"}/$path?app=1"
     fun feed(language: String): String = route(language, "hero-feed")
-    fun root(language: String, section: AntintwrkSection): String = route(
+    fun root(language: String, section: AntintwrkSection, ownProfileIdentity: String? = null): String = route(
         language,
         when (section) {
         AntintwrkSection.Feed -> "hero-feed"
         AntintwrkSection.Communities -> "communities"
-        AntintwrkSection.Profile -> "profile"
+        AntintwrkSection.Profile -> ownProfileIdentity?.let { "hero/$it" } ?: "profile"
     }
     )
     fun outbound(url: String): Boolean {
@@ -84,7 +84,7 @@ internal class AntintwrkWebPolicy(private val origin: String) {
         if (embedded(url) == null) return null
         return when (Uri.parse(url).pathSegments.getOrNull(1)) {
             "communities", "create-community", "communities-people", "channel", "group" -> AntintwrkSection.Communities
-            "profile", "deleteaccount", "monetization", "my-referrals" -> AntintwrkSection.Profile
+            "profile", "deleteaccount", "monetization", "my-referrals", "kindness" -> AntintwrkSection.Profile
             "hero-feed", "reels", "stories", "hero-compose" -> AntintwrkSection.Feed
             else -> null // Search, notifications and other people's profiles retain their entry section.
         }

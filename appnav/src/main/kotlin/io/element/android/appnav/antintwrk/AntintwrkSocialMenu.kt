@@ -28,6 +28,7 @@ internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit) {
         DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
             listOf(
                 "hero-compose" to R.string.screen_ant_menu_compose,
+                "profile" to R.string.screen_ant_menu_settings,
                 "people" to R.string.screen_ant_menu_people,
                 "messages" to R.string.screen_ant_menu_messages,
                 "monetization" to R.string.screen_ant_menu_monetization,

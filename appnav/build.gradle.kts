@@ -68,6 +68,7 @@ dependencies {
     implementation(projects.libraries.wellknown.api)
     implementation(projects.features.login.api)
 
+    implementation(libs.androidx.webkit)
     implementation(libs.coil)
     implementation(platform(libs.network.okhttp.bom))
     implementation(libs.network.okhttp)

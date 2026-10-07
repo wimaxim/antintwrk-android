@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -17,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -61,22 +64,28 @@ fun AntintwrkShellView(
     val webController = if (webFeed) retainedWebController ?: rememberAntintwrkWebFeedController() else null
     if (webController != null && !BuildConfig.ANTINTWRK_NATIVE_AUTH) AntintwrkWebFilePicker(webController)
     val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+    if (webController?.view == null) webController?.section = state.section
     webController?.onSection = { emit(AntintwrkShellEvent.Section(it)) }
     fun openSection(section: AntintwrkSection) {
-        emit(AntintwrkShellEvent.Section(section))
-        webController?.navigate(policy.root(language, section), section)
+        if (webController == null) emit(AntintwrkShellEvent.Section(section))
+        webController?.selectSection(section, policy.root(language, section, webController?.ownProfileIdentity))
     }
     BackHandler(
         (webController == null || !webController.canGoBack) &&
             (state.overlay != AntintwrkOverlay.None || state.mode != AntintwrkMode.Social || state.section != AntintwrkSection.Feed)
     ) {
-        emit(AntintwrkShellEvent.Back)
+        if (webController != null && state.mode == AntintwrkMode.Social) {
+            openSection(AntintwrkSection.Feed)
+        } else {
+            emit(AntintwrkShellEvent.Back)
+        }
     }
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize().imePadding(),
         containerColor = AntintwrkBackground,
         topBar = {
-            ShellHeader(state, onSearch = {
+            if (webController?.fullscreen == null) {
+                ShellHeader(state, onSearch = {
                 if (webController != null) {
                     webController.navigate(policy.route(language, "discover"))
                 } else {
@@ -91,14 +100,15 @@ fun AntintwrkShellView(
             }, onRoute = if (webController != null) {
                 { path ->
                 val url = policy.route(language, path)
-                webController.navigate(url, policy.section(url))
+                webController.navigate(url)
             }
             } else {
                 null
-            })
+            }, notifications = webController?.notifications ?: 0)
+            }
         },
         bottomBar = {
-            if (state.mode == AntintwrkMode.Social) {
+            if (state.mode == AntintwrkMode.Social && webController?.fullscreen == null) {
                 NavigationBar(containerColor = AntintwrkBackground) {
                     AntintwrkSection.entries.forEach { section ->
                         NavigationBarItem(
@@ -172,15 +182,15 @@ fun AntintwrkShellView(
 }
 
 @Composable
-private fun ShellHeader(state: AntintwrkShellState, onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?) {
+private fun ShellHeader(state: AntintwrkShellState, onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?, notifications: Int) {
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             ShellModeTabs(state, Modifier.weight(1f))
-            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(onSearch, onNotifications, onRoute)
+            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(onSearch, onNotifications, onRoute, notifications)
         }
         if (expanded && state.mode == AntintwrkMode.Social) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(onSearch, onNotifications, onRoute) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(onSearch, onNotifications, onRoute, notifications) }
         }
     }
 }
@@ -212,12 +222,14 @@ private fun ShellModeTabs(state: AntintwrkShellState, modifier: Modifier) {
 }
 
 @Composable
-private fun ShellSocialActions(onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?) {
+private fun ShellSocialActions(onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?, notifications: Int) {
     IconButton(onClick = onSearch) {
         Icon(CompoundIcons.Search(), stringResource(R.string.screen_ant_shell_search))
     }
     IconButton(onClick = onNotifications) {
-        Icon(CompoundIcons.Notifications(), stringResource(R.string.screen_ant_shell_notifications))
+        BadgedBox(badge = { if (notifications > 0) Badge { Text(if (notifications > 99) "99+" else notifications.toString()) } }) {
+            Icon(CompoundIcons.Notifications(), stringResource(R.string.screen_ant_shell_notifications))
+        }
     }
     if (onRoute != null) AntintwrkSocialMenu(onRoute)
 }

@@ -80,4 +80,5 @@
     <string name="screen_ant_auth_registration_expired">This Google registration has expired. Go back and select your Google account again.</string>
     <string name="screen_ant_auth_password_requirements">Use 8–128 characters with uppercase, lowercase, a number and a special character.</string>
     <string name="screen_ant_auth_request_error">Could not complete the request. Check your details and connection, then try again.</string>
+    <string name="screen_ant_menu_settings">Account settings</string>
 </resources>

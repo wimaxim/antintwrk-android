@@ -1,0 +1,53 @@
+/*
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+package io.element.android.appnav.antintwrk
+
+import android.webkit.WebView
+import androidx.webkit.WebMessageCompat
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
+import io.element.android.appnav.BuildConfig
+import org.json.JSONObject
+
+/** Exact-origin, main-frame events contain no cookies, credentials or account authority. */
+internal object AntintwrkNativeWebSignals {
+    fun attach(view: WebView, controller: AntintwrkWebFeedController, policy: AntintwrkWebPolicy, onAuthRequired: () -> Unit) {
+        if (!runCatching { WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) }.getOrDefault(false)) return
+        WebViewCompat.addWebMessageListener(view, "antintwrkNative", setOf(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)) { _, message, origin, main, reply ->
+            if (controller.view === view &&
+                message.type == WebMessageCompat.TYPE_STRING) {
+                    accept(controller, policy, view.url.orEmpty(), origin.toString(), main, message.data, onAuthRequired) { json ->
+                    AntintwrkNativeWebActions.handle(view.context, controller, json) { ok ->
+                        runCatching { reply.postMessage(JSONObject().put("id", json.optString("id")).put("ok", ok).toString()) }
+                    }
+                }
+                }
+        }
+    }
+    fun accept(
+        controller: AntintwrkWebFeedController,
+        policy: AntintwrkWebPolicy,
+        currentUrl: String,
+        origin: String,
+        main: Boolean,
+        message: String?,
+        onAuthRequired: () -> Unit,
+        onRequest: (JSONObject) -> Unit = {},
+    ) {
+        if (!main || !policy.sameOrigin(origin) || policy.embedded(currentUrl) == null || message == null || message.length > 200_000) return
+        runCatching {
+            val json = JSONObject(message)
+            if (json.optString("type") != "download" && message.length > 2048) return
+            when (json.optString("type")) {
+                "navigation" -> {
+                    val url = json.optString("url")
+                    if (policy.embedded(url) != null && android.net.Uri.parse(url) == android.net.Uri.parse(currentUrl)) controller.visited(url, policy)
+                }
+                "share", "copy", "download" -> if (json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
+                "changed" -> controller.refreshVersion++
+                "auth-required" -> onAuthRequired()
+            }
+        }
+    }
+}

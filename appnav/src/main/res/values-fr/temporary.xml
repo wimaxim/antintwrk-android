@@ -80,4 +80,5 @@
     <string name="screen_ant_auth_registration_expired">Cette inscription Google a expiré. Revenez en arrière et choisissez à nouveau votre compte Google.</string>
     <string name="screen_ant_auth_password_requirements">Utilisez 8 à 128 caractères avec une majuscule, une minuscule, un chiffre et un symbole.</string>
     <string name="screen_ant_auth_request_error">La demande a échoué. Vérifiez vos informations et votre connexion, puis réessayez.</string>
+    <string name="screen_ant_menu_settings">Paramètres du compte</string>
 </resources>
