@@ -45,6 +45,15 @@ android {
         applicationId =
             if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) "com.antintwrk.app" else BuildTimeConfig.APPLICATION_ID
         targetSdk = Versions.TARGET_SDK
+        resValue(
+            "string",
+            "antintwrk_native_asset_statements",
+            if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) {
+                "[{\\\"include\\\":\\\"https://antintwrk.com/.well-known/assetlinks.json\\\"}]"
+            } else {
+                "[]"
+            }
+        )
         versionCode = Versions.VERSION_CODE
         versionName = Versions.VERSION_NAME
 

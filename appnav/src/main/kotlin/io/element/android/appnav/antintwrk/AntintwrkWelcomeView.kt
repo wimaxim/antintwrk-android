@@ -198,7 +198,8 @@ fun AntintwrkWelcomeView(
             AntintwrkPrimaryButton(
                 stringResource(if (state.page == AntintwrkPage.Profile) R.string.screen_antintwrk_register else R.string.screen_antintwrk_continue),
                 { emit(AntintwrkWelcomeEvent.Continue) },
-                Modifier.fillMaxWidth()
+                Modifier.fillMaxWidth(),
+                enabled = !state.busy
             )
             if (state.busy) CircularProgressIndicator()
             if (state.page == AntintwrkPage.Login) {
@@ -216,6 +217,9 @@ internal class AntintwrkWelcomePreviewStates : PreviewParameterProvider<Antintwr
         AntintwrkWelcomeState(page = AntintwrkPage.Profile),
         AntintwrkWelcomeState(page = AntintwrkPage.Login),
         AntintwrkWelcomeState(page = AntintwrkPage.Login, unavailable = true),
+        AntintwrkWelcomeState(page = AntintwrkPage.Login, nativeLogin = true),
+        AntintwrkWelcomeState(page = AntintwrkPage.Login, nativeLogin = true, busy = true),
+        AntintwrkWelcomeState(page = AntintwrkPage.Login, nativeLogin = true, networkError = true),
         AntintwrkWelcomeState(page = AntintwrkPage.Reset, unavailable = true),
     )
 }

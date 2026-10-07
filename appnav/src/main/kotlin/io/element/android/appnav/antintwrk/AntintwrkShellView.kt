@@ -53,11 +53,12 @@ fun AntintwrkShellView(
     webFeed: Boolean = false,
     onAuthRequired: () -> Unit = {},
     onSignOut: (() -> Unit)? = null,
+    retainedWebController: AntintwrkWebFeedController? = null,
 ) = AntintwrkBrandTheme {
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
     val language = LocalConfiguration.current.locales[0].language
-    val webController = if (webFeed) rememberAntintwrkWebFeedController() else null
+    val webController = if (webFeed) retainedWebController ?: rememberAntintwrkWebFeedController() else null
     BackHandler(state.overlay != AntintwrkOverlay.None || state.mode != AntintwrkMode.Social || state.section != AntintwrkSection.Feed) {
         emit(AntintwrkShellEvent.Back)
     }

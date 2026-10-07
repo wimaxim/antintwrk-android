@@ -58,6 +58,17 @@ internal class AntintwrkNativeAuthClient(
         return session().also { require(it.stage != AntintwrkAuthStage.LOGIN) { "Sign in failed" } }
     }
 
+    suspend fun providerOptions(provider: String, csrf: String): JSONObject = JSONObject(post("$provider-options", mapOf("csrf" to csrf)))
+    suspend fun providerSignIn(provider: String, credential: String, ticket: String, csrf: String): AntintwrkAuthSession {
+        val result = post(provider, mapOf("credential" to credential, "ticket" to ticket, "csrf" to csrf)).trim()
+        if (provider == "passkey") {
+            require(result.isEmpty() || result == "OK")
+        } else {
+            require(JSONObject(result).optBoolean("ok"))
+        }
+        return session().also { require(it.stage != AntintwrkAuthStage.LOGIN) }
+    }
+
     suspend fun startDevice(csrf: String) {
         post("device-start", mapOf("csrf" to csrf))
     }

@@ -75,7 +75,7 @@ internal class AntintwrkWebPolicy(private val origin: String) {
     fun external(url: String): Boolean = Uri.parse(url).scheme in setOf("https", "http", "mailto", "tel")
 }
 
-internal class AntintwrkWebFeedController {
+class AntintwrkWebFeedController {
     var view: WebView? = null
     var loading by mutableStateOf(true)
     var failed by mutableStateOf(false)
@@ -131,6 +131,11 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                             if (!request.isForMainFrame) return false
                             val url = request.url.toString()
+                            if (BuildConfig.ANTINTWRK_NATIVE_AUTH && request.url.host == Uri.parse(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).host &&
+                                request.url.pathSegments.any { it in setOf("activitycheck", "g2fa") }) {
+                                onAuthRequired()
+                                return true
+                            }
                             val target = policy.embedded(url)
                             if (target != null) {
                                 if (target == url) return false

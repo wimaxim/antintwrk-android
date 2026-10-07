@@ -58,7 +58,7 @@ internal fun AntintwrkAuthChallengeView(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
             )
-            AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_continue), { if (!busy) onConfirm() })
+            AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_continue), { if (!busy) onConfirm() }, enabled = !busy)
         }
         if (busy) CircularProgressIndicator()
         if (failed) Text(stringResource(R.string.screen_ant_auth_error), color = ElementTheme.colors.textCriticalPrimary)

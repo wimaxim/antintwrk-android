@@ -11,6 +11,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.bumble.appyx.core.modality.BuildContext
@@ -23,8 +25,12 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
     @Composable
     override fun View(modifier: Modifier) {
         val client = remember { AntintwrkNativeAuthClient() }
+        val context = LocalAntintwrkActivity.current ?: LocalContext.current
+        val credentials = remember { AntintwrkNativeCredentials(context) }
         val presenter = remember { AntintwrkWelcomePresenter() }
         val shell = remember { AntintwrkShellPresenter() }
+        val shellState = shell.present()
+        val webController = rememberAntintwrkWebFeedController()
         val state = presenter.present()
         val scope = rememberCoroutineScope()
         val language = LocalConfiguration.current.locales[0].language
@@ -37,35 +43,50 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             failed = false
             try {
                 session = request()
+                if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) webController.destroy()
                 if (session?.stage == AntintwrkAuthStage.DEVICE) client.startDevice(session!!.csrf)
+            } catch (_: GetCredentialCancellationException) {
+                // Dismissing the system picker never admits a session.
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
                 failed = true
                 // An uncertain request never admits a user to the shell.
-                if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) session = null
+                if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
+                    session = null
+                    webController.destroy()
+                }
             } finally {
                 busy = false
                 code = ""
             }
         }
         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-            if (!busy || (session == null && state.page == AntintwrkPage.Welcome)) scope.launch { runRequest { client.session() } }
+            if (session?.stage == AntintwrkAuthStage.AUTHENTICATED || !busy || (session == null && state.page == AntintwrkPage.Welcome)) {
+                scope.launch { runRequest { client.session() } }
+            }
         }
         LifecycleEventEffect(Lifecycle.Event.ON_STOP) { if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) busy = true }
         if (busy && (session == null || session?.stage == AntintwrkAuthStage.AUTHENTICATED)) {
             AntintwrkLoadingView(modifier)
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
-            AntintwrkShellView(shell.present(), modifier, webFeed = true, onAuthRequired = {
+            AntintwrkShellView(shellState, modifier, webFeed = true, retainedWebController = webController, onAuthRequired = {
+                webController.destroy()
                 session = null
+                webController.destroy()
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
+                scope.launch { runRequest { client.session() } }
             }, onSignOut = {
                 val current = session!!
                 // Hide content immediately, even if the revocation request fails.
                 session = null
                 scope.launch {
                     runRequest {
-                    client.logout(current.csrf)
+                    try {
+                        client.logout(current.csrf)
+                    } finally {
+                        runCatching { credentials.clear() }
+                    }
                     client.session()
                 }
                 }
@@ -100,6 +121,11 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                     val password = state.password
                     state.eventSink(AntintwrkWelcomeEvent.Password(""))
                     scope.launch { runRequest { client.login(email, password, language, (session ?: client.session()).csrf) } }
+                } else if (!busy && state.page == AntintwrkPage.Login &&
+                    event in setOf(AntintwrkWelcomeEvent.GoogleSignIn, AntintwrkWelcomeEvent.PasskeySignIn)) {
+                    state.eventSink(AntintwrkWelcomeEvent.Password(""))
+                    val provider = if (event == AntintwrkWelcomeEvent.GoogleSignIn) "google" else "passkey"
+                    scope.launch { runRequest { credentials.signIn(context, client, provider, (session ?: client.session()).csrf) } }
                 } else if (!busy) {
                     failed = false
                     state.eventSink(event)

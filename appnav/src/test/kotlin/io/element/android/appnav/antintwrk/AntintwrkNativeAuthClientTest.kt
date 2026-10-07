@@ -96,4 +96,23 @@ class AntintwrkNativeAuthClientTest {
         runCatching { client.logout(csrf) }
         assertThat(cookies.getCookie(origin).orEmpty()).doesNotContain("native_test=value")
     }
+
+    @Test
+    fun `provider response alone never grants access and challenge binding is sent to server`() = runTest {
+        server.enqueue(MockResponse().setBody("{\"nonce\":\"fixture\",\"ticket\":\"ticket\",\"clientId\":\"fixture-client\"}"))
+        assertThat(client.providerOptions("google", csrf).getString("nonce")).isEqualTo("fixture")
+        assertThat(server.takeRequest().body.readUtf8()).contains("action=google-options")
+        server.enqueue(MockResponse().setBody("{\"ok\":true}"))
+        server.enqueue(session("LOGIN"))
+        assertThat(runCatching { client.providerSignIn("google", "fixture-token", "ticket", csrf) }.isFailure).isTrue()
+        val request = server.takeRequest().body.readUtf8()
+        assertThat(request).contains("ticket=ticket")
+        assertThat(request).contains("csrf=$csrf")
+        server.takeRequest()
+        server.enqueue(MockResponse().setBody(""))
+        server.enqueue(session("TOTP"))
+        assertThat(client.providerSignIn("passkey", "fixture-assertion", "ticket", csrf).stage).isEqualTo(AntintwrkAuthStage.TOTP)
+        server.takeRequest()
+        server.takeRequest()
+    }
 }
