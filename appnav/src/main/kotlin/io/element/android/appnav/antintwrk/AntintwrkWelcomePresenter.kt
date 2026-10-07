@@ -21,7 +21,15 @@ class AntintwrkWelcomePresenter(
         var state by remember { mutableStateOf(AntintwrkWelcomeState()) }
         return state.copy(eventSink = { event ->
             state = when (event) {
-                is AntintwrkWelcomeEvent.Open -> AntintwrkWelcomeState(page = event.page)
+                is AntintwrkWelcomeEvent.Open -> AntintwrkWelcomeState(
+                    page = event.page,
+                    email = if (event.page in setOf(AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent) ||
+                        event.page == AntintwrkPage.Login && state.page in setOf(AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent)) {
+                        state.email
+                    } else {
+                        ""
+                    }
+                )
                 is AntintwrkWelcomeEvent.Email -> state.copy(email = event.value.take(50), error = false, unavailable = false)
                 is AntintwrkWelcomeEvent.Password -> state.copy(password = event.value.take(128), error = false, unavailable = false)
                 is AntintwrkWelcomeEvent.FirstName -> state.copy(firstName = event.value.take(50), error = false)

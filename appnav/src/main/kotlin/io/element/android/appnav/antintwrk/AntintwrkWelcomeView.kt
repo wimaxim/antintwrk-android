@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -106,7 +107,9 @@ fun AntintwrkWelcomeView(
                 Modifier.fillMaxWidth()
             )
         } else if (state.page in setOf(AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent)) {
+            if (state.email.isNotBlank()) Text(state.email)
             Text(stringResource(if (state.page == AntintwrkPage.RegisterSent) R.string.screen_ant_auth_register_sent else R.string.screen_ant_auth_reset_sent))
+            Text(stringResource(R.string.screen_ant_auth_email_spam_hint), color = ElementTheme.colors.textSecondary)
             AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_login), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) })
         } else {
             if (!state.nativeLogin) {
@@ -140,7 +143,7 @@ fun AntintwrkWelcomeView(
                     Modifier.fillMaxWidth(),
                     label = stringResource(R.string.screen_antintwrk_password),
                     singleLine = true,
-                    supportingText = if (state.page == AntintwrkPage.Register) stringResource(R.string.screen_antintwrk_password_hint) else null,
+                    supportingText = if (state.page == AntintwrkPage.Register) stringResource(R.string.screen_ant_auth_password_requirements) else null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     visualTransformation = if (state.showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
@@ -193,14 +196,19 @@ fun AntintwrkWelcomeView(
                     state.agreed,
                     role = Role.Checkbox,
                     onValueChange = { emit(AntintwrkWelcomeEvent.Agreement(it)) }
-                ), verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.Checkbox(checked = state.agreed, onCheckedChange = null)
-                    Text(stringResource(R.string.screen_antintwrk_agree))
+                ), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    androidx.compose.material3.Checkbox(checked = state.agreed, onCheckedChange = null, modifier = Modifier.size(24.dp))
+                    Text(stringResource(R.string.screen_antintwrk_agree), modifier = Modifier.weight(1f))
                 }
             }
             if (state.error) {
                 Text(stringResource(if (state.page == AntintwrkPage.Profile) {
-                    R.string.screen_antintwrk_profile_error
+                    when {
+                        state.firstName.isBlank() -> R.string.screen_ant_auth_first_name_required
+                        state.birthdate.isBlank() -> R.string.screen_ant_auth_birthdate_required
+                        !state.agreed -> R.string.screen_ant_auth_agreement_required
+                        else -> R.string.screen_antintwrk_profile_error
+                    }
                 } else if (state.page == AntintwrkPage.Login) {
                     R.string.screen_ant_auth_login_fields
                 } else {

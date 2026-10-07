@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">À propos de antintwrk</string>
     <string name="screen_ant_menu_terms">Conditions et confidentialité</string>
     <string name="screen_ant_auth_check_email">Consultez vos e-mails</string>
+    <string name="screen_ant_auth_email_spam_hint">Si vous ne trouvez pas le message, vérifiez le dossier Spam. Si le message s’y trouve, marquez-le comme « Non spam ».</string>
     <string name="screen_ant_auth_register_sent">Ouvrez le lien d’activation dans l’e-mail, puis revenez ici pour vous connecter.</string>
     <string name="screen_ant_auth_reset_sent">Ouvrez le lien de réinitialisation dans l’e-mail, choisissez un nouveau mot de passe, puis revenez ici pour vous connecter.</string>
     <string name="screen_ant_auth_profile_requirements">Indiquez votre prénom et une date de naissance valide (18+) et acceptez les conditions d’utilisation.</string>
@@ -99,4 +100,9 @@
     <string name="screen_ant_licences_failed">Impossible de charger les licences.</string>
     <string name="screen_ant_menu_privacy">Confidentialité</string>
     <string name="screen_ant_auth_login_fields">Saisissez une adresse e-mail valide et votre mot de passe.</string>
+    <string name="screen_ant_auth_first_name_required">Saisissez votre prénom.</string>
+    <string name="screen_ant_auth_birthdate_required">Choisissez votre date de naissance.</string>
+    <string name="screen_ant_auth_agreement_required">Acceptez le contrat utilisateur pour créer un compte.</string>
+    <string name="screen_ant_auth_session_expired">La demande de connexion a expiré. Réessayez.</string>
+    <string name="screen_ant_auth_rate_limited">Trop de demandes. Attendez quelques minutes, puis réessayez.</string>
 </resources>

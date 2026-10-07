@@ -12,6 +12,27 @@ import org.junit.Test
 
 class AntintwrkWelcomePresenterTest {
     @Test
+    fun `email confirmation retains address for login but clears credentials`() = runTest {
+        for (page in listOf(AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent)) {
+            val presenter = AntintwrkWelcomePresenter { true }
+            moleculeFlow(RecompositionMode.Immediate) { presenter.present() }.test {
+                awaitItem().eventSink(AntintwrkWelcomeEvent.Email("preview@example.test"))
+                awaitItem().eventSink(AntintwrkWelcomeEvent.Password("example-password"))
+                awaitItem().eventSink(AntintwrkWelcomeEvent.TogglePassword)
+                awaitItem().eventSink(AntintwrkWelcomeEvent.Open(page))
+                val sent = awaitItem()
+                assertThat(sent.email).isEqualTo("preview@example.test")
+                assertThat(sent.password).isEmpty()
+                assertThat(sent.showPassword).isFalse()
+                sent.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
+                val login = awaitItem()
+                assertThat(login.email).isEqualTo("preview@example.test")
+                assertThat(login.password).isEmpty()
+            }
+        }
+    }
+
+    @Test
     fun `password login validation requires email and password without applying registration rules`() {
         val presenter = AntintwrkWelcomePresenter { it == "member@example.invalid" }
         assertThat(presenter.canSignIn(AntintwrkWelcomeState(email = "member@example.invalid"))).isFalse()

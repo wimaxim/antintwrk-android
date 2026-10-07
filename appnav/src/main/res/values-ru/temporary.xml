@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">Об antintwrk</string>
     <string name="screen_ant_menu_terms">Условия и конфиденциальность</string>
     <string name="screen_ant_auth_check_email">Проверьте почту</string>
+    <string name="screen_ant_auth_email_spam_hint">Если письма нет, проверьте папку «Спам». Если письмо оказалось там, пометьте его как «Не спам».</string>
     <string name="screen_ant_auth_register_sent">Откройте ссылку активации в письме, затем вернитесь сюда и войдите.</string>
     <string name="screen_ant_auth_reset_sent">Откройте ссылку восстановления в письме, задайте новый пароль, затем вернитесь сюда и войдите.</string>
     <string name="screen_ant_auth_profile_requirements">Укажите имя, корректную дату рождения (18+) и примите пользовательское соглашение.</string>
@@ -99,4 +100,9 @@
     <string name="screen_ant_licences_failed">Не удалось загрузить лицензии.</string>
     <string name="screen_ant_menu_privacy">Конфиденциальность</string>
     <string name="screen_ant_auth_login_fields">Введите корректный email и ваш пароль.</string>
+    <string name="screen_ant_auth_first_name_required">Введите ваше имя.</string>
+    <string name="screen_ant_auth_birthdate_required">Выберите дату рождения.</string>
+    <string name="screen_ant_auth_agreement_required">Примите Пользовательское соглашение для создания аккаунта.</string>
+    <string name="screen_ant_auth_session_expired">Запрос входа устарел. Попробуйте ещё раз.</string>
+    <string name="screen_ant_auth_rate_limited">Слишком много запросов. Подождите несколько минут и повторите.</string>
 </resources>

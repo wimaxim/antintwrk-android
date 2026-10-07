@@ -40,6 +40,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import timber.log.Timber
 
 @ContributesTo(AppScope::class)
 interface AntintwrkSocialPushBindings {
@@ -76,9 +77,11 @@ internal fun AntintwrkPushSettings(
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: AntintwrkRequestError) {
+            Timber.w("Social push request failed: %s", error.code.takeIf { it.matches(Regex("[A-Z_]{1,40}")) } ?: "UNKNOWN")
             failed = true
             if (error.code == "AUTH_REQUIRED") onAuthRequired()
-        } catch (_: Exception) {
+        } catch (error: Exception) {
+            Timber.w("Social push operation failed: %s", error.javaClass.simpleName)
             failed = true
         } finally {
             busy = false

@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">Über antintwrk</string>
     <string name="screen_ant_menu_terms">Bedingungen und Datenschutz</string>
     <string name="screen_ant_auth_check_email">E-Mails prüfen</string>
+    <string name="screen_ant_auth_email_spam_hint">Wenn die E-Mail fehlt, prüfen Sie Ihren Spam-Ordner. Falls sie dort liegt, markieren Sie sie als „Kein Spam“.</string>
     <string name="screen_ant_auth_register_sent">Öffne den Aktivierungslink in der E-Mail, kehre hierher zurück und melde dich an.</string>
     <string name="screen_ant_auth_reset_sent">Öffne den Link zum Zurücksetzen in der E-Mail, lege ein neues Passwort fest und melde dich hier an.</string>
     <string name="screen_ant_auth_profile_requirements">Gib deinen Vornamen und ein gültiges Geburtsdatum (18+) ein und akzeptiere die Nutzungsbedingungen.</string>
@@ -99,4 +100,9 @@
     <string name="screen_ant_licences_failed">Lizenzen konnten nicht geladen werden.</string>
     <string name="screen_ant_menu_privacy">Datenschutz</string>
     <string name="screen_ant_auth_login_fields">Gib eine gültige E-Mail-Adresse und dein Passwort ein.</string>
+    <string name="screen_ant_auth_first_name_required">Gib deinen Vornamen ein.</string>
+    <string name="screen_ant_auth_birthdate_required">Wähle dein Geburtsdatum.</string>
+    <string name="screen_ant_auth_agreement_required">Akzeptiere die Nutzungsvereinbarung, um ein Konto zu erstellen.</string>
+    <string name="screen_ant_auth_session_expired">Die Anmeldeanfrage ist abgelaufen. Versuche es erneut.</string>
+    <string name="screen_ant_auth_rate_limited">Zu viele Anfragen. Warte einige Minuten und versuche es erneut.</string>
 </resources>

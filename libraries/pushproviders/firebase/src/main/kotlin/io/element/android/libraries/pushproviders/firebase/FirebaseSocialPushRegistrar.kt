@@ -5,12 +5,17 @@ import com.google.firebase.messaging.FirebaseMessaging
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesIntoSet
 import io.element.android.libraries.push.api.SocialPushRegistrar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @ContributesIntoSet(AppScope::class)
 class FirebaseSocialPushRegistrar(private val registerFirebaseSession: RegisterFirebaseSession) : SocialPushRegistrar {
     override val available = true
-    override suspend fun register(): Result<Unit> = registerFirebaseSession().onSuccess {
-        // Called after explicit device opt-in; keep the FID fresh while the app is closed.
-        FirebaseMessaging.getInstance().isAutoInitEnabled = true
+    override suspend fun register(): Result<Unit> = withContext(Dispatchers.IO) {
+        // The FCM SDK resolves the FID synchronously before returning its registration task.
+        // Keep that work off the UI thread, including when called from the opt-in dialog.
+        registerFirebaseSession().onSuccess {
+            FirebaseMessaging.getInstance().isAutoInitEnabled = true
+        }
     }
 }

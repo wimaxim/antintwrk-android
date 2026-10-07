@@ -36,6 +36,18 @@ class AntintwrkNativeAuthClientTest {
     private fun session(stage: String) = MockResponse().setBody("{\"stage\":\"$stage\",\"csrf\":\"$csrf\"}")
 
     @Test
+    fun `expired and rate limited requests remain distinct and never trigger a login retry`() = runTest {
+        for ((status, code) in listOf(403 to "SESSION_EXPIRED", 429 to "RATE_LIMITED", 503 to "UNAVAILABLE")) {
+            server.enqueue(MockResponse().setResponseCode(status).setBody("""{"error":"$code"}"""))
+            val error = runCatching { client.login("member@example.invalid", "fixture", "en", csrf) }.exceptionOrNull()
+            assertThat(error).isInstanceOf(AntintwrkRequestError::class.java)
+            assertThat((error as AntintwrkRequestError).code).isEqualTo(code)
+            server.takeRequest()
+        }
+        assertThat(server.requestCount).isEqualTo(3)
+    }
+
+    @Test
     fun `bootstrap accepts only declared server stages and sends protected POST headers`() = runTest {
         for (stage in AntintwrkAuthStage.entries) {
             server.enqueue(session(stage.name))

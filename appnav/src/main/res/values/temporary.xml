@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">About antintwrk</string>
     <string name="screen_ant_menu_terms">Terms and privacy</string>
     <string name="screen_ant_auth_check_email">Check your email</string>
+    <string name="screen_ant_auth_email_spam_hint">If the email is missing, check your Spam folder. If you find it there, mark it as “Not spam”.</string>
     <string name="screen_ant_auth_register_sent">Open the activation link in your email, then return here and sign in.</string>
     <string name="screen_ant_auth_reset_sent">Open the password reset link in your email, set a new password, then return here to sign in.</string>
     <string name="screen_ant_auth_profile_requirements">Enter your first name, choose a valid date of birth (18+) and accept the User Agreement.</string>
@@ -99,4 +100,9 @@
     <string name="screen_ant_licences_failed">Licences could not be loaded.</string>
     <string name="screen_ant_menu_privacy">Privacy</string>
     <string name="screen_ant_auth_login_fields">Enter a valid email address and your password.</string>
+    <string name="screen_ant_auth_first_name_required">Enter your first name.</string>
+    <string name="screen_ant_auth_birthdate_required">Choose your date of birth.</string>
+    <string name="screen_ant_auth_agreement_required">Accept the User Agreement to create an account.</string>
+    <string name="screen_ant_auth_session_expired">The sign-in request expired. Please try again.</string>
+    <string name="screen_ant_auth_rate_limited">Too many requests. Wait a few minutes, then try again.</string>
 </resources>

@@ -74,6 +74,7 @@
     <string name="screen_ant_menu_about">Informazioni su antintwrk</string>
     <string name="screen_ant_menu_terms">Condizioni e privacy</string>
     <string name="screen_ant_auth_check_email">Controlla la posta</string>
+    <string name="screen_ant_auth_email_spam_hint">Se non trovi l’email, controlla la cartella Spam. Se è lì, contrassegnala come «Non spam».</string>
     <string name="screen_ant_auth_register_sent">Apri il link di attivazione nella mail, poi torna qui e accedi.</string>
     <string name="screen_ant_auth_reset_sent">Apri il link di recupero nella mail, imposta una nuova password, poi torna qui e accedi.</string>
     <string name="screen_ant_auth_profile_requirements">Inserisci il nome e una data di nascita valida (18+) e accetta le condizioni di utilizzo.</string>
@@ -99,4 +100,9 @@
     <string name="screen_ant_licences_failed">Impossibile caricare le licenze.</string>
     <string name="screen_ant_menu_privacy">Privacy</string>
     <string name="screen_ant_auth_login_fields">Inserisci un indirizzo email valido e la tua password.</string>
+    <string name="screen_ant_auth_first_name_required">Inserisci il tuo nome.</string>
+    <string name="screen_ant_auth_birthdate_required">Scegli la tua data di nascita.</string>
+    <string name="screen_ant_auth_agreement_required">Accetta l’Accordo utente per creare un account.</string>
+    <string name="screen_ant_auth_session_expired">La richiesta di accesso è scaduta. Riprova.</string>
+    <string name="screen_ant_auth_rate_limited">Troppe richieste. Attendi qualche minuto, poi riprova.</string>
 </resources>

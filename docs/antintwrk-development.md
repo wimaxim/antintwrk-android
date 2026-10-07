@@ -1,5 +1,10 @@
 # Сохранение этапов разработки antintwrk
 
+## Email confirmation and real-account QA — 7 October 2026
+
+Both registration and password-reset confirmation screens show the recipient address and advise checking Spam and marking the message as Not spam. All nine locales are included; the email carries into login while the password is cleared. Registration from the emulator, email activation, native password login, matching web profile, logout/relogin and restart persistence succeeded for the owner-designated test account. Search, communities, empty notifications and the composer were opened without publishing. Firebase social registration now runs on Dispatchers.IO because SDK FID resolution rejects the UI thread; device opt-in is being rechecked. The server distinguishes expired sessions, throttling and unavailable requests without weakening CSRF or budgets. 47 social and42 Firebase unit tests pass; PHP7.3/7.4 guard checks pass. Google/Passkey success and background delivery remain unverified. No push to GitHub.
+
+
 ## Real-account audit started — 7 October 2026
 
 The owner explicitly requested registering a designated test mailbox in the app and checking registration/email activation, sign-in/sign-out/repeat sign-in and internal social screens. This overrides the earlier prohibition on creating QA accounts for this designated flow only. The mailbox is available in the owner's Chrome tab; no registration or credential submission has been performed yet.

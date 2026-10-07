@@ -57,6 +57,8 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
         val profileError = stringResource(R.string.screen_ant_auth_profile_requirements)
         val expiredError = stringResource(R.string.screen_ant_auth_registration_expired)
         val passwordError = stringResource(R.string.screen_ant_auth_password_requirements)
+        val sessionExpiredError = stringResource(R.string.screen_ant_auth_session_expired)
+        val rateLimitError = stringResource(R.string.screen_ant_auth_rate_limited)
         var session by remember { mutableStateOf<AntintwrkAuthSession?>(null) }
         var busy by remember { mutableStateOf(true) }
         var failed by remember { mutableStateOf(false) }
@@ -87,6 +89,8 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 serverMessage = when (error.code) {
                     "PROFILE" -> profileError
                     "REGISTRATION_EXPIRED" -> expiredError
+                    "SESSION_EXPIRED" -> sessionExpiredError
+                    "RATE_LIMITED" -> rateLimitError
                     else -> ""
                 }
                 failed = true
