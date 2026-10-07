@@ -48,7 +48,6 @@ class AntintwrkWebFeedTest : RobolectricTest() {
             "https://antintwrk.com/en/?auth=login",
             "https://antintwrk.com/en/goto",
             "https://antintwrk.com/register.php",
-            "https://antintwrk.com/en/profile",
             "javascript:alert(1)",
             "file:///etc/passwd",
             "intent://anything",
@@ -57,6 +56,33 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         assertThat(policy.external("https://example.org/article")).isTrue()
         assertThat(policy.external("javascript:alert(1)")).isFalse()
         assertThat(policy.external("intent://anything")).isFalse()
+    }
+
+    @Test
+    fun `social pages embed but outbound routes preserve the browser transition`() {
+        listOf("communities", "profile", "hero-compose", "notifications", "people", "monetization", "messages").forEach {
+            assertThat(policy.embedded("https://antintwrk.com/ru/$it")).endsWith("?app=1")
+        }
+        listOf("/goto?to=game", "/go/?url=https%3A%2F%2Fexample.org", "/ru/goto?to=game", "/en/go/").forEach {
+            val url = "https://antintwrk.com$it"
+            assertThat(policy.outbound(url)).isTrue()
+            assertThat(policy.embedded(url)).isNull()
+        }
+        assertThat(policy.outbound("https://antintwrk.com/ru/hero-feed?q=/goto")).isFalse()
+        assertThat(policy.outbound("https://antintwrk.com/ru/goto-other")).isFalse()
+    }
+
+    @Test
+    fun `web routes select their native section and auxiliary pages retain context`() {
+        assertThat(policy.section("https://antintwrk.com/ru/channel/page/manage?app=1"))
+            .isEqualTo(AntintwrkSection.Communities)
+        assertThat(policy.section("https://antintwrk.com/ru/profile?app=1")).isEqualTo(AntintwrkSection.Profile)
+        assertThat(policy.section("https://antintwrk.com/ru/reels?app=1")).isEqualTo(AntintwrkSection.Feed)
+        listOf("discover", "notifications", "hero/someone").forEach {
+            assertThat(policy.section("https://antintwrk.com/ru/$it?app=1")).isNull()
+        }
+        assertThat(policy.needsAuth("https://antintwrk.com/ru/?auth=login")).isTrue()
+        assertThat(policy.needsAuth("https://evil.org/ru/?auth=login")).isFalse()
     }
 
     @Test

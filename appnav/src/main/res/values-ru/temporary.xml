@@ -64,4 +64,13 @@
     <string name="screen_ant_auth_code">Код</string>
     <string name="screen_ant_auth_error">Не удалось войти. Проверьте данные или соединение и повторите попытку.</string>
     <string name="screen_ant_auth_logout">Выйти</string>
+    <string name="screen_ant_menu_more">Ещё</string>
+    <string name="screen_ant_menu_compose">Создать публикацию</string>
+    <string name="screen_ant_menu_people">Люди</string>
+    <string name="screen_ant_menu_messages">Сообщения</string>
+    <string name="screen_ant_menu_monetization">Монетизация</string>
+    <string name="screen_ant_menu_referrals">Мои рефералы</string>
+    <string name="screen_ant_menu_support">Поддержка</string>
+    <string name="screen_ant_menu_about">Об antintwrk</string>
+    <string name="screen_ant_menu_terms">Условия и конфиденциальность</string>
 </resources>

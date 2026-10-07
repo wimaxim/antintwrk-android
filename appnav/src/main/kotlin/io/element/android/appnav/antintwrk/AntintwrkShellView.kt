@@ -59,22 +59,42 @@ fun AntintwrkShellView(
     val holder = rememberSaveableStateHolder()
     val language = LocalConfiguration.current.locales[0].language
     val webController = if (webFeed) retainedWebController ?: rememberAntintwrkWebFeedController() else null
-    BackHandler(state.overlay != AntintwrkOverlay.None || state.mode != AntintwrkMode.Social || state.section != AntintwrkSection.Feed) {
+    val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+    webController?.onSection = { emit(AntintwrkShellEvent.Section(it)) }
+    fun openSection(section: AntintwrkSection) {
+        emit(AntintwrkShellEvent.Section(section))
+        webController?.navigate(policy.root(language, section), section)
+    }
+    BackHandler(
+        (webController == null || !webController.canGoBack) &&
+            (state.overlay != AntintwrkOverlay.None || state.mode != AntintwrkMode.Social || state.section != AntintwrkSection.Feed)
+    ) {
         emit(AntintwrkShellEvent.Back)
     }
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = AntintwrkBackground,
         topBar = {
-            ShellHeader(state) {
+            ShellHeader(state, onSearch = {
                 if (webController != null) {
-                    emit(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
-                    val url = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).feed(language).replace("/hero-feed?", "/discover?")
-                    webController.view?.loadUrl(url)
+                    webController.navigate(policy.route(language, "discover"))
                 } else {
                     emit(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Search))
                 }
+            }, onNotifications = {
+                if (webController != null) {
+                    webController.navigate(policy.route(language, "notifications"))
+                } else {
+                    emit(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Notifications))
+                }
+            }, onRoute = if (webController != null) {
+                { path ->
+                val url = policy.route(language, path)
+                webController.navigate(url, policy.section(url))
             }
+            } else {
+                null
+            })
         },
         bottomBar = {
             if (state.mode == AntintwrkMode.Social) {
@@ -82,7 +102,7 @@ fun AntintwrkShellView(
                     AntintwrkSection.entries.forEach { section ->
                         NavigationBarItem(
                             selected = state.section == section,
-                            onClick = { emit(AntintwrkShellEvent.Section(section)) },
+                            onClick = { openSection(section) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = ElementTheme.materialColors.primary,
                                 selectedTextColor = ElementTheme.colors.textPrimary,
@@ -126,20 +146,23 @@ fun AntintwrkShellView(
             if (state.mode == AntintwrkMode.Messenger) {
                 ShellEmpty(R.string.screen_ant_shell_messenger, R.string.screen_ant_shell_messenger_pending)
             } else {
-                holder.SaveableStateProvider(state.section.name) {
-                    when (state.section) {
-                        AntintwrkSection.Feed -> if (webController !=
-                            null) {
-                                AntintwrkWebFeed(webController, backEnabled = state.overlay == AntintwrkOverlay.None, onAuthRequired = onAuthRequired)
-                            } else {
-                                AntintwrkFeedView(state)
-                            }
-                        AntintwrkSection.Communities -> ShellEmpty(state.section.label, R.string.screen_ant_shell_communities_pending)
-                        AntintwrkSection.Profile -> Column(Modifier.fillMaxSize()) {
-                            Box(Modifier.weight(1f)) { ShellEmpty(state.section.label, R.string.screen_ant_shell_profile_pending) }
-                            if (onSignOut != null) TextButton(stringResource(R.string.screen_ant_auth_logout), onSignOut)
+                if (webController != null) {
+                    Column(Modifier.fillMaxSize()) {
+                        Box(Modifier.weight(1f)) {
+                            AntintwrkWebFeed(webController, backEnabled = true, onAuthRequired = onAuthRequired)
+                        }
+                        if (state.section == AntintwrkSection.Profile && onSignOut != null) {
+                            TextButton(stringResource(R.string.screen_ant_auth_logout), onSignOut)
                         }
                     }
+                } else {
+                    holder.SaveableStateProvider(state.section.name) {
+                    when (state.section) {
+                        AntintwrkSection.Feed -> AntintwrkFeedView(state)
+                        AntintwrkSection.Communities -> ShellEmpty(state.section.label, R.string.screen_ant_shell_communities_pending)
+                        AntintwrkSection.Profile -> ShellEmpty(state.section.label, R.string.screen_ant_shell_profile_pending)
+                    }
+                }
                 }
             }
         }
@@ -148,15 +171,15 @@ fun AntintwrkShellView(
 }
 
 @Composable
-private fun ShellHeader(state: AntintwrkShellState, onSearch: () -> Unit) {
+private fun ShellHeader(state: AntintwrkShellState, onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?) {
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             ShellModeTabs(state, Modifier.weight(1f))
-            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(state, onSearch)
+            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(onSearch, onNotifications, onRoute)
         }
         if (expanded && state.mode == AntintwrkMode.Social) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(state, onSearch) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(onSearch, onNotifications, onRoute) }
         }
     }
 }
@@ -188,13 +211,14 @@ private fun ShellModeTabs(state: AntintwrkShellState, modifier: Modifier) {
 }
 
 @Composable
-private fun ShellSocialActions(state: AntintwrkShellState, onSearch: () -> Unit) {
+private fun ShellSocialActions(onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?) {
     IconButton(onClick = onSearch) {
         Icon(CompoundIcons.Search(), stringResource(R.string.screen_ant_shell_search))
     }
-    IconButton(onClick = { state.eventSink(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Notifications)) }) {
+    IconButton(onClick = onNotifications) {
         Icon(CompoundIcons.Notifications(), stringResource(R.string.screen_ant_shell_notifications))
     }
+    if (onRoute != null) AntintwrkSocialMenu(onRoute)
 }
 
 internal val AntintwrkSection.label: Int get() = when (this) {

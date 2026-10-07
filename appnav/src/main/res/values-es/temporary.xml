@@ -64,4 +64,13 @@
     <string name="screen_ant_auth_code">Código</string>
     <string name="screen_ant_auth_error">No se pudo iniciar sesión. Revisa tus datos o la conexión e inténtalo de nuevo.</string>
     <string name="screen_ant_auth_logout">Cerrar sesión</string>
+    <string name="screen_ant_menu_more">Más</string>
+    <string name="screen_ant_menu_compose">Crear publicación</string>
+    <string name="screen_ant_menu_people">Personas</string>
+    <string name="screen_ant_menu_messages">Mensajes</string>
+    <string name="screen_ant_menu_monetization">Monetización</string>
+    <string name="screen_ant_menu_referrals">Mis referidos</string>
+    <string name="screen_ant_menu_support">Ayuda</string>
+    <string name="screen_ant_menu_about">Acerca de antintwrk</string>
+    <string name="screen_ant_menu_terms">Condiciones y privacidad</string>
 </resources>

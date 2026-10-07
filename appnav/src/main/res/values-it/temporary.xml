@@ -64,4 +64,13 @@
     <string name="screen_ant_auth_code">Codice</string>
     <string name="screen_ant_auth_error">Accesso non riuscito. Controlla i dati o la connessione e riprova.</string>
     <string name="screen_ant_auth_logout">Esci</string>
+    <string name="screen_ant_menu_more">Altro</string>
+    <string name="screen_ant_menu_compose">Crea pubblicazione</string>
+    <string name="screen_ant_menu_people">Persone</string>
+    <string name="screen_ant_menu_messages">Messaggi</string>
+    <string name="screen_ant_menu_monetization">Monetizzazione</string>
+    <string name="screen_ant_menu_referrals">I miei invitati</string>
+    <string name="screen_ant_menu_support">Assistenza</string>
+    <string name="screen_ant_menu_about">Informazioni su antintwrk</string>
+    <string name="screen_ant_menu_terms">Condizioni e privacy</string>
 </resources>

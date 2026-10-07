@@ -9,6 +9,7 @@ import android.net.Uri
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -17,6 +18,8 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,6 +31,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,43 +47,33 @@ import io.element.android.appnav.R
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 
-/** Query flag selects a presentation; it grants no account or content access. */
-internal class AntintwrkWebPolicy(private val origin: String) {
-    private val base = Uri.parse(origin)
-    fun feed(language: String): String {
-        val supported = setOf("en", "ru", "uk", "de", "es", "fr", "it", "ar", "zh")
-        return "$origin/${language.takeIf { it in supported } ?: "en"}/hero-feed?app=1"
-    }
-    fun embedded(url: String): String? {
-        val uri = Uri.parse(url)
-        if (uri.scheme != "https" || uri.host != base.host || uri.port != base.port || uri.userInfo != null) return null
-        // Keep the engine's first-visit cookie challenge inside WebView, unchanged.
-        if (uri.path == "/_firstvisit.html") {
-            val destination = uri.getQueryParameter("url") ?: return null
-            if (Uri.parse(destination).path == "/_firstvisit.html" || embedded(destination) == null) return null
-            return url
-        }
-        val parts = uri.pathSegments
-        if (parts.size < 2 || parts[1] !in setOf("hero-feed", "hero", "channel", "group", "discover", "reels", "stories") ||
-            uri.getQueryParameter("auth") != null) {
-                return null
-            }
-        if (parts[0] !in setOf("en", "ru", "uk", "de", "es", "fr", "it", "ar", "zh")) return null
-        return uri.buildUpon().clearQuery().apply {
-            uri.queryParameterNames.filter { it != "app" }.forEach { name ->
-                uri.getQueryParameters(name).forEach { value -> appendQueryParameter(name, value) }
-            }
-            appendQueryParameter("app", "1")
-        }.build().toString()
-    }
-    fun external(url: String): Boolean = Uri.parse(url).scheme in setOf("https", "http", "mailto", "tel")
-}
-
 class AntintwrkWebFeedController {
     var view: WebView? = null
     var loading by mutableStateOf(true)
     var failed by mutableStateOf(false)
     var canGoBack by mutableStateOf(false)
+    var section by mutableStateOf(AntintwrkSection.Feed)
+    var fileCallback: ValueCallback<Array<Uri>>? = null
+    var allowMultipleFiles = false
+    var currentUrl by mutableStateOf<String?>(null)
+    var onSection: (AntintwrkSection) -> Unit = {}
+    private val historySections = mutableMapOf<Pair<Int, String>, AntintwrkSection>()
+    fun navigate(url: String, destination: AntintwrkSection? = null) {
+        destination?.let {
+            section = it
+            onSection(it)
+        }
+        view?.loadUrl(url)
+    }
+    internal fun visited(url: String, policy: AntintwrkWebPolicy) {
+        if (policy.embedded(url) == null) return
+        val index = view?.copyBackForwardList()?.currentIndex ?: 0
+        section = policy.section(url) ?: historySections[index to url] ?: section
+        historySections[index to url] = section
+        currentUrl = url
+        canGoBack = view?.canGoBack() == true
+        onSection(section)
+    }
     fun back() {
         view?.goBack()
     }
@@ -88,9 +82,15 @@ class AntintwrkWebFeedController {
         view?.reload()
     }
     fun destroy() {
+        fileCallback?.onReceiveValue(null)
+        fileCallback = null
         view?.stopLoading()
         view?.destroy()
         view = null
+        currentUrl = null
+        canGoBack = false
+        historySections.clear()
+        section = AntintwrkSection.Feed
     }
 }
 
@@ -108,6 +108,16 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
     val language = LocalConfiguration.current.locales[0].language
     val uriHandler = LocalUriHandler.current
     val startUrl = policy.feed(language)
+    val authRequired by rememberUpdatedState(onAuthRequired)
+    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val callback = controller.fileCallback
+        controller.fileCallback = null
+        val selected = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
+            ?.filter { it.scheme == "content" && it.authority != "${controller.view?.context?.packageName}.fileprovider" }
+            ?.let { if (controller.allowMultipleFiles) it else it.take(1) }
+            ?.toTypedArray()?.takeIf { it.isNotEmpty() }
+        callback?.onReceiveValue(selected)
+    }
     BackHandler(backEnabled && controller.canGoBack) { controller.back() }
     Box(Modifier.fillMaxSize()) {
         AndroidView(
@@ -126,21 +136,40 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         mediaPlaybackRequiresUserGesture = true
                     }
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, false)
-                    webChromeClient = WebChromeClient()
+                    webChromeClient = object : WebChromeClient() {
+                        override fun onShowFileChooser(
+                            webView: WebView,
+                            callback: ValueCallback<Array<Uri>>,
+                            params: FileChooserParams,
+                        ): Boolean {
+                            controller.fileCallback?.onReceiveValue(null)
+                            controller.fileCallback = null
+                            if (policy.embedded(webView.url.orEmpty()) == null) {
+                                callback.onReceiveValue(null)
+                                return true
+                            }
+                            controller.fileCallback = callback
+                            controller.allowMultipleFiles = params.mode == FileChooserParams.MODE_OPEN_MULTIPLE
+                            runCatching { filePicker.launch(params.createIntent()) }.onFailure {
+                                controller.fileCallback = null
+                                callback.onReceiveValue(null)
+                            }
+                            return true
+                        }
+                    }
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                             if (!request.isForMainFrame) return false
                             val url = request.url.toString()
-                            if (BuildConfig.ANTINTWRK_NATIVE_AUTH && request.url.host == Uri.parse(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).host &&
-                                request.url.pathSegments.any { it in setOf("activitycheck", "g2fa") }) {
-                                onAuthRequired()
+                            if (BuildConfig.ANTINTWRK_NATIVE_AUTH && policy.needsAuth(url)) {
+                                authRequired()
                                 return true
                             }
                             val target = policy.embedded(url)
                             if (target != null) {
                                 if (target == url) return false
-                                view.loadUrl(target)
-                            } else if (policy.external(url) && request.hasGesture()) {
+                                controller.navigate(target, policy.section(target))
+                            } else if (policy.external(url) && (request.hasGesture() || policy.outbound(url))) {
                                 runCatching { uriHandler.openUri(url) }
                             } else {
                                 controller.failed = true
@@ -148,13 +177,16 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             }
                             return true
                         }
+                        override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
+                            controller.visited(url, policy)
+                        }
                         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                             controller.loading = true
                             controller.failed = false
                         }
                         override fun onPageFinished(view: WebView, url: String?) {
                             controller.loading = false
-                            controller.canGoBack = view.canGoBack()
+                            url?.let { controller.visited(it, policy) }
                         }
                         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                             if (request.isForMainFrame) {
@@ -166,7 +198,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             if (request.isForMainFrame) {
                                 controller.failed = true
                                 controller.loading = false
-                                if (response.statusCode == 401) onAuthRequired()
+                                if (response.statusCode == 401) authRequired()
                             }
                         }
                     }

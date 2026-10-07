@@ -64,4 +64,13 @@
     <string name="screen_ant_auth_code">Code</string>
     <string name="screen_ant_auth_error">Connexion impossible. Vérifiez vos identifiants ou votre connexion et réessayez.</string>
     <string name="screen_ant_auth_logout">Se déconnecter</string>
+    <string name="screen_ant_menu_more">Plus</string>
+    <string name="screen_ant_menu_compose">Créer une publication</string>
+    <string name="screen_ant_menu_people">Personnes</string>
+    <string name="screen_ant_menu_messages">Messages</string>
+    <string name="screen_ant_menu_monetization">Monétisation</string>
+    <string name="screen_ant_menu_referrals">Mes parrainages</string>
+    <string name="screen_ant_menu_support">Assistance</string>
+    <string name="screen_ant_menu_about">À propos de antintwrk</string>
+    <string name="screen_ant_menu_terms">Conditions et confidentialité</string>
 </resources>

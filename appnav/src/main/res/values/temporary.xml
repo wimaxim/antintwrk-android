@@ -64,4 +64,13 @@
     <string name="screen_ant_auth_code">Code</string>
     <string name="screen_ant_auth_error">Sign-in failed. Check your details or connection and try again.</string>
     <string name="screen_ant_auth_logout">Sign out</string>
+    <string name="screen_ant_menu_more">More</string>
+    <string name="screen_ant_menu_compose">Create publication</string>
+    <string name="screen_ant_menu_people">People</string>
+    <string name="screen_ant_menu_messages">Messages</string>
+    <string name="screen_ant_menu_monetization">Monetization</string>
+    <string name="screen_ant_menu_referrals">My referrals</string>
+    <string name="screen_ant_menu_support">Support</string>
+    <string name="screen_ant_menu_about">About antintwrk</string>
+    <string name="screen_ant_menu_terms">Terms and privacy</string>
 </resources>

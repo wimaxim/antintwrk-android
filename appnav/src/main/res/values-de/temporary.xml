@@ -64,4 +64,13 @@
     <string name="screen_ant_auth_code">Code</string>
     <string name="screen_ant_auth_error">Anmeldung fehlgeschlagen. Prüfe deine Angaben oder Verbindung und versuche es erneut.</string>
     <string name="screen_ant_auth_logout">Abmelden</string>
+    <string name="screen_ant_menu_more">Mehr</string>
+    <string name="screen_ant_menu_compose">Beitrag erstellen</string>
+    <string name="screen_ant_menu_people">Personen</string>
+    <string name="screen_ant_menu_messages">Nachrichten</string>
+    <string name="screen_ant_menu_monetization">Monetarisierung</string>
+    <string name="screen_ant_menu_referrals">Meine Empfehlungen</string>
+    <string name="screen_ant_menu_support">Support</string>
+    <string name="screen_ant_menu_about">Über antintwrk</string>
+    <string name="screen_ant_menu_terms">Bedingungen und Datenschutz</string>
 </resources>

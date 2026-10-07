@@ -64,4 +64,13 @@
     <string name="screen_ant_auth_code">الرمز</string>
     <string name="screen_ant_auth_error">تعذّر تسجيل الدخول. تحقق من بياناتك أو الاتصال وحاول مجددًا.</string>
     <string name="screen_ant_auth_logout">تسجيل الخروج</string>
+    <string name="screen_ant_menu_more">المزيد</string>
+    <string name="screen_ant_menu_compose">إنشاء منشور</string>
+    <string name="screen_ant_menu_people">الأشخاص</string>
+    <string name="screen_ant_menu_messages">الرسائل</string>
+    <string name="screen_ant_menu_monetization">تحقيق الدخل</string>
+    <string name="screen_ant_menu_referrals">إحالاتي</string>
+    <string name="screen_ant_menu_support">الدعم</string>
+    <string name="screen_ant_menu_about">حول antintwrk</string>
+    <string name="screen_ant_menu_terms">الشروط والخصوصية</string>
 </resources>

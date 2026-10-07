@@ -73,7 +73,6 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             AntintwrkShellView(shellState, modifier, webFeed = true, retainedWebController = webController, onAuthRequired = {
                 webController.destroy()
                 session = null
-                webController.destroy()
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
                 scope.launch { runRequest { client.session() } }
             }, onSignOut = {
