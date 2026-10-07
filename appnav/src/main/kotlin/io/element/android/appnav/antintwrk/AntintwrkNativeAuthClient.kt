@@ -23,7 +23,7 @@ internal class AntintwrkNativeAuthClient(
         .callTimeout(30, TimeUnit.SECONDS).build(),
 ) {
     companion object {
-        const val USER_AGENT = "ANTINTWRK Android native-client/1.0"
+        const val USER_AGENT = "ANTINTWRK Android native-client/1.0 (+https://qwertynetworks.com)"
     }
 
     private suspend fun post(action: String, fields: Map<String, String> = emptyMap()): String = withContext(Dispatchers.IO) {
