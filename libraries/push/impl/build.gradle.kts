@@ -24,24 +24,25 @@ android {
     }
 
     buildTypes {
+        val nativeSocial = providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()
         val defaultPusherAppId = "im.vector.app.android"
         getByName("release") {
             buildConfigFieldStr(
                 name = "PUSHER_APP_ID",
-                value = BuildTimeConfig.PUSHER_APP_ID_RELEASE ?: defaultPusherAppId,
+                value = if (nativeSocial) "com.antintwrk.app" else BuildTimeConfig.PUSHER_APP_ID_RELEASE ?: defaultPusherAppId,
             )
         }
         getByName("debug") {
             buildConfigFieldStr(
                 name = "PUSHER_APP_ID",
-                value = BuildTimeConfig.PUSHER_APP_ID_DEBUG ?: defaultPusherAppId,
+                value = if (nativeSocial) "com.antintwrk.app.debug" else BuildTimeConfig.PUSHER_APP_ID_DEBUG ?: defaultPusherAppId,
             )
         }
         register("nightly") {
             matchingFallbacks += listOf("release")
             buildConfigFieldStr(
                 name = "PUSHER_APP_ID",
-                value = BuildTimeConfig.PUSHER_APP_ID_NIGHTLY ?: defaultPusherAppId,
+                value = if (nativeSocial) "com.antintwrk.app" else BuildTimeConfig.PUSHER_APP_ID_NIGHTLY ?: defaultPusherAppId,
             )
         }
     }

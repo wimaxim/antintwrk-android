@@ -21,6 +21,10 @@ class DefaultFirebaseGatewayProvider(
     private val enterpriseService: EnterpriseService,
 ) : FirebaseGatewayProvider {
     override fun getFirebaseGateway(): String {
-        return enterpriseService.firebasePushGateway() ?: FirebaseConfig.PUSHER_HTTP_URL
+        return if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            FirebaseConfig.ANTINTWRK_PUSHER_HTTP_URL
+        } else {
+            enterpriseService.firebasePushGateway() ?: FirebaseConfig.PUSHER_HTTP_URL
+        }
     }
 }

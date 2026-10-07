@@ -15,6 +15,8 @@ object FirebaseConfig {
      */
     const val PUSHER_HTTP_URL: String = "https://matrix.org/_matrix/push/v1/notify"
 
+    const val ANTINTWRK_PUSHER_HTTP_URL: String = "https://push.antimsg.com/_matrix/push/v1/notify"
+
     const val INDEX = 0
     const val NAME = "Firebase"
 }

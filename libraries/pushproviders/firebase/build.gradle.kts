@@ -22,6 +22,11 @@ android {
 
     buildFeatures {
         resValues = true
+        buildConfig = true
+    }
+
+    defaultConfig {
+        buildConfigField("boolean", "ANTINTWRK_NATIVE_AUTH", providers.gradleProperty("antintwrkNativeAuth").orElse("false").get())
     }
 
     buildTypes {
