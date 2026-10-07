@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -43,6 +44,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 }
             }
         var pushOpen by remember { mutableStateOf(false) }
+        var licencesOpen by remember { mutableStateOf(false) }
         val pushRequests by AntintwrkSocialPushRoutes.opens.collectAsState()
         val presenter = remember { AntintwrkWelcomePresenter() }
         val shell = remember { AntintwrkShellPresenter() }
@@ -61,6 +63,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
         var googleRegistration by remember { mutableStateOf("") }
         var serverMessage by remember { mutableStateOf("") }
         var code by remember { mutableStateOf("") }
+        var lastStatusAt by remember { mutableLongStateOf(0L) }
         suspend fun runRequest(request: suspend () -> AntintwrkAuthSession) {
             busy = true
             failed = false
@@ -113,6 +116,8 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
         LaunchedEffect(session?.stage, busy, webController.refreshVersion, webController.currentUrl) {
             if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
                 while (true) {
+                    delay((10_000L - (android.os.SystemClock.elapsedRealtime() - lastStatusAt)).coerceAtLeast(0L))
+                    lastStatusAt = android.os.SystemClock.elapsedRealtime()
                     try {
                         val status = client.status(session!!.csrf)
                         webController.notifications = status.notifications
@@ -172,7 +177,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 session = null
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
                 scope.launch { runRequest { client.session() } }
-            }, onPushSettings = { pushOpen = true }, onSignOut = {
+            }, onPushSettings = { pushOpen = true }, onOpenLicences = { licencesOpen = true }, onSignOut = {
                 val current = session!!
                 val pushFid = pushStore.fid
                 AntintwrkSocialPushRoutes.consume()
@@ -265,7 +270,8 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                     if (event is AntintwrkWelcomeEvent.Open || event == AntintwrkWelcomeEvent.Back) googleRegistration = ""
                     state.eventSink(event)
                 }
-            }), modifier)
+            }), modifier, onOpenLicences = { licencesOpen = true })
         }
+        if (licencesOpen) AntintwrkLicencesDialog { licencesOpen = false }
     }
 }

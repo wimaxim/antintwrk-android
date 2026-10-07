@@ -44,6 +44,8 @@ class VectorFirebaseMessagingService : FirebaseMessagingService() {
         Timber.tag(loggerTag.value).w("New Firebase installation id")
         coroutineScope.launch {
             socialPushReceiver.registered(installationId)
+        }
+        coroutineScope.launch {
             firebaseNewInstallationIdHandler.handle(installationId)
         }
     }

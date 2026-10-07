@@ -15,6 +15,7 @@ import com.google.firebase.messaging.RemoteMessage
 import io.element.android.libraries.matrix.test.AN_EVENT_ID
 import io.element.android.libraries.matrix.test.A_ROOM_ID
 import io.element.android.libraries.matrix.test.A_SECRET
+import io.element.android.libraries.push.api.SocialPushReceiver
 import io.element.android.libraries.push.test.push.FakeFetchPushForegroundServiceManager
 import io.element.android.libraries.push.test.test.FakePushHandler
 import io.element.android.libraries.pushproviders.api.PushData
@@ -22,6 +23,7 @@ import io.element.android.libraries.pushproviders.api.PushHandler
 import io.element.android.tests.testutils.lambda.lambdaRecorder
 import io.element.android.tests.testutils.lambda.value
 import io.element.android.tests.testutils.robolectric.RobolectricTest
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -184,13 +186,59 @@ class VectorFirebaseMessagingServiceTest : RobolectricTest() {
         firebaseNewInstallationIdHandler: FirebaseNewInstallationIdHandler = FakeFirebaseNewInstallationIdHandler(),
         pushHandler: PushHandler = FakePushHandler(),
         pushHandlingWakeLock: FakeFetchPushForegroundServiceManager = FakeFetchPushForegroundServiceManager(),
+        socialReceiver: SocialPushReceiver = object : SocialPushReceiver {
+            override suspend fun registered(installationId: String) = Unit
+            override fun receive(data: Map<String, String>) = false
+        },
     ): VectorFirebaseMessagingService {
         return VectorFirebaseMessagingService().apply {
             this.firebaseNewInstallationIdHandler = firebaseNewInstallationIdHandler
             this.pushParser = FirebasePushParser()
             this.pushHandler = pushHandler
+            this.socialPushReceiver = socialReceiver
             this.coroutineScope = this@createVectorFirebaseMessagingService
             this.fetchPushForegroundServiceManager = pushHandlingWakeLock
         }
+    }
+
+    @Test
+    fun `social signals do not enter Matrix parsing or acquire its wakelock`() = runTest {
+        val invalid = lambdaRecorder<String, String, Unit> { _, _ -> }
+        val lock = lambdaRecorder<Boolean> { true }
+        val service = createVectorFirebaseMessagingService(
+            pushHandler = FakePushHandler(handleInvalidResult = invalid),
+            pushHandlingWakeLock = FakeFetchPushForegroundServiceManager(lock = lock),
+            socialReceiver = object : SocialPushReceiver {
+                override suspend fun registered(installationId: String) = Unit
+                override fun receive(data: Map<String, String>) = data["kind"] == "antintwrk.social.v1"
+            },
+        )
+        service.onMessageReceived(RemoteMessage(Bundle().apply {
+            putString("kind", "antintwrk.social.v1")
+            putString("google.priority", "high")
+        }))
+        advanceUntilIdle()
+        invalid.assertions().isNeverCalled()
+        lock.assertions().isNeverCalled()
+    }
+
+    @Test
+    fun `slow social registration does not delay Matrix installation update`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val matrix = lambdaRecorder<String, Unit> { }
+        val service = createVectorFirebaseMessagingService(
+            firebaseNewInstallationIdHandler = FakeFirebaseNewInstallationIdHandler(handleResult = matrix),
+            socialReceiver = object : SocialPushReceiver {
+                override suspend fun registered(installationId: String) {
+                    gate.await()
+                }
+                override fun receive(data: Map<String, String>) = false
+            },
+        )
+        service.onRegistered("installationId")
+        runCurrent()
+        matrix.assertions().isCalledOnce().with(value("installationId"))
+        gate.complete(Unit)
+        advanceUntilIdle()
     }
 }

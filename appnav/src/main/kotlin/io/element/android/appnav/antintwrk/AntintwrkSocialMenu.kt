@@ -33,6 +33,12 @@ internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit) {
                 onRoute("native-push")
             })
             }
+            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.screen_ant_licences)) }, onClick = {
+                expanded = false
+                onRoute("native-licences")
+            })
+            }
             listOf(
                 "hero-compose" to R.string.screen_ant_menu_compose,
                 "profile" to R.string.screen_ant_menu_settings,
@@ -43,6 +49,7 @@ internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit) {
                 "support" to R.string.screen_ant_menu_support,
                 "about" to R.string.screen_ant_menu_about,
                 "terms" to R.string.screen_ant_menu_terms,
+                "privacy" to R.string.screen_ant_menu_privacy,
             ).forEach { (route, label) ->
                 DropdownMenuItem(text = { Text(stringResource(label)) }, onClick = {
                     expanded = false

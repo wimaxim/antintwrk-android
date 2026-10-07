@@ -1,0 +1,4 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape><solid android:color="@color/antintwrk_system_background" /><size android:width="96dp" android:height="96dp" /></shape></item>
+    <item android:drawable="@drawable/antintwrk_launcher_foreground" />
+</layer-list>

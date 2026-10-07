@@ -52,8 +52,12 @@ android {
                 "Native gplay builds require antintwrkFirebaseResources for our Firebase project."
             }
         }
-        if (firebaseResources != null) sourceSets.configureEach {
-            if (name == "gplay") res.srcDir(file(firebaseResources))
+        if (firebaseResources != null) {
+            val ownConfig = file("$firebaseResources/values/firebase.xml")
+            require(ownConfig.isFile && Regex("<string[^>]*name=\"project_id\"[^>]*>effective-fire-159508</string>").containsMatchIn(ownConfig.readText())) {
+                "Expected our Firebase project resources."
+            }
+            sourceSets.configureEach { if (name == "gplay") res.srcDir(file(firebaseResources)) }
         }
     }
 
@@ -63,6 +67,12 @@ android {
         targetSdk = Versions.TARGET_SDK
         manifestPlaceholders["antintwrkFirebaseAutoInit"] =
             !providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()
+        val nativeSocial = providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()
+        manifestPlaceholders["antintwrkLauncherIcon"] = if (nativeSocial) "@mipmap/antintwrk_launcher" else "@mipmap/ic_launcher"
+        manifestPlaceholders["antintwrkRoundIcon"] = if (nativeSocial) "@mipmap/antintwrk_launcher" else "@mipmap/ic_launcher_round"
+        manifestPlaceholders["antintwrkAppTheme"] = if (nativeSocial) "@style/Theme.Antintwrk" else "@style/Theme.ElementX"
+        manifestPlaceholders["antintwrkSplashTheme"] = if (nativeSocial) "@style/Theme.Antintwrk.Splash" else "@style/Theme.ElementX.Splash"
+        manifestPlaceholders["antintwrkLocaleConfig"] = if (nativeSocial) "@xml/antintwrk_locales" else "@xml/locales_config"
         resValue(
             "string",
             "antintwrk_native_asset_statements",
@@ -130,7 +140,7 @@ android {
         }
     }
 
-    val baseAppName = BuildTimeConfig.APPLICATION_NAME
+    val baseAppName = if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) "antintwrk" else BuildTimeConfig.APPLICATION_NAME
     val buildType = if (isEnterpriseBuild) "Enterprise" else "FOSS"
     logger.warnInBox("Building ${defaultConfig.applicationId} ($baseAppName) [$buildType]")
 
@@ -237,6 +247,10 @@ android {
 }
 
 androidComponents {
+    beforeVariants(selector().withFlavor("store" to "gplay")) { variant ->
+        if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean() &&
+            providers.gradleProperty("antintwrkFirebaseResources").orNull == null) variant.enable = false
+    }
     // map for the version codes last digit
     // x86 must have greater values than arm
     // 64 bits have greater value than 32 bits
@@ -377,6 +391,13 @@ licensee {
 fun Project.configureLicensesTasks(reportingExtension: ReportingExtension) {
     androidComponents {
         onVariants { variant ->
+            if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) {
+                val copyLicence = project.tasks.register<AssetCopyTask>("copy${variant.name.replaceFirstChar { it.uppercase() }}AntintwrkLicence") {
+                    inputFile.set(rootProject.layout.projectDirectory.file("LICENSE"))
+                    targetFileName.set("antintwrk-LICENSE.txt")
+                }
+                variant.sources.assets?.addGeneratedSourceDirectory(copyLicence, AssetCopyTask::outputDirectory)
+            }
             val capitalizedVariantName = variant.name.replaceFirstChar {
                 if (it.isLowerCase()) {
                     it.titlecase(Locale.getDefault())

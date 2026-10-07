@@ -94,4 +94,8 @@
     <string name="screen_ant_push_comments">Коментарі</string>
     <string name="screen_ant_push_votes">Вподобання</string>
     <string name="screen_ant_push_important">Важливі події</string>
+    <string name="screen_ant_licences">Ліцензії</string>
+    <string name="screen_ant_source">Вихідний код</string>
+    <string name="screen_ant_licences_failed">Не вдалося завантажити ліцензії.</string>
+    <string name="screen_ant_menu_privacy">Конфіденційність</string>
 </resources>

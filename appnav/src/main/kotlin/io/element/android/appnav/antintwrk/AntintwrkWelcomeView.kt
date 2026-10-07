@@ -61,6 +61,7 @@ fun AntintwrkLoadingView(modifier: Modifier = Modifier) = AntintwrkBrandTheme {
 fun AntintwrkWelcomeView(
     state: AntintwrkWelcomeState,
     modifier: Modifier = Modifier,
+    onOpenLicences: (() -> Unit)? = null,
 ) = AntintwrkBrandTheme {
     val context = LocalAntintwrkActivity.current ?: LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -218,6 +219,7 @@ fun AntintwrkWelcomeView(
                 TextButton(stringResource(R.string.screen_antintwrk_reset), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Reset)) })
             }
         }
+        if (onOpenLicences != null) TextButton(stringResource(R.string.screen_ant_licences), onOpenLicences)
     }
 }
 

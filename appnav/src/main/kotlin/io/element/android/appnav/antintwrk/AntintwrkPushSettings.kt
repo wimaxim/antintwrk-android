@@ -26,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import dev.zacsweers.metro.AppScope
@@ -122,7 +124,12 @@ internal fun AntintwrkPushSettings(
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.screen_ant_push_device), modifier = Modifier.weight(1f))
-                        Switch(checked = deviceEnabled, enabled = !busy && available && preferences != null, onCheckedChange = { enabled ->
+                        Switch(modifier = Modifier.semantics {
+                            contentDescription = context.getString(
+                            R.string.screen_ant_push_device
+                        )
+                        }, checked = deviceEnabled, enabled =
+                            !busy && available && preferences != null, onCheckedChange = { enabled ->
                             if (enabled) {
                                 if (permitted()) {
                                     enable()
@@ -159,7 +166,12 @@ internal fun AntintwrkPushSettings(
                         "important" to R.string.screen_ant_push_important,
                     ).forEach { (key, label) ->
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = preferences?.get(key) == true, enabled = !busy && preferences != null, onCheckedChange = { value ->
+                            Checkbox(modifier = Modifier.semantics {
+                                contentDescription = context.getString(
+                                label
+                            )
+                            }, checked = preferences?.get(key) == true, enabled =
+                                !busy && preferences != null, onCheckedChange = { value ->
                                 preferences = preferences?.plus(key to value)
                             })
                             Text(stringResource(label))

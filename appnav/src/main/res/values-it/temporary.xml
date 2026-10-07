@@ -94,4 +94,8 @@
     <string name="screen_ant_push_comments">Commenti</string>
     <string name="screen_ant_push_votes">Mi piace</string>
     <string name="screen_ant_push_important">Eventi importanti</string>
+    <string name="screen_ant_licences">Licenze</string>
+    <string name="screen_ant_source">Codice sorgente</string>
+    <string name="screen_ant_licences_failed">Impossibile caricare le licenze.</string>
+    <string name="screen_ant_menu_privacy">Privacy</string>
 </resources>

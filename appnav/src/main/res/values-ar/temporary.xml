@@ -94,4 +94,8 @@
     <string name="screen_ant_push_comments">التعليقات</string>
     <string name="screen_ant_push_votes">الإعجابات</string>
     <string name="screen_ant_push_important">أحداث مهمة</string>
+    <string name="screen_ant_licences">التراخيص</string>
+    <string name="screen_ant_source">الشيفرة المصدرية</string>
+    <string name="screen_ant_licences_failed">تعذر تحميل التراخيص.</string>
+    <string name="screen_ant_menu_privacy">الخصوصية</string>
 </resources>

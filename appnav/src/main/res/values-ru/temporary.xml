@@ -94,4 +94,8 @@
     <string name="screen_ant_push_comments">Комментарии</string>
     <string name="screen_ant_push_votes">Лайки</string>
     <string name="screen_ant_push_important">Важные события</string>
+    <string name="screen_ant_licences">Лицензии</string>
+    <string name="screen_ant_source">Исходный код</string>
+    <string name="screen_ant_licences_failed">Не удалось загрузить лицензии.</string>
+    <string name="screen_ant_menu_privacy">Конфиденциальность</string>
 </resources>

@@ -1,0 +1,18 @@
+<resources>
+    <color name="antintwrk_system_background">#0B0E11</color>
+    <style name="Theme.Antintwrk" parent="Theme.ElementX">
+        <item name="android:windowBackground">@color/antintwrk_system_background</item>
+        <item name="android:statusBarColor">@color/antintwrk_system_background</item>
+        <item name="android:navigationBarColor">@color/antintwrk_system_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+    <style name="Theme.Antintwrk.Splash" parent="Theme.ElementX.Splash">
+        <item name="windowSplashScreenBackground">@color/antintwrk_system_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/antintwrk_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.Antintwrk</item>
+        <item name="android:windowBackground">@color/antintwrk_system_background</item>
+        <item name="android:statusBarColor">@color/antintwrk_system_background</item>
+        <item name="android:navigationBarColor">@color/antintwrk_system_background</item>
+    </style>
+</resources>
