@@ -73,4 +73,11 @@
     <string name="screen_ant_menu_support">Support</string>
     <string name="screen_ant_menu_about">About antintwrk</string>
     <string name="screen_ant_menu_terms">Terms and privacy</string>
+    <string name="screen_ant_auth_check_email">Check your email</string>
+    <string name="screen_ant_auth_register_sent">Open the activation link in your email, then return here and sign in.</string>
+    <string name="screen_ant_auth_reset_sent">Open the password reset link in your email, set a new password, then return here to sign in.</string>
+    <string name="screen_ant_auth_profile_requirements">Enter your first name, choose a valid date of birth (18+) and accept the User Agreement.</string>
+    <string name="screen_ant_auth_registration_expired">This Google registration has expired. Go back and select your Google account again.</string>
+    <string name="screen_ant_auth_password_requirements">Use 8–128 characters with uppercase, lowercase, a number and a special character.</string>
+    <string name="screen_ant_auth_request_error">Could not complete the request. Check your details and connection, then try again.</string>
 </resources>

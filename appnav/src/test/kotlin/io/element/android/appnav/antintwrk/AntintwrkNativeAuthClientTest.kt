@@ -115,4 +115,40 @@ class AntintwrkNativeAuthClientTest {
         server.takeRequest()
         server.takeRequest()
     }
+    @Test
+    fun `registration and reset use protected transport and do not imply admission`() = runTest {
+        for (action in listOf("register", "reset")) {
+            server.enqueue(MockResponse().setBody("OK"))
+            client.requestAccount(action, mapOf("email" to "member@example.invalid", "agreement" to "1"), csrf)
+            val request = server.takeRequest()
+            assertThat(request.method).isEqualTo("POST")
+            assertThat(request.body.readUtf8()).contains("action=$action")
+            assertThat(request.getHeader("Cookie")).isNotNull()
+        }
+        server.enqueue(MockResponse().setBody("Please use another email."))
+        assertThat(runCatching { client.requestAccount("register", emptyMap(), csrf) }.exceptionOrNull())
+            .isInstanceOf(AntintwrkAccountError::class.java)
+    }
+
+    @Test
+    fun `google newcomer requires a separate consent-bound registration request`() = runTest {
+        server.enqueue(MockResponse().setBody("""{"registrationTicket":"one-time","email":"new@example.invalid","firstName":"New"}"""))
+        val error = runCatching { client.providerSignIn("google", "opaque", "ticket", csrf) }.exceptionOrNull()
+        assertThat(error).isInstanceOf(AntintwrkRegistrationRequired::class.java)
+        assertThat((error as AntintwrkRegistrationRequired).ticket).isEqualTo("one-time")
+        server.takeRequest()
+        server.enqueue(MockResponse().setBody("""{"ok":true}"""))
+        server.enqueue(session("TOTP"))
+        assertThat(client.registerGoogle(mapOf("agreement" to "1"), "one-time", csrf).stage).isEqualTo(AntintwrkAuthStage.TOTP)
+        assertThat(server.takeRequest().body.readUtf8()).contains("action=google-register")
+        server.takeRequest()
+    }
+
+    @Test
+    fun `invalid profile errors never admit an account`() = runTest {
+        server.enqueue(MockResponse().setResponseCode(400).setBody("""{"error":"PROFILE"}"""))
+        val error = runCatching { client.requestAccount("register", emptyMap(), csrf) }.exceptionOrNull()
+        assertThat(error).isInstanceOf(AntintwrkRequestError::class.java)
+        assertThat((error as AntintwrkRequestError).code).isEqualTo("PROFILE")
+    }
 }

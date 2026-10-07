@@ -4,6 +4,7 @@
 package io.element.android.appnav.antintwrk
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.view.View
@@ -18,8 +19,6 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -53,6 +52,7 @@ class AntintwrkWebFeedController {
     var failed by mutableStateOf(false)
     var canGoBack by mutableStateOf(false)
     var section by mutableStateOf(AntintwrkSection.Feed)
+    var launchFilePicker: ((Intent) -> Unit)? = null
     var fileCallback: ValueCallback<Array<Uri>>? = null
     var allowMultipleFiles = false
     var currentUrl by mutableStateOf<String?>(null)
@@ -109,15 +109,6 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
     val uriHandler = LocalUriHandler.current
     val startUrl = policy.feed(language)
     val authRequired by rememberUpdatedState(onAuthRequired)
-    val filePicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val callback = controller.fileCallback
-        controller.fileCallback = null
-        val selected = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
-            ?.filter { it.scheme == "content" && it.authority != "${controller.view?.context?.packageName}.fileprovider" }
-            ?.let { if (controller.allowMultipleFiles) it else it.take(1) }
-            ?.toTypedArray()?.takeIf { it.isNotEmpty() }
-        callback?.onReceiveValue(selected)
-    }
     BackHandler(backEnabled && controller.canGoBack) { controller.back() }
     Box(Modifier.fillMaxSize()) {
         AndroidView(
@@ -150,7 +141,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             }
                             controller.fileCallback = callback
                             controller.allowMultipleFiles = params.mode == FileChooserParams.MODE_OPEN_MULTIPLE
-                            runCatching { filePicker.launch(params.createIntent()) }.onFailure {
+                            runCatching { requireNotNull(controller.launchFilePicker).invoke(params.createIntent()) }.onFailure {
                                 controller.fileCallback = null
                                 callback.onReceiveValue(null)
                             }

@@ -73,4 +73,11 @@
     <string name="screen_ant_menu_support">Assistenza</string>
     <string name="screen_ant_menu_about">Informazioni su antintwrk</string>
     <string name="screen_ant_menu_terms">Condizioni e privacy</string>
+    <string name="screen_ant_auth_check_email">Controlla la posta</string>
+    <string name="screen_ant_auth_register_sent">Apri il link di attivazione nella mail, poi torna qui e accedi.</string>
+    <string name="screen_ant_auth_reset_sent">Apri il link di recupero nella mail, imposta una nuova password, poi torna qui e accedi.</string>
+    <string name="screen_ant_auth_profile_requirements">Inserisci il nome e una data di nascita valida (18+) e accetta le condizioni di utilizzo.</string>
+    <string name="screen_ant_auth_registration_expired">Questa registrazione Google è scaduta. Torna indietro e seleziona di nuovo il tuo account Google.</string>
+    <string name="screen_ant_auth_password_requirements">Usa 8–128 caratteri con maiuscole, minuscole, un numero e un simbolo.</string>
+    <string name="screen_ant_auth_request_error">Impossibile completare la richiesta. Controlla i dati e la connessione, poi riprova.</string>
 </resources>

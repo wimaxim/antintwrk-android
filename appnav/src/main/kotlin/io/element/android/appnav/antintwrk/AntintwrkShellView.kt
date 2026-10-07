@@ -59,6 +59,7 @@ fun AntintwrkShellView(
     val holder = rememberSaveableStateHolder()
     val language = LocalConfiguration.current.locales[0].language
     val webController = if (webFeed) retainedWebController ?: rememberAntintwrkWebFeedController() else null
+    if (webController != null && !BuildConfig.ANTINTWRK_NATIVE_AUTH) AntintwrkWebFilePicker(webController)
     val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
     webController?.onSection = { emit(AntintwrkShellEvent.Section(it)) }
     fun openSection(section: AntintwrkSection) {

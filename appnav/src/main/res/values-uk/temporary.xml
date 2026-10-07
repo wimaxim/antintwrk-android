@@ -73,4 +73,11 @@
     <string name="screen_ant_menu_support">Підтримка</string>
     <string name="screen_ant_menu_about">Про antintwrk</string>
     <string name="screen_ant_menu_terms">Умови та конфіденційність</string>
+    <string name="screen_ant_auth_check_email">Перевірте пошту</string>
+    <string name="screen_ant_auth_register_sent">Відкрийте посилання активації в листі, потім поверніться сюди й увійдіть.</string>
+    <string name="screen_ant_auth_reset_sent">Відкрийте посилання відновлення в листі, задайте новий пароль, потім поверніться сюди й увійдіть.</string>
+    <string name="screen_ant_auth_profile_requirements">Укажіть ім’я, коректну дату народження (18+) і прийміть угоду користувача.</string>
+    <string name="screen_ant_auth_registration_expired">Термін реєстрації через Google минув. Поверніться назад і знову виберіть обліковий запис Google.</string>
+    <string name="screen_ant_auth_password_requirements">Використовуйте 8–128 символів: велику й малу літери, цифру та спеціальний символ.</string>
+    <string name="screen_ant_auth_request_error">Не вдалося виконати запит. Перевірте дані й з’єднання та повторіть.</string>
 </resources>

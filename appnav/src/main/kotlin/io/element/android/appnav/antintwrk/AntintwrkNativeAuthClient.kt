@@ -14,6 +14,9 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 internal enum class AntintwrkAuthStage { LOGIN, DEVICE, TOTP, SETUP_REQUIRED, AUTHENTICATED }
+internal class AntintwrkRegistrationRequired(val ticket: String, val email: String, val firstName: String, val surname: String) : Exception()
+internal class AntintwrkRequestError(val code: String) : Exception()
+internal class AntintwrkAccountError(val messageForUser: String) : Exception()
 internal data class AntintwrkAuthSession(val stage: AntintwrkAuthStage, val csrf: String)
 
 /** No logging interceptor, password persistence, browser redirects or bearer tokens. */
@@ -40,8 +43,10 @@ internal class AntintwrkNativeAuthClient(
             require(response.body.contentLength() <= 65536) { "Response size" }
             val source = response.body.source()
             source.request(65537)
-            require(source.buffer.size <= 65536 && response.isSuccessful) { "Request failed" }
-            source.buffer.readUtf8()
+            require(source.buffer.size <= 65536) { "Request failed" }
+            val result = source.buffer.readUtf8()
+            if (!response.isSuccessful) throw AntintwrkRequestError(runCatching { JSONObject(result).optString("error") }.getOrDefault(""))
+            result
         }
     }
 
@@ -64,8 +69,31 @@ internal class AntintwrkNativeAuthClient(
         if (provider == "passkey") {
             require(result.isEmpty() || result == "OK")
         } else {
-            require(JSONObject(result).optBoolean("ok"))
+            val json = JSONObject(result)
+            if (json.has("registrationTicket")) {
+                throw AntintwrkRegistrationRequired(
+                json.getString("registrationTicket"),
+                    json.getString("email"),
+                    json.optString("firstName"),
+                    json.optString("surname"),
+            )
+            }
+            require(json.optBoolean("ok"))
         }
+        return session().also { require(it.stage != AntintwrkAuthStage.LOGIN) }
+    }
+
+    suspend fun requestAccount(action: String, fields: Map<String, String>, csrf: String) {
+        require(action in setOf("register", "reset"))
+        val result = post(action, fields + ("csrf" to csrf)).trim()
+        if (result != "OK") {
+            val text = android.text.Html.fromHtml(result, android.text.Html.FROM_HTML_MODE_LEGACY).toString().trim().take(300)
+            throw AntintwrkAccountError(text)
+        }
+    }
+
+    suspend fun registerGoogle(fields: Map<String, String>, ticket: String, csrf: String): AntintwrkAuthSession {
+        require(JSONObject(post("google-register", fields + mapOf("ticket" to ticket, "csrf" to csrf))).optBoolean("ok"))
         return session().also { require(it.stage != AntintwrkAuthStage.LOGIN) }
     }
 
@@ -89,6 +117,7 @@ internal class AntintwrkNativeAuthClient(
                     cookies.setCookie(origin, "$name=; Max-Age=0; Path=/; Secure; HttpOnly")
                 }
             cookies.flush()
+            android.webkit.WebStorage.getInstance().deleteOrigin(origin)
         }
     }
 }

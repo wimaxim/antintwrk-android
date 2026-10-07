@@ -83,9 +83,14 @@ fun AntintwrkWelcomeView(
             AntintwrkPage.Profile -> R.string.screen_antintwrk_profile
             AntintwrkPage.Login -> R.string.screen_antintwrk_login
             AntintwrkPage.Reset -> R.string.screen_antintwrk_reset
+            AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent -> R.string.screen_ant_auth_check_email
         }
         Text(stringResource(title), style = ElementTheme.typography.fontHeadingMdBold)
-        if (state.networkError) Text(stringResource(R.string.screen_ant_auth_error), color = ElementTheme.colors.textCriticalPrimary)
+        if (state.serverMessage.isNotEmpty()) Text(state.serverMessage, color = ElementTheme.colors.textCriticalPrimary)
+        if (state.networkError &&
+            state.serverMessage.isEmpty()) {
+                Text(stringResource(R.string.screen_ant_auth_request_error), color = ElementTheme.colors.textCriticalPrimary)
+            }
         if (state.page == AntintwrkPage.Welcome) {
             Text(stringResource(R.string.screen_antintwrk_intro), style = ElementTheme.typography.fontBodyLgRegular)
             Spacer(Modifier.height(32.dp))
@@ -99,8 +104,11 @@ fun AntintwrkWelcomeView(
                 { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) },
                 Modifier.fillMaxWidth()
             )
+        } else if (state.page in setOf(AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent)) {
+            Text(stringResource(if (state.page == AntintwrkPage.RegisterSent) R.string.screen_ant_auth_register_sent else R.string.screen_ant_auth_reset_sent))
+            AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_login), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) })
         } else {
-            if (!state.nativeLogin || state.page != AntintwrkPage.Login) {
+            if (!state.nativeLogin) {
                 Text(stringResource(R.string.screen_antintwrk_preview), color = ElementTheme.colors.textSecondary)
             }
             if (state.page == AntintwrkPage.Login || state.page == AntintwrkPage.Register) {
@@ -143,6 +151,7 @@ fun AntintwrkWelcomeView(
                 )
             }
             if (state.page == AntintwrkPage.Profile) {
+                Text(state.email, color = ElementTheme.colors.textSecondary)
                 AntintwrkTextField(
                     state.firstName,
                     { emit(AntintwrkWelcomeEvent.FirstName(it)) },
@@ -221,6 +230,8 @@ internal class AntintwrkWelcomePreviewStates : PreviewParameterProvider<Antintwr
         AntintwrkWelcomeState(page = AntintwrkPage.Login, nativeLogin = true, busy = true),
         AntintwrkWelcomeState(page = AntintwrkPage.Login, nativeLogin = true, networkError = true),
         AntintwrkWelcomeState(page = AntintwrkPage.Reset, unavailable = true),
+        AntintwrkWelcomeState(page = AntintwrkPage.RegisterSent, nativeLogin = true),
+        AntintwrkWelcomeState(page = AntintwrkPage.ResetSent, nativeLogin = true),
     )
 }
 

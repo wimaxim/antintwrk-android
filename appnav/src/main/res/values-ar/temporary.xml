@@ -73,4 +73,11 @@
     <string name="screen_ant_menu_support">الدعم</string>
     <string name="screen_ant_menu_about">حول antintwrk</string>
     <string name="screen_ant_menu_terms">الشروط والخصوصية</string>
+    <string name="screen_ant_auth_check_email">تحقق من بريدك الإلكتروني</string>
+    <string name="screen_ant_auth_register_sent">افتح رابط التفعيل في الرسالة، ثم عد إلى هنا وسجّل الدخول.</string>
+    <string name="screen_ant_auth_reset_sent">افتح رابط استعادة كلمة المرور في الرسالة، وعيّن كلمة مرور جديدة، ثم عد إلى هنا وسجّل الدخول.</string>
+    <string name="screen_ant_auth_profile_requirements">أدخل اسمك الأول وتاريخ ميلاد صحيحًا (18+) واقبل اتفاقية المستخدم.</string>
+    <string name="screen_ant_auth_registration_expired">انتهت صلاحية التسجيل عبر Google. عد إلى الخلف واختر حساب Google مجددًا.</string>
+    <string name="screen_ant_auth_password_requirements">استخدم 8–128 رمزًا تتضمن حرفًا كبيرًا وحرفًا صغيرًا ورقمًا ورمزًا خاصًا.</string>
+    <string name="screen_ant_auth_request_error">تعذر إكمال الطلب. تحقق من البيانات والاتصال ثم حاول مجددًا.</string>
 </resources>

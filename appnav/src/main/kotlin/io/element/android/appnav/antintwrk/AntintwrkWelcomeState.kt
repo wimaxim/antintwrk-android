@@ -3,7 +3,7 @@
  */
 package io.element.android.appnav.antintwrk
 
-enum class AntintwrkPage { Welcome, Register, Profile, Login, Reset }
+enum class AntintwrkPage { Welcome, Register, Profile, Login, Reset, RegisterSent, ResetSent }
 
 data class AntintwrkWelcomeState(
     val page: AntintwrkPage = AntintwrkPage.Welcome,
@@ -19,6 +19,7 @@ data class AntintwrkWelcomeState(
     val nativeLogin: Boolean = false,
     val busy: Boolean = false,
     val networkError: Boolean = false,
+    val serverMessage: String = "",
     val eventSink: (AntintwrkWelcomeEvent) -> Unit = {},
 )
 

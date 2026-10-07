@@ -73,4 +73,11 @@
     <string name="screen_ant_menu_support">帮助</string>
     <string name="screen_ant_menu_about">关于 antintwrk</string>
     <string name="screen_ant_menu_terms">条款与隐私</string>
+    <string name="screen_ant_auth_check_email">请查收邮件</string>
+    <string name="screen_ant_auth_register_sent">打开邮件中的激活链接，然后返回这里登录。</string>
+    <string name="screen_ant_auth_reset_sent">打开邮件中的密码重置链接，设置新密码，然后返回这里登录。</string>
+    <string name="screen_ant_auth_profile_requirements">请输入名字和有效出生日期（年满18岁），并同意用户协议。</string>
+    <string name="screen_ant_auth_registration_expired">Google注册已过期。请返回并重新选择Google账户。</string>
+    <string name="screen_ant_auth_password_requirements">请使用8至128个字符，包含大写字母、小写字母、数字和特殊字符。</string>
+    <string name="screen_ant_auth_request_error">无法完成请求。请检查信息和网络连接，然后重试。</string>
 </resources>
