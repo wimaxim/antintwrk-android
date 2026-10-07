@@ -106,4 +106,5 @@
     <string name="screen_ant_auth_agreement_required">Accetta l’Accordo utente per creare un account.</string>
     <string name="screen_ant_auth_session_expired">La richiesta di accesso è scaduta. Riprova.</string>
     <string name="screen_ant_auth_rate_limited">Troppe richieste. Attendi qualche minuto, poi riprova.</string>
+    <string name="screen_ant_auth_session_check_error">Impossibile verificare il tuo accesso. Controlla la connessione e riprova.</string>
 </resources>

@@ -106,4 +106,5 @@
     <string name="screen_ant_auth_agreement_required">Acepta el Acuerdo de Usuario para crear una cuenta.</string>
     <string name="screen_ant_auth_session_expired">La solicitud de inicio de sesión ha caducado. Inténtalo de nuevo.</string>
     <string name="screen_ant_auth_rate_limited">Demasiadas solicitudes. Espera unos minutos e inténtalo de nuevo.</string>
+    <string name="screen_ant_auth_session_check_error">No se pudo comprobar tu sesión. Comprueba la conexión e inténtalo de nuevo.</string>
 </resources>

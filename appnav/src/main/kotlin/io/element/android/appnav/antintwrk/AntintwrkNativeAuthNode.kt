@@ -3,6 +3,14 @@
  */
 package io.element.android.appnav.antintwrk
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import io.element.android.libraries.designsystem.theme.components.Text
+import io.element.android.libraries.designsystem.theme.components.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,12 +70,14 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
         var session by remember { mutableStateOf<AntintwrkAuthSession?>(null) }
         var busy by remember { mutableStateOf(true) }
         var failed by remember { mutableStateOf(false) }
+        var sessionVerificationFailed by remember { mutableStateOf(false) }
         var googleRegistration by remember { mutableStateOf("") }
         var serverMessage by remember { mutableStateOf("") }
         var code by remember { mutableStateOf("") }
         var lastStatusAt by remember { mutableLongStateOf(0L) }
-        suspend fun runRequest(request: suspend () -> AntintwrkAuthSession) {
+        suspend fun runRequest(revalidate: Boolean = false, request: suspend () -> AntintwrkAuthSession) {
             busy = true
+            sessionVerificationFailed = false
             failed = false
             serverMessage = ""
             try {
@@ -113,6 +123,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                     session = null
                     webController.destroy()
                 }
+                sessionVerificationFailed = revalidate && failed
                 busy = false
                 code = ""
             }
@@ -130,7 +141,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                         throw cancelled
                     } catch (error: AntintwrkRequestError) {
                         if (error.code == "AUTH_REQUIRED") {
-                            runRequest { client.session() }
+                            runRequest(revalidate = true) { client.session() }
                             break
                         }
                     } catch (_: Exception) {
@@ -142,7 +153,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
         }
         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
             if (session?.stage == AntintwrkAuthStage.AUTHENTICATED || !busy || (session == null && state.page == AntintwrkPage.Welcome)) {
-                scope.launch { runRequest { client.session() } }
+                scope.launch { runRequest(revalidate = true) { client.session() } }
             }
         }
         LifecycleEventEffect(Lifecycle.Event.ON_STOP) { if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) busy = true }
@@ -168,11 +179,18 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             onDismiss = { pushOpen = false },
             onAuthRequired = {
                 pushStore.clear()
-                scope.launch { runRequest { client.session() } }
+                scope.launch { runRequest(revalidate = true) { client.session() } }
             }
         )
         if (busy && (session == null || session?.stage == AntintwrkAuthStage.AUTHENTICATED)) {
             AntintwrkLoadingView(modifier)
+        } else if (sessionVerificationFailed) {
+            AntintwrkBrandTheme {
+                Column(modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(stringResource(R.string.screen_ant_auth_session_check_error))
+                    TextButton(stringResource(R.string.screen_ant_web_retry), { scope.launch { runRequest(revalidate = true) { client.session() } } })
+                }
+            }
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
             AntintwrkShellView(shellState, modifier, webFeed = true, retainedWebController = webController, onAuthRequired = {
                 val returnUrl = webController.currentUrl
@@ -180,7 +198,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 webController.currentUrl = returnUrl
                 session = null
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
-                scope.launch { runRequest { client.session() } }
+                scope.launch { runRequest(revalidate = true) { client.session() } }
             }, onPushSettings = { pushOpen = true }, onOpenLicences = { licencesOpen = true }, onSignOut = {
                 val current = session!!
                 val pushFid = pushStore.fid

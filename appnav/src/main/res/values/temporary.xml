@@ -106,4 +106,5 @@
     <string name="screen_ant_auth_agreement_required">Accept the User Agreement to create an account.</string>
     <string name="screen_ant_auth_session_expired">The sign-in request expired. Please try again.</string>
     <string name="screen_ant_auth_rate_limited">Too many requests. Wait a few minutes, then try again.</string>
+    <string name="screen_ant_auth_session_check_error">Could not verify your sign-in. Check your connection and try again.</string>
 </resources>

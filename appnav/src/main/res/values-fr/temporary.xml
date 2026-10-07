@@ -106,4 +106,5 @@
     <string name="screen_ant_auth_agreement_required">Acceptez le contrat utilisateur pour créer un compte.</string>
     <string name="screen_ant_auth_session_expired">La demande de connexion a expiré. Réessayez.</string>
     <string name="screen_ant_auth_rate_limited">Trop de demandes. Attendez quelques minutes, puis réessayez.</string>
+    <string name="screen_ant_auth_session_check_error">Impossible de vérifier votre connexion au compte. Vérifiez votre connexion Internet et réessayez.</string>
 </resources>

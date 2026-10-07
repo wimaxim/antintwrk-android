@@ -106,4 +106,5 @@
     <string name="screen_ant_auth_agreement_required">Прийміть Користувацьку угоду, щоб створити обліковий запис.</string>
     <string name="screen_ant_auth_session_expired">Запит входу застарів. Спробуйте ще раз.</string>
     <string name="screen_ant_auth_rate_limited">Забагато запитів. Зачекайте кілька хвилин і повторіть.</string>
+    <string name="screen_ant_auth_session_check_error">Не вдалося перевірити вхід. Перевірте з’єднання та спробуйте ще раз.</string>
 </resources>
