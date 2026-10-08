@@ -261,6 +261,7 @@ internal fun AntintwrkNativeAppView(
                 while (true) {
                     try {
                         onPrepareRecovery()
+                        break
                     } catch (_: TimeoutCancellationException) {
                         // A later periodic attempt can recover after sync/network becomes available.
                     } catch (cancelled: CancellationException) {
