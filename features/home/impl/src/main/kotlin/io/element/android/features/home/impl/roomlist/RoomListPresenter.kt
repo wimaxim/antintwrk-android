@@ -210,19 +210,7 @@ class RoomListPresenter(
         securityBannerDismissed: Boolean,
         recoveryState: RecoveryState,
     ): SecurityBannerState {
-        if (securityBannerDismissed) {
-            return SecurityBannerState.None
-        }
-
-        when (recoveryState) {
-            RecoveryState.DISABLED -> return SecurityBannerState.SetUpRecovery
-            RecoveryState.INCOMPLETE -> return SecurityBannerState.RecoveryKeyConfirmation
-            RecoveryState.UNKNOWN,
-            RecoveryState.WAITING_FOR_SYNC,
-            RecoveryState.ENABLED -> Unit
-        }
-
-        return SecurityBannerState.None
+        return recoverySecurityBanner(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH, securityBannerDismissed, recoveryState)
     }
 
     @Composable
@@ -321,5 +309,14 @@ class RoomListPresenter(
                     analyticsService.captureInteraction(name = Interaction.Name.MobileRoomListRoomContextMenuUnreadToggle)
                 }
         }
+    }
+}
+
+internal fun recoverySecurityBanner(managedByAccount: Boolean, dismissed: Boolean, state: RecoveryState): SecurityBannerState {
+    if (managedByAccount || dismissed) return SecurityBannerState.None
+    return when (state) {
+        RecoveryState.DISABLED -> SecurityBannerState.SetUpRecovery
+        RecoveryState.INCOMPLETE -> SecurityBannerState.RecoveryKeyConfirmation
+        else -> SecurityBannerState.None
     }
 }

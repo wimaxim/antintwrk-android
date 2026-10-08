@@ -96,6 +96,15 @@ class RoomListPresenterTest {
     val warmUpRule = WarmUpRule()
 
     @Test
+    fun `account managed recovery never asks users for a manual key`() {
+        for (state in RecoveryState.entries) {
+            assertThat(recoverySecurityBanner(true, false, state)).isEqualTo(SecurityBannerState.None)
+        }
+        assertThat(recoverySecurityBanner(false, false, RecoveryState.INCOMPLETE)).isEqualTo(SecurityBannerState.RecoveryKeyConfirmation)
+        assertThat(recoverySecurityBanner(false, false, RecoveryState.DISABLED)).isEqualTo(SecurityBannerState.SetUpRecovery)
+    }
+
+    @Test
     fun `present - load 1 room with success`() = runTest {
         val roomList = FakeDynamicRoomList()
         val roomListService = FakeRoomListService(
@@ -137,6 +146,7 @@ class RoomListPresenterTest {
 
     @Test
     fun `present - handle DismissRequestVerificationPrompt`() = runTest {
+        org.junit.Assume.assumeFalse(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
         val roomList = FakeDynamicRoomList(
             loadingState = MutableStateFlow(RoomList.LoadingState.Loaded(1))
         )
@@ -163,6 +173,7 @@ class RoomListPresenterTest {
 
     @Test
     fun `present - handle DismissRecoveryKeyPrompt`() = runTest {
+        org.junit.Assume.assumeFalse(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
         val encryptionService = FakeEncryptionService().apply {
             recoveryStateStateFlow.emit(RecoveryState.DISABLED)
         }

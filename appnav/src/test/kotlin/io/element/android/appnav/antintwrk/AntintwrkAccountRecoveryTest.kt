@@ -16,6 +16,44 @@ class AntintwrkAccountRecoveryTest {
     private val admitted = AntintwrkAuthSession(AntintwrkAuthStage.AUTHENTICATED, "csrf", matrixUserId = actor)
 
     @Test
+    fun `initialization finishes before escrow creation or SDK setup`() = runTest {
+        var initialized = false
+        lateinit var encryption: FakeEncryptionService
+        encryption = FakeEncryptionService(enableRecoveryLambda = { _, _ ->
+            assertThat(initialized).isTrue()
+            encryption.recoveryStateStateFlow.value = RecoveryState.ENABLED
+            Result.success("unused")
+        }).apply {
+            recoveryStateStateFlow.value = RecoveryState.DISABLED
+            initialization = {
+                initialized = true
+                Result.success(Unit)
+            }
+            givenDoesBackupExistOnServerResult(Result.success(false))
+            givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Done))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ ->
+            assertThat(initialized).isTrue()
+            "synthetic-secret"
+        })
+        assertThat(recovery.prepare()).isTrue()
+    }
+
+    @Test
+    fun `initialization failure never writes escrow or creates recovery`() = runTest {
+        val encryption = FakeEncryptionService().apply {
+            initialization = { Result.failure(IllegalStateException("synthetic")) }
+        }
+        var contacted = false
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ ->
+            contacted = true
+            null
+        })
+        assertThat(runCatching { recovery.prepare() }.isFailure).isTrue()
+        assertThat(contacted).isFalse()
+    }
+
+    @Test
     fun `existing unknown recovery is never reset`() = runTest {
         val encryption = FakeEncryptionService().apply { recoveryStateStateFlow.value = RecoveryState.ENABLED }
         var operations = 0

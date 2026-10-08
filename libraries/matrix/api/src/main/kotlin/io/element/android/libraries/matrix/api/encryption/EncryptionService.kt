@@ -39,6 +39,9 @@ interface EncryptionService {
     /** Whether the account has another device this one could be verified against; it stays loading until the first answer arrives. */
     val hasDevicesToVerifyAgainst: StateFlow<AsyncData<Boolean>>
 
+    /** Wait until automatic cross-signing and backup initialization have finished. */
+    suspend fun awaitInitialization(): Result<Unit>
+
     /** Enables the room key backup on the server, so that the keys survive losing every device. */
     suspend fun enableBackups(): Result<Unit>
 

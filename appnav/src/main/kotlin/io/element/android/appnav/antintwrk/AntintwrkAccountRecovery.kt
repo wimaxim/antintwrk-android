@@ -29,6 +29,8 @@ internal class AntintwrkAccountRecovery(
             withTimeout(120_000) {
                 val admission = admission()
                 require(admission.stage == AntintwrkAuthStage.AUTHENTICATED && admission.matrixUserId == actor)
+                step = "initialization"
+                encryption.awaitInitialization().getOrThrow()
                 step = "state"
                 val state = encryption.recoveryStateStateFlow.first { it != RecoveryState.WAITING_FOR_SYNC && it != RecoveryState.UNKNOWN }
                 val canSetUp = state == RecoveryState.DISABLED &&

@@ -114,6 +114,10 @@ class RustEncryptionService(
     }
         .stateIn(sessionCoroutineScope, SharingStarted.Eagerly, AsyncData.Uninitialized)
 
+    override suspend fun awaitInitialization(): Result<Unit> = withContext(dispatchers.io) {
+        runCatchingExceptions { service.waitForE2eeInitializationTasks() }
+    }
+
     override suspend fun enableBackups(): Result<Unit> = withContext(dispatchers.io) {
         runCatchingExceptions {
             service.enableBackups()
@@ -127,6 +131,11 @@ class RustEncryptionService(
         passphrase: String?,
     ): Result<String> = withContext(dispatchers.io) {
         runCatchingExceptions {
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                check(service.verificationState() == org.matrix.rustcomponents.sdk.VerificationState.VERIFIED) {
+                    "Account signing initialization is not ready"
+                }
+            }
             // The key arrives as the suspend return value (like resetRecoveryKey), avoiding a
             // flow/return-value race; the listener only feeds sub-progress.
             enableRecoveryProgressStateFlow.value = EnableRecoveryProgress.Starting
@@ -195,11 +204,19 @@ class RustEncryptionService(
 
     override suspend fun recover(recoveryKey: String): Result<Unit> = withContext(dispatchers.io) {
         runCatchingExceptions {
-            service.recoverAndFixBackup(recoveryKey)
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                // Never delete/recreate an existing backup during account-based restore.
+                service.recover(recoveryKey)
+            } else {
+                service.recoverAndFixBackup(recoveryKey)
+            }
         }.recoverCatching {
             when (it) {
                 // We ignore import errors because the user will be notified about them via the "Key storage out of sync" detection.
-                is RustRecoveryException.Import -> Unit
+                is RustRecoveryException.Import -> {
+                    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) throw it.mapRecoveryException()
+                    Unit
+                }
                 else -> throw it.mapRecoveryException()
             }
         }

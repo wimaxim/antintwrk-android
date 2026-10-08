@@ -51,6 +51,9 @@ class FakeEncryptionService(
         enableBackupsFailure = exception
     }
 
+    var initialization: suspend () -> Result<Unit> = { Result.success(Unit) }
+    override suspend fun awaitInitialization(): Result<Unit> = initialization()
+
     override suspend fun enableBackups(): Result<Unit> = simulateLongTask {
         enableBackupsFailure?.let { return Result.failure(it) }
         return Result.success(Unit)
