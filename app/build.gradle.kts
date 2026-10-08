@@ -312,7 +312,7 @@ setupDependencyInjection()
 
 dependencies {
     allLibrariesImpl()
-    allServicesImpl()
+    allServicesImpl(project)
     if (isEnterpriseBuild) {
         allEnterpriseImpl(project)
         implementation(projects.appicon.enterprise)

@@ -143,3 +143,8 @@ Android reuses an SDK-created backup only if the current device owns its key. Ex
 After social-account escrow recovery succeeds, the own native flow waits for the SDK session verification status `Verified` and acknowledges the verification success step. Unknown/unverified sessions cannot be acknowledged. Notification permissions, screen-lock setup and other consent steps retain their own flow. Ordinary Element builds still use manual verification acknowledgement.
 
 Actual emulator acceptance: native password relogin, automatic Matrix SSO, SDK verification/recovery and decryption of both previous encrypted test messages passed. Own gplayDebug build, eight DefaultFtueService tests and appnav/FTUE formatting passed. Full calls/background Matrix push/outage acceptance remains in progress; no release-readiness claim or GitHub push.
+
+
+## Own analytics composition — 8 October 2026
+
+`antintwrkNativeAuth=true` selects the upstream noop analytics service instead of Element Posthog/Sentry providers in the application dependency graph. This removes Element analytics consent onboarding and transmission providers from our app; flags-off builds retain the existing analytics configuration. Own gplayDebug and original fdroidDebug builds pass.
