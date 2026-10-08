@@ -2,4 +2,5 @@
 <resources>
   <string name="screen_ant_account_messages_preparing">Готуємо листування…</string>
   <string name="screen_ant_account_messages_retry">Не вдалося підготувати листування. Перевірте з’єднання та спробуйте ще раз.</string>
+    <string name="screen_ant_contact_denied">Зараз ви не можете написати цьому користувачеві. Налаштування приватності можуть дозволяти повідомлення лише друзям. Перевірте профіль у соцмережі.</string>
 </resources>

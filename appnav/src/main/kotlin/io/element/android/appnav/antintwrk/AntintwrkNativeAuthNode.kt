@@ -251,7 +251,14 @@ internal fun AntintwrkNativeAppView(
                         if (id == null) {
                             false
                         } else {
-                            val result = client.messengerRecipient(id, current.csrf)
+                            val result = try {
+                                client.messengerRecipient(id, current.csrf)
+                            } catch (failure: AntintwrkRequestError) {
+                                if (failure.code == "CONTACT_UNAVAILABLE") {
+                                    throw io.element.android.libraries.matrix.api.user.AntintwrkContactDeniedException()
+                                }
+                                throw failure
+                            }
                             result.optString("actorUserId") == matrixUserId && result.optString("recipientUserId") == recipient
                         }
                     },

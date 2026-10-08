@@ -2,4 +2,5 @@
 <resources>
   <string name="screen_ant_account_messages_preparing">جارٍ تجهيز محادثاتك…</string>
   <string name="screen_ant_account_messages_retry">تعذر تجهيز محادثاتك. تحقق من الاتصال وحاول مرة أخرى.</string>
+    <string name="screen_ant_contact_denied">لا يمكنك مراسلة هذا المستخدم الآن. قد تسمح إعدادات الخصوصية بالرسائل من الأصدقاء فقط. تحقق من الملف الشخصي في الشبكة الاجتماعية.</string>
 </resources>

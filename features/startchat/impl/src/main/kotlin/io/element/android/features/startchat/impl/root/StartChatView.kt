@@ -34,6 +34,7 @@ import io.element.android.features.startchat.api.ConfirmingStartDmWithMatrixUser
 import io.element.android.features.startchat.impl.R
 import io.element.android.features.startchat.impl.components.UserListView
 import io.element.android.libraries.androidutils.ui.hideKeyboardAndAwaitAnimation
+import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.designsystem.components.async.AsyncActionView
 import io.element.android.libraries.designsystem.components.async.AsyncActionViewDefaults
 import io.element.android.libraries.designsystem.components.button.BackButton
@@ -121,12 +122,23 @@ fun StartChatView(
             )
         },
         onSuccess = { onOpenDM(it) },
-        errorMessage = { stringResource(R.string.screen_start_chat_error_starting_chat) },
-        onRetry = {
-            state.userListState.selectedUsers.firstOrNull()
-                ?.let { state.eventSink(StartChatEvent.StartDM(it)) }
-            // Cancel start DM if there is no more selected user (should not happen)
-                ?: state.eventSink(StartChatEvent.CancelStartDM)
+        errorMessage = { failure ->
+            if (failure is io.element.android.libraries.matrix.api.user.AntintwrkContactDeniedException) {
+                stringResource(CommonStrings.screen_ant_contact_denied)
+            } else {
+                stringResource(R.string.screen_start_chat_error_starting_chat)
+            }
+        },
+        onRetry = if ((state.startDmAction as? AsyncAction.Failure)?.error is
+            io.element.android.libraries.matrix.api.user.AntintwrkContactDeniedException
+        ) {
+            null
+        } else {
+            {
+                state.userListState.selectedUsers.firstOrNull()
+                    ?.let { state.eventSink(StartChatEvent.StartDM(it)) }
+                    ?: state.eventSink(StartChatEvent.CancelStartDM)
+            }
         },
         onErrorDismiss = { state.eventSink(StartChatEvent.CancelStartDM) },
         confirmationDialog = { data ->

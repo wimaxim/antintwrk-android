@@ -19,7 +19,9 @@ import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import io.element.android.features.startchat.impl.R
 import io.element.android.features.startchat.impl.userlist.aRecentDirectRoomList
 import io.element.android.features.startchat.impl.userlist.aUserListState
+import io.element.android.libraries.architecture.AsyncAction
 import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.user.AntintwrkContactDeniedException
 import io.element.android.libraries.matrix.ui.model.getBestName
 import io.element.android.libraries.ui.strings.CommonStrings
 import io.element.android.tests.testutils.EnsureNeverCalled
@@ -34,6 +36,14 @@ import org.junit.Test
 import org.robolectric.annotation.Config
 
 class StartChatViewTest : RobolectricTest() {
+    @Test
+    fun `source privacy denial explains the restriction without retry`() = runAndroidComposeUiTest {
+        setStartChatView(aCreateRoomRootState(startDmAction = AsyncAction.Failure(AntintwrkContactDeniedException())))
+        val testActivity: ComponentActivity = requireNotNull(activity)
+        onNodeWithText(testActivity.getString(CommonStrings.screen_ant_contact_denied)).assertExists()
+        onNodeWithText(testActivity.getString(CommonStrings.action_retry)).assertDoesNotExist()
+    }
+
     @Test
     fun `clicking on back invokes the expected callback`() = runAndroidComposeUiTest {
         val eventsRecorder = EventsRecorder<StartChatEvent>(expectEvents = false)

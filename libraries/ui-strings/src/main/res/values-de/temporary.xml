@@ -2,4 +2,5 @@
 <resources>
   <string name="screen_ant_account_messages_preparing">Nachrichten werden vorbereitet…</string>
   <string name="screen_ant_account_messages_retry">Nachrichten konnten nicht vorbereitet werden. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="screen_ant_contact_denied">Du kannst diesem Profil derzeit keine Nachricht senden. Die Privatsphäre-Einstellungen erlauben Nachrichten möglicherweise nur von Freunden. Prüfe das Profil im sozialen Netzwerk.</string>
 </resources>

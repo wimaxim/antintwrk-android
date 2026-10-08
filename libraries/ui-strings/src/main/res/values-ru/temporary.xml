@@ -2,4 +2,5 @@
 <resources>
   <string name="screen_ant_account_messages_preparing">Подготавливаем переписку…</string>
   <string name="screen_ant_account_messages_retry">Не удалось подготовить переписку. Проверьте соединение и повторите попытку.</string>
+    <string name="screen_ant_contact_denied">Сейчас вы не можете написать этому пользователю. Его настройки приватности могут разрешать сообщения только друзьям. Проверьте профиль в соцсети.</string>
 </resources>

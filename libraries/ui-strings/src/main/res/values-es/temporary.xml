@@ -2,4 +2,5 @@
 <resources>
   <string name="screen_ant_account_messages_preparing">Preparando tus conversaciones…</string>
   <string name="screen_ant_account_messages_retry">No se pudieron preparar tus conversaciones. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="screen_ant_contact_denied">Ahora no puedes enviar mensajes a este perfil. Su privacidad puede permitir mensajes solo de amigos. Revisa el perfil en la red social.</string>
 </resources>

@@ -474,7 +474,16 @@ class RustMatrixClient(
             val permitted = runCatchingExceptions {
                 io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory.authorize(sessionId.value, userId.value)
             }
-            if (permitted.getOrDefault(false) != true) return Result.failure(IllegalStateException("Social contact is unavailable or not permitted"))
+            if (permitted.getOrDefault(false) != true) {
+                val failure = permitted.exceptionOrNull()
+                return Result.failure(
+                    if (failure is io.element.android.libraries.matrix.api.user.AntintwrkContactDeniedException) {
+                        failure
+                    } else {
+                        IllegalStateException("Social contact is unavailable")
+                    },
+                )
+            }
         }
         val createRoomParams = CreateRoomParameters(
             name = null,

@@ -9,3 +9,5 @@ Native version properties: `antintwrkVersionCode=20261008`, `antintwrkVersionNam
 Validated: own gplay build and affected ktlint checks; 96 appnav tests (native integration and root navigation), 8 FTUE tests; flag-off fdroid build and FTUE tests. Emulator API 36: fresh native login, automatic setup, encrypted message exchange, complete uninstall/reinstall, same-account restore and reading both previous messages without a manual key; dark chat UI. Credentials remain private. UI/native keyboard automation required careful focus; server login was separately checked through the Russian ingress.
 
 This is a test build. Physical-device/provider quality, Play release signing and iOS are not accepted by these checks. Shared report records server cutover, call validation and the delivered APK fingerprint.
+
+Social contact policy errors are typed separately from transport failures. CONTACT_UNAVAILABLE becomes an ordinary profile/privacy explanation without Retry; network failures retain retry. Added a Compose test for denied-contact message and absence of Retry, and checked actual social search.
