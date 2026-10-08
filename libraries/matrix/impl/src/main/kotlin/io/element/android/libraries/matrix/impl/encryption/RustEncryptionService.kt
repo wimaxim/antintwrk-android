@@ -26,29 +26,24 @@ import io.element.android.libraries.matrix.api.sync.SyncState
 import io.element.android.libraries.matrix.impl.exception.mapClientException
 import io.element.android.libraries.matrix.impl.sync.RustSyncService
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
-import org.matrix.rustcomponents.sdk.BackupSteadyStateListener
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.EnableRecoveryProgressListener
 import org.matrix.rustcomponents.sdk.Encryption
 import org.matrix.rustcomponents.sdk.UserIdentity
 import timber.log.Timber
-import org.matrix.rustcomponents.sdk.BackupUploadState as RustBackupUploadState
 import org.matrix.rustcomponents.sdk.EnableRecoveryProgress as RustEnableRecoveryProgress
 import org.matrix.rustcomponents.sdk.RecoveryException as RustRecoveryException
-import org.matrix.rustcomponents.sdk.SteadyStateException as RustSteadyStateException
 
 class RustEncryptionService(
     client: Client,
@@ -60,8 +55,6 @@ class RustEncryptionService(
     private val sessionId = SessionId(client.session().userId)
 
     private val enableRecoveryProgressMapper = EnableRecoveryProgressMapper()
-    private val backupUploadStateMapper = BackupUploadStateMapper()
-    private val steadyStateExceptionMapper = SteadyStateExceptionMapper()
 
     override val backupStateStateFlow = combine(
         service.backupStateFlow(),
@@ -164,29 +157,8 @@ class RustEncryptionService(
         }
     }
 
-    override fun waitForBackupUploadSteadyState(): Flow<BackupUploadState> {
-        return callbackFlow {
-            runCatchingExceptions {
-                service.waitForBackupUploadSteadyState(
-                    progressListener = object : BackupSteadyStateListener {
-                        override fun onUpdate(status: RustBackupUploadState) {
-                            trySend(backupUploadStateMapper.map(status))
-                            if (status == RustBackupUploadState.Done) {
-                                close()
-                            }
-                        }
-                    }
-                )
-            }.onFailure {
-                if (it is RustSteadyStateException) {
-                    trySend(BackupUploadState.SteadyException(steadyStateExceptionMapper.map(it)))
-                } else {
-                    trySend(BackupUploadState.Error)
-                }
-                close()
-            }
-            awaitClose {}
-        }
+    override fun waitForBackupUploadSteadyState(): Flow<BackupUploadState> = backupUploadFlow { listener ->
+        service.waitForBackupUploadSteadyState(progressListener = listener)
     }
 
     override suspend fun disableRecovery(): Result<Unit> = withContext(dispatchers.io) {

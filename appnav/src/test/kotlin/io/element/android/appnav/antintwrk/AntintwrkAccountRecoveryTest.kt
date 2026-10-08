@@ -4,6 +4,7 @@ package io.element.android.appnav.antintwrk
 import com.google.common.truth.Truth.assertThat
 import io.element.android.libraries.matrix.api.encryption.BackupState
 import io.element.android.libraries.matrix.api.encryption.BackupUploadState
+import io.element.android.libraries.matrix.api.encryption.RecoveryException
 import io.element.android.libraries.matrix.api.encryption.RecoveryState
 import io.element.android.libraries.matrix.test.encryption.FakeEncryptionService
 import kotlinx.coroutines.flow.flowOf
@@ -108,5 +109,29 @@ class AntintwrkAccountRecoveryTest {
         })
         assertThat(recovery.prepare()).isFalse()
         assertThat(wrote).isFalse()
+    }
+
+    @Test
+    fun `already enabled backup does not fail on non idempotent SDK enable`() = runTest {
+        val encryption = FakeEncryptionService().apply {
+            recoveryStateStateFlow.value = RecoveryState.ENABLED
+            backupStateStateFlow.value = BackupState.ENABLED
+            givenEnableBackupsFailure(RecoveryException.BackupExistsOnServer)
+            givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Done))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ -> "synthetic-secret" })
+        assertThat(recovery.prepare()).isTrue()
+    }
+
+    @Test
+    fun `existing server backup without local enable confirmation prevents logout`() = runTest {
+        val encryption = FakeEncryptionService().apply {
+            recoveryStateStateFlow.value = RecoveryState.ENABLED
+            backupStateStateFlow.value = BackupState.UNKNOWN
+            givenEnableBackupsFailure(RecoveryException.BackupExistsOnServer)
+            givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Done))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ -> "synthetic-secret" })
+        assertThat(runCatching { recovery.prepare() }.isFailure).isTrue()
     }
 }
