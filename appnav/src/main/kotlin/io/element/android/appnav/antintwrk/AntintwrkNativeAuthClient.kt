@@ -98,7 +98,7 @@ internal class AntintwrkNativeAuthClient(
             AntintwrkAuthStage.valueOf(json.getString("stage")),
             csrf,
             json.optString("profileIdentity").takeIf { it.matches(Regex("[A-Za-z0-9._-]{1,100}")) },
-            json.optString("matrixUserId").takeIf { it.matches(Regex("@u[1-9][0-9]*:matrix\\.antimsg\\.com")) }
+            json.optString("matrixUserId").takeIf { io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(it) != null }
         )
     }
 
@@ -161,7 +161,7 @@ internal class AntintwrkNativeAuthClient(
         val people = (0 until rows.length().coerceAtMost(24)).mapNotNull { index ->
             val item = rows.getJSONObject(index)
             val id = item.optString("userId")
-            if (!id.matches(Regex("@u[1-9][0-9]{0,17}:matrix\\.antimsg\\.com"))) {
+            if (io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(id) == null) {
                 null
             } else {
                 io.element.android.libraries.matrix.api.user.MatrixUser(io.element.android.libraries.matrix.api.core.UserId(id), item.optString("displayName"))

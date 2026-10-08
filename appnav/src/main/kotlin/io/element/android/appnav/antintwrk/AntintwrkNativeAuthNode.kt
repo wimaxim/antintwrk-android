@@ -244,7 +244,9 @@ internal fun AntintwrkNativeAppView(
                 io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory.Binding(
                     matrixUserId,
                     authorize = { recipient ->
-                        val id = Regex("@u([1-9][0-9]{0,17}):matrix\\.antimsg\\.com").matchEntire(recipient)?.groupValues?.get(1)
+                        val id = io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(
+                            recipient
+                        )?.takeIf { io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.sameRealm(matrixUserId, recipient) }
                         if (id == null) {
                             false
                         } else {

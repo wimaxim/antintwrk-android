@@ -14,8 +14,7 @@ internal object AntintwrkMessengerRoutes {
     val requests = pending.asStateFlow()
 
     fun open(actor: String, recipient: String) {
-        require(actor.matches(Regex("@u[1-9][0-9]{0,17}:matrix\\.antimsg\\.com")))
-        require(recipient.matches(Regex("@u[1-9][0-9]{0,17}:matrix\\.antimsg\\.com")))
+        require(io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.sameRealm(actor, recipient))
         require(actor != recipient)
         pending.value = AntintwrkMessageRequest(actor, recipient, sequence.incrementAndGet())
     }

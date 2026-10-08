@@ -470,7 +470,7 @@ class RustMatrixClient(
 
     override suspend fun createDM(userId: UserId, isEncrypted: Boolean): Result<RoomId> {
         if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
-            userId.value.matches(Regex("@u[1-9][0-9]{0,17}:matrix\\.antimsg\\.com"))) {
+            io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(userId.value) != null) {
             val permitted = runCatchingExceptions {
                 io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory.authorize(sessionId.value, userId.value)
             }
@@ -510,7 +510,7 @@ class RustMatrixClient(
             runCatchingExceptions {
                 val standard = innerClient.searchUsers(searchTerm, limit.toULong()).let(UserSearchResultMapper::map)
                 if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
-                    sessionId.value.endsWith(":matrix.antimsg.com")) {
+                    io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(sessionId.value) != null) {
                     val social = runCatchingExceptions {
                         io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory.search(sessionId.value, searchTerm)
                     }.getOrNull()

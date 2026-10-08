@@ -34,7 +34,9 @@ internal suspend fun antintwrkHandleLookup(handle: String, accessToken: String):
         if (bytes.size > 4096) return@withContext null
         val results = JSONObject(bytes.toString(Charsets.UTF_8)).getJSONArray("results")
         if (results.length() != 1) return@withContext null
-        results.getJSONObject(0).getString("userId").takeIf { it.matches(Regex("@u[1-9][0-9]*:matrix\\.antimsg\\.com")) }?.let(::UserId)
+        results.getJSONObject(
+            0
+        ).getString("userId").takeIf { io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(it) != null }?.let(::UserId)
     } finally {
         connection.disconnect()
     }

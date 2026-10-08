@@ -9,7 +9,7 @@ import kotlinx.coroutines.withTimeout
 internal object AntintwrkAccountSignOut {
     fun matches(matrixActor: String?, sourceActor: String?, validMatrixSession: Boolean): Boolean =
         validMatrixSession && matrixActor != null && matrixActor == sourceActor &&
-            matrixActor.matches(Regex("@u[1-9][0-9]*:matrix\\.antimsg\\.com"))
+            io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(matrixActor) != null
 
     /** Called on main only after the original SDK logout actually removes its session. */
     fun afterMatrixLogout(context: Context, matrixActor: String?, validMatrixSession: Boolean, scope: CoroutineScope) {

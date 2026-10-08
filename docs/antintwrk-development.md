@@ -212,3 +212,8 @@ Android теперь ждёт waitForE2eeInitializationTasks перед escrow/s
 
 
 Проверки исправления: 11 AccountRecovery cases прошли, own RoomListPresenter — 14 passed/2 stock-only skipped, flags-off — все 16 passed; обе сборки успешны. Синтетические проверки operator crypto: secret roundtrip, wrong-name binding и MAC tamper rejection passed; повторная починка уже исправленного аккаунта отвергнута до мутаций. На момент проверки у владельца 0 joined rooms, поэтому доказательство расшифровки старой истории относится к тестовому аккаунту. APK account-recovery сохраняет поддержку social search/аватара/фиксированного масштаба/режима редакторов предыдущего этапа. No push.
+
+
+## Matrix logical realm migration — 8 October 2026
+
+Future logical IDs use antintwrk.com, independently of native Russian transport under antimsg.com. AntintwrkMatrixIdentity accepts public and legacy canonical IDs during migration only; immutable social number does not make two different Matrix IDs the same session/crypto identity. Keep exact actor checks and same-realm DM/profile routing; reject arbitrary domains. Server/SDK cutover, crypto/history and browser disclosure acceptance remain pending; see shared ../../docs/matrix-domain-migration.md in the parent mobile workspace. Do not publish a migration APK or switch source admission merely because the parser accepts the new domain. Local commits only.

@@ -11,9 +11,9 @@ object AntintwrkProfileNavigation {
     private val sequence = AtomicLong()
     private val pending = MutableStateFlow<Request?>(null)
     val requests = pending.asStateFlow()
-    fun socialId(matrixId: String): String? = Regex("@u([1-9][0-9]{0,17}):matrix\\.antimsg\\.com").matchEntire(matrixId)?.groupValues?.get(1)
+    fun socialId(matrixId: String): String? = io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(matrixId)
     fun open(actor: String, target: String) {
-        if (socialId(actor) == null) return
+        if (!io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.sameRealm(actor, target)) return
         val id = socialId(target) ?: return
         pending.value = Request(actor, id, sequence.incrementAndGet())
     }
