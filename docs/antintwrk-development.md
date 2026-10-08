@@ -183,3 +183,18 @@ The startup recovery task previously stopped after prepare returned false as wel
 Own home banners no longer request a manual recovery key: they explain that backup is not yet confirmed and offer an app-managed status check. Stock Element text is preserved in flags-off builds. Nine social languages are included. The notice is not a claim that backup succeeded. This does not determine the exact cause on the owner's phone from a screenshot; real phone retry/status still needs confirmation.
 
 Validation: nine account-recovery cases, three monitoring cases and 15 RoomListPresenter cases pass; own build/ktlint pass. iOS must implement equivalent monitoring rather than a one-time startup check.
+
+## Уточнение интерфейса — 8 октября 2026
+
+Владелец отменил увеличение WebView жестами: единый CSS-масштаб с textZoom=100, supportZoom=false/builtInZoomControls=false. Прежнее предложение pinch zoom больше не действует. Нативный размер шрифта сохраняет системную доступность.
+
+При раскрытии редактора публикации, отдельной странице hero-compose, открытии создания истории/рилза нижнее меню скрывается; закрытие редактора возвращает его. Exact-origin/main-frame web-мост передаёт только Boolean-сигнал режима. Системная кнопка Back закрывает inline-редактор через штатный обработчик веб-части; форма сохраняет существующие правила черновиков. Аватар вкладки профиля берётся из cookie-authenticated social status, изображения ограничены размером и техническим origin; если фото отсутствует, показываются инициалы. Выход перенесён из отдельной нижней строки в меню «⋮».
+
+Поиск людей использует индекс имён/коротких адресов соцсети, её видимость и блокировки; допуск личных сообщений проверяется отдельно перед созданием нового личного Matrix-чата; локальная привязка каталога проверяет social/Matrix actor и отбрасывает ответ после смены аккаунта. История Matrix и хранилище соцсети остаются независимыми; при недоступности социального каталога остаётся штатный Matrix-поиск. Поиск не переносит старую переписку и не создаёт Matrix-аккаунты из поисковых запросов.
+
+Контракт относится к Android/iOS; код iOS ещё не реализован. Обновлённые результаты проверок фиксируются после сборки и UI-проверки.
+
+
+Проверка этой доработки (8 октября): собственная Android-сборка и flags-off сборка Element успешны; 87 Antintwrk appnav cases, 9 RustMatrixClient cases и 6 JS editor cases прошли, PHP 7.3 lint успешен. Read-only SQL проверил имена, @короткий адрес, пустой и wildcard-like запросы. В эмуляторе поиск Maxim нашёл профиль соцсети; раскрытие/закрытие inline-редактора, отдельная страница публикации, окна рилза и истории скрывают/возвращают нижнюю навигацию. Back закрывает окно рилза через штатный Close. Меню содержит Sign out, отдельной строки внизу нет. Тестовый профиль без фото показывает инициалы; отображение изменённого реального аватара на физическом телефоне ещё не проверено. Публикации/рилзы/истории в этой проверке не отправлялись. iOS пока содержит согласованный контракт, без реализации этих изменений.
+
+Каталог доступных для поиска людей не ограничивается возможностью написать им: запрет личных сообщений проверяется при создании нового DM. При отказе или недоступности соцсети новый mapped-social DM не создаётся; текущая история и существующие чаты продолжают работать. SQL каталога соответствует веб-поиску people.class.php; при изменении его правил оба запроса должны обновляться совместно.

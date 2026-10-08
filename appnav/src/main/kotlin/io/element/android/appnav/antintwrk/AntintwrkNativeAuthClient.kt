@@ -5,6 +5,7 @@ package io.element.android.appnav.antintwrk
 
 import android.webkit.CookieManager
 import io.element.android.appnav.BuildConfig
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
@@ -16,7 +17,7 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 internal enum class AntintwrkAuthStage { LOGIN, DEVICE, TOTP, SETUP_REQUIRED, AUTHENTICATED }
-internal data class AntintwrkSocialStatus(val notifications: Int, val profileIdentity: String?)
+internal data class AntintwrkSocialStatus(val notifications: Int, val profileIdentity: String?, val avatar: String? = null, val name: String? = null)
 internal class AntintwrkRegistrationRequired(val ticket: String, val email: String, val firstName: String, val surname: String) : Exception()
 internal class AntintwrkRequestError(val code: String) : Exception()
 internal class AntintwrkAccountError(val messageForUser: String) : Exception()
@@ -148,8 +149,45 @@ internal class AntintwrkNativeAuthClient(
         val json = JSONObject(post("status", mapOf("csrf" to csrf)))
         return AntintwrkSocialStatus(
             json.getInt("notifications").coerceIn(0, 9999),
-            json.optString("profileIdentity").takeIf { it.matches(Regex("[A-Za-z0-9._-]{1,100}")) }
+            json.optString("profileIdentity").takeIf { it.matches(Regex("[A-Za-z0-9._-]{1,100}")) },
+            json.optString("profileAvatar").takeIf { it.isNotBlank() },
+            json.optString("profileName").takeIf { it.isNotBlank() }
         )
+    }
+
+    suspend fun searchPeople(query: String, csrf: String): io.element.android.libraries.matrix.api.user.MatrixSearchUserResults {
+        val json = JSONObject(post("messenger-search", mapOf("query" to query.take(60), "csrf" to csrf)))
+        val rows = json.getJSONArray("results")
+        val people = (0 until rows.length().coerceAtMost(24)).mapNotNull { index ->
+            val item = rows.getJSONObject(index)
+            val id = item.optString("userId")
+            if (!id.matches(Regex("@u[1-9][0-9]{0,17}:matrix\\.antimsg\\.com"))) {
+                null
+            } else {
+                io.element.android.libraries.matrix.api.user.MatrixUser(io.element.android.libraries.matrix.api.core.UserId(id), item.optString("displayName"))
+            }
+        }
+        return io.element.android.libraries.matrix.api.user.MatrixSearchUserResults(people.toImmutableList(), json.optBoolean("limited"))
+    }
+
+    suspend fun avatar(value: String): android.graphics.Bitmap? = withContext(Dispatchers.IO) {
+        val policy = AntintwrkWebPolicy(origin)
+        val url = policy.canonical(if (value.startsWith("/")) origin + value else value)
+        if (!policy.sameOrigin(url)) return@withContext null
+        val request = Request.Builder().url(url).header("User-Agent", USER_AGENT).build()
+        http.newCall(request).execute().use { response ->
+            if (!response.isSuccessful || response.body.contentLength() > 2_000_000) return@withContext null
+            val source = response.body.source()
+            source.request(2_000_001)
+            if (source.buffer.size > 2_000_000) return@withContext null
+            val bytes = source.buffer.readByteArray()
+            val options = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+            if (options.outWidth <= 0 || options.outHeight <= 0) return@withContext null
+            options.inJustDecodeBounds = false
+            options.inSampleSize = (maxOf(options.outWidth, options.outHeight) / 96).coerceAtLeast(1)
+            android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
+        }
     }
 
     suspend fun startDevice(csrf: String) {

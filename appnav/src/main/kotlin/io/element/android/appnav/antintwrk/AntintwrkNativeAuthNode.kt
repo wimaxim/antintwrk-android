@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -237,6 +238,28 @@ internal fun AntintwrkNativeAppView(
                 code = ""
             }
         }
+        DisposableEffect(session?.stage, session?.matrixUserId, matrixUserId, session?.csrf) {
+            val current = session
+            val binding = if (current?.stage == AntintwrkAuthStage.AUTHENTICATED && current.matrixUserId == matrixUserId && matrixUserId != null) {
+                io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory.Binding(
+                    matrixUserId,
+                    authorize = { recipient ->
+                        val id = Regex("@u([1-9][0-9]{0,17}):matrix\\.antimsg\\.com").matchEntire(recipient)?.groupValues?.get(1)
+                        if (id == null) {
+                            false
+                        } else {
+                            val result = client.messengerRecipient(id, current.csrf)
+                            result.optString("actorUserId") == matrixUserId && result.optString("recipientUserId") == recipient
+                        }
+                    },
+                    search = { query -> client.searchPeople(query, current.csrf) }
+                )
+            } else {
+                null
+            }
+            binding?.let(io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory::bind)
+            onDispose { binding?.let(io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory::clear) }
+        }
         LaunchedEffect(session?.stage, busy, webController.refreshVersion, webController.currentUrl) {
             if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
                 while (true) {
@@ -246,6 +269,14 @@ internal fun AntintwrkNativeAppView(
                         val status = client.status(session!!.csrf)
                         webController.notifications = status.notifications
                         webController.ownProfileIdentity = status.profileIdentity
+                        webController.profileName = status.name
+                        if (status.avatar != webController.profileAvatarSource) {
+                            val avatar = status.avatar?.let { client.avatar(it) }
+                            if (avatar != null || status.avatar == null) {
+                                webController.profileAvatar = avatar
+                                webController.profileAvatarSource = status.avatar
+                            }
+                        }
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (error: AntintwrkRequestError) {

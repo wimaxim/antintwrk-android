@@ -4,6 +4,8 @@
 package io.element.android.appnav.antintwrk
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
@@ -33,6 +37,8 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -113,11 +119,12 @@ fun AntintwrkShellView(
             }
             } else {
                 null
-            }, notifications = webController?.notifications ?: 0, socialReady = socialContent == null || webFeed)
+            }, notifications = webController?.notifications ?: 0, socialReady = socialContent == null || webFeed, onSignOut = onSignOut)
             }
         },
         bottomBar = {
-            if (state.mode == AntintwrkMode.Social && (socialContent == null || webFeed) && webController?.fullscreen == null) {
+            if (state.mode == AntintwrkMode.Social && (socialContent == null || webFeed) && webController?.fullscreen == null &&
+                webController?.composing != true) {
                 NavigationBar(containerColor = AntintwrkBackground) {
                     AntintwrkSection.entries.forEach { section ->
                         NavigationBarItem(
@@ -131,6 +138,17 @@ fun AntintwrkShellView(
                                 unselectedTextColor = ElementTheme.colors.textSecondary,
                             ),
                             icon = {
+                                val avatar = webController?.profileAvatar
+                                if (section == AntintwrkSection.Profile && avatar != null) {
+                                    Image(avatar.asImageBitmap(), null, Modifier.size(24.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+                                } else if (section == AntintwrkSection.Profile && !webController?.profileName.isNullOrBlank()) {
+                                    Box(
+                                        Modifier.size(24.dp).clip(CircleShape).background(ElementTheme.colors.bgCanvasDefaultLevel1),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(webController?.profileName.orEmpty().take(1).uppercase(), style = ElementTheme.typography.fontBodyXsRegular)
+                                    }
+                                } else {
                                 Icon(
                                     when (section) {
                                     AntintwrkSection.Feed -> CompoundIcons.Home()
@@ -139,6 +157,7 @@ fun AntintwrkShellView(
                                 },
                                     contentDescription = null
                                 )
+                                }
                             },
                             label = {
                                 Text(
@@ -174,9 +193,6 @@ fun AntintwrkShellView(
                         Box(Modifier.weight(1f)) {
                             AntintwrkWebFeed(webController, backEnabled = true, onAuthRequired = onAuthRequired)
                         }
-                        if (state.section == AntintwrkSection.Profile && onSignOut != null) {
-                            TextButton(stringResource(R.string.screen_ant_auth_logout), onSignOut)
-                        }
                     }
                 } else {
                     holder.SaveableStateProvider(state.section.name) {
@@ -201,15 +217,19 @@ private fun ShellHeader(
     onRoute: ((String) -> Unit)?,
     notifications: Int,
     socialReady: Boolean,
+    onSignOut: (() -> Unit)?,
 ) {
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             ShellModeTabs(state, Modifier.weight(1f))
-            if (!expanded && state.mode == AntintwrkMode.Social && socialReady) ShellSocialActions(onSearch, onNotifications, onRoute, notifications)
+            if (!expanded && state.mode == AntintwrkMode.Social && socialReady) ShellSocialActions(onSearch, onNotifications, onRoute, notifications, onSignOut)
         }
         if (expanded && state.mode == AntintwrkMode.Social && socialReady) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(onSearch, onNotifications, onRoute, notifications) }
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) { ShellSocialActions(onSearch, onNotifications, onRoute, notifications, onSignOut) }
         }
     }
 }
@@ -241,7 +261,7 @@ private fun ShellModeTabs(state: AntintwrkShellState, modifier: Modifier) {
 }
 
 @Composable
-private fun ShellSocialActions(onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?, notifications: Int) {
+private fun ShellSocialActions(onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?, notifications: Int, onSignOut: (() -> Unit)?) {
     IconButton(onClick = onSearch) {
         Icon(CompoundIcons.Search(), stringResource(R.string.screen_ant_shell_search))
     }
@@ -250,7 +270,7 @@ private fun ShellSocialActions(onSearch: () -> Unit, onNotifications: () -> Unit
             Icon(CompoundIcons.Notifications(), stringResource(R.string.screen_ant_shell_notifications))
         }
     }
-    if (onRoute != null) AntintwrkSocialMenu(onRoute)
+    if (onRoute != null) AntintwrkSocialMenu(onRoute, onSignOut)
 }
 
 internal val AntintwrkSection.label: Int get() = when (this) {

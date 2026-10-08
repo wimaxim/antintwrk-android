@@ -45,6 +45,7 @@ internal object AntintwrkNativeWebSignals {
                     if (policy.embedded(url) != null && android.net.Uri.parse(url) == android.net.Uri.parse(currentUrl)) controller.visited(url, policy)
                 }
                 "share", "copy", "download" -> if (json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
+                "editor" -> if (json.opt("active") is Boolean) controller.updateEditor(json.getBoolean("active"), json.opt("dialog") == true)
                 "changed" -> controller.refreshVersion++
                 "auth-required" -> onAuthRequired()
             }

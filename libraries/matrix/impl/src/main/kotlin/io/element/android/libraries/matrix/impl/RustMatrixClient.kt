@@ -469,6 +469,13 @@ class RustMatrixClient(
     }
 
     override suspend fun createDM(userId: UserId, isEncrypted: Boolean): Result<RoomId> {
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
+            userId.value.matches(Regex("@u[1-9][0-9]{0,17}:matrix\\.antimsg\\.com"))) {
+            val permitted = runCatchingExceptions {
+                io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory.authorize(sessionId.value, userId.value)
+            }
+            if (permitted.getOrDefault(false) != true) return Result.failure(IllegalStateException("Social contact is unavailable or not permitted"))
+        }
         val createRoomParams = CreateRoomParameters(
             name = null,
             isEncrypted = isEncrypted,
@@ -504,6 +511,13 @@ class RustMatrixClient(
                 val standard = innerClient.searchUsers(searchTerm, limit.toULong()).let(UserSearchResultMapper::map)
                 if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
                     sessionId.value.endsWith(":matrix.antimsg.com")) {
+                    val social = runCatchingExceptions {
+                        io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory.search(sessionId.value, searchTerm)
+                    }.getOrNull()
+                    if (social !=
+                        null) {
+                            return@runCatchingExceptions social.copy(results = social.results.take(limit.coerceIn(1, 100).toInt()).toImmutableList())
+                        }
                     val alias = runCatchingExceptions {
                         io.element.android.libraries.matrix.impl.user.antintwrkHandleLookup(searchTerm, innerClient.session().accessToken)
                     }.getOrNull()

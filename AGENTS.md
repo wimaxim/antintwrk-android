@@ -139,3 +139,7 @@ We wrap the `matrix-rust-sdk` to isolate the UI from the underlying SDK.
 - Naming: SDK `Room` → `JoinedRoom` or `RoomInfo`.
 - Type Mapping: Map Rust SDK types to Kotlin data classes in the `api` module to avoid leaking `MatrixRustSDK` into the UI.
 - Always follow Kotlin naming conventions (e.g., `userId` instead of `userID`).
+
+## Тестовые APK — актуальная сборка
+
+По поручению владельца от 8 октября 2026: после подтверждённой загрузки нового APK в папку Google Drive «antintwrk — тестовые сборки» перемещать прежние APK из этой папки в корзину Drive. Оставлять один актуальный APK; не трогать другие файлы или папки. Не удалять рабочий старый файл до успешной загрузки нового. Это постоянное разрешение на обычное удаление в корзину; не очищать корзину без отдельного поручения.

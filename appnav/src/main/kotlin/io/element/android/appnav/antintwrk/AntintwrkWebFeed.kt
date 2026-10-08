@@ -61,6 +61,19 @@ class AntintwrkWebFeedController {
     private val urls = mutableMapOf<AntintwrkSection, String>()
     private val crossSectionHistory = ArrayDeque<AntintwrkSection>()
     var ownProfileIdentity: String? = null
+    private val editorStates = mutableMapOf<AntintwrkSection, Boolean>()
+    private val editorDialogs = mutableMapOf<AntintwrkSection, Boolean>()
+    internal var editorDialog = false
+    internal var composing by mutableStateOf(false)
+    internal fun updateEditor(active: Boolean, dialog: Boolean = false) {
+        editorDialog = active && dialog
+        editorDialogs[section] = editorDialog
+        composing = active
+        editorStates[section] = active
+    }
+    internal var profileAvatarSource: String? = null
+    internal var profileName by mutableStateOf<String?>(null)
+    internal var profileAvatar by mutableStateOf<android.graphics.Bitmap?>(null)
     internal var onReturnToMessenger: (() -> Unit)? = null
     internal var messengerProfileDepth by mutableStateOf<Int?>(null)
     internal var messengerProfilePendingFinish by mutableStateOf(false)
@@ -134,6 +147,8 @@ class AntintwrkWebFeedController {
     private fun select(destination: AntintwrkSection, url: String) {
         closeFullscreen()
         section = destination
+        editorDialog = editorDialogs[destination] == true
+        composing = editorStates[destination] == true || android.net.Uri.parse(url).path?.trimEnd('/')?.endsWith("/hero-compose") == true
         currentUrl = url
         urls[destination] = url
         failed = false
@@ -175,6 +190,10 @@ class AntintwrkWebFeedController {
         onSection(section)
     }
     fun back() {
+        if (editorDialog || (composing && android.net.Uri.parse(currentUrl.orEmpty()).path?.trimEnd('/')?.endsWith("/hero-compose") != true)) {
+            view?.evaluateJavascript("window.dispatchEvent(new Event('antintwrk-close-editor'))", null)
+            return
+        }
         if (atMessengerProfileRoot() && onReturnToMessenger != null) {
             messengerProfileDepth = null
             messengerProfilePendingFinish = false
@@ -210,6 +229,13 @@ class AntintwrkWebFeedController {
         renderer.destroy()
     }
     fun destroy() {
+        composing = false
+        editorDialog = false
+        editorStates.clear()
+        editorDialogs.clear()
+        profileAvatarSource = null
+        profileName = null
+        profileAvatar = null
         messengerProfileDepth = null
         messengerProfilePendingFinish = false
         closeFullscreen()
@@ -266,7 +292,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
     }
     val startUrl = controller.currentUrl?.let(policy::embedded) ?: policy.root(language, controller.section, controller.ownProfileIdentity)
     val authRequired by rememberUpdatedState(onAuthRequired)
-    BackHandler(backEnabled && (controller.canGoBack || controller.atMessengerProfileRoot())) { controller.back() }
+    BackHandler(backEnabled && (controller.canGoBack || controller.atMessengerProfileRoot() || controller.composing)) { controller.back() }
     Box(Modifier.fillMaxSize()) {
         key(controller.section) {
         if (controller.view != null || !controller.failed) {
@@ -285,7 +311,8 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         // Match the site/PWA CSS baseline rather than WebView font inflation.
                         loadWithOverviewMode = true
                         textZoom = 100
-                        builtInZoomControls = true
+                        setSupportZoom(false)
+                        builtInZoomControls = false
                         displayZoomControls = false
                         allowFileAccess = false
                         allowContentAccess = false
@@ -422,6 +449,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         }
                         override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                             if (controller.view === view) {
+                                controller.updateEditor(android.net.Uri.parse(url.orEmpty()).path?.trimEnd('/')?.endsWith("/hero-compose") == true)
                                 controller.loading = true
                                 controller.failed = false
                             }

@@ -20,7 +20,7 @@ import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.theme.components.Text
 
 @Composable
-internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit) {
+internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit, onSignOut: (() -> Unit)? = null) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         IconButton(onClick = { expanded = true }) {
@@ -38,6 +38,12 @@ internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit) {
                 expanded = false
                 onRoute("native-licences")
             })
+            }
+            if (onSignOut != null) {
+                DropdownMenuItem(text = { Text(stringResource(R.string.screen_ant_auth_logout)) }, onClick = {
+                    expanded = false
+                    onSignOut()
+                })
             }
             listOf(
                 "hero-compose" to R.string.screen_ant_menu_compose,
