@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+package io.element.android.appnav.antintwrk
+
+import com.google.common.truth.Truth.assertThat
+import io.element.android.libraries.matrix.api.encryption.BackupUploadState
+import io.element.android.libraries.matrix.api.encryption.RecoveryState
+import io.element.android.libraries.matrix.test.encryption.FakeEncryptionService
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import org.junit.Test
+
+class AntintwrkAccountRecoveryTest {
+    private val actor = "@u123:matrix.antimsg.com"
+    private val admitted = AntintwrkAuthSession(AntintwrkAuthStage.AUTHENTICATED, "csrf", matrixUserId = actor)
+
+    @Test
+    fun `existing unknown recovery is never reset`() = runTest {
+        val encryption = FakeEncryptionService().apply { recoveryStateStateFlow.value = RecoveryState.ENABLED }
+        var operations = 0
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ ->
+            operations++
+            null
+        })
+        assertThat(recovery.prepare()).isFalse()
+        assertThat(operations).isEqualTo(1)
+    }
+
+    @Test
+    fun `another social actor cannot access recovery`() = runTest {
+        var contacted = false
+        val recovery = AntintwrkAccountRecovery(
+            FakeEncryptionService(),
+            actor,
+            admission = { admitted.copy(matrixUserId = "@u456:matrix.antimsg.com") },
+            secretStore = { _, _ ->
+                contacted = true
+                null
+            },
+        )
+        assertThat(runCatching { recovery.prepare() }.isFailure).isTrue()
+        assertThat(contacted).isFalse()
+    }
+
+    @Test
+    fun `escrow is durable before creation and crash retry uses same secret`() = runTest {
+        var secret: String? = null
+        var created = 0
+        val encryption = FakeEncryptionService(enableRecoveryLambda = { wait, passphrase ->
+            assertThat(wait).isTrue()
+            assertThat(passphrase).isEqualTo(secret)
+            assertThat(secret).isNotNull()
+            created++
+            Result.success("unused-sdk-return")
+        }).apply {
+            recoveryStateStateFlow.value = RecoveryState.DISABLED
+            givenDoesBackupExistOnServerResult(Result.success(false))
+            givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Done))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { operation, _ ->
+            if (operation == "create") secret = "synthetic-secret"
+            secret
+        })
+        assertThat(recovery.prepare()).isTrue()
+        assertThat(created).isEqualTo(1)
+        encryption.recoveryStateStateFlow.value = RecoveryState.ENABLED
+        assertThat(recovery.prepare()).isTrue()
+        assertThat(created).isEqualTo(1)
+    }
+
+    @Test
+    fun `failed upload does not permit simplified logout`() = runTest {
+        val encryption = FakeEncryptionService().apply {
+            recoveryStateStateFlow.value = RecoveryState.ENABLED
+            givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Error))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ -> "synthetic-secret" })
+        assertThat(runCatching { recovery.prepare() }.isFailure).isTrue()
+    }
+}

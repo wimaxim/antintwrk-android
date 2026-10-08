@@ -34,6 +34,32 @@ class AntintwrkWebFeedTest : RobolectricTest() {
     private val policy = AntintwrkWebPolicy("https://antimsg.com")
 
     @Test
+    fun `social message links carry only a validated source recipient`() {
+        assertThat(policy.messengerLink("https://antimsg.com/en/messages")?.target).isNull()
+        assertThat(policy.messengerLink("https://antimsg.com/ru/messages?with=123")?.target).isEqualTo("123")
+        for (url in listOf(
+            "https://foreign.example/en/messages?with=123",
+            "https://antimsg.com/en/messages?with=@other:matrix.antimsg.com",
+            "https://antimsg.com/en/messages?with=123&with=456",
+            "https://antimsg.com/en/messages?with=0",
+            "https://antimsg.com/en/messages/123",
+        )) {
+            assertThat(policy.messengerLink(url)).isNull()
+        }
+    }
+
+    @Test
+    fun `message navigation opens native messenger without replacing the social page`() {
+        val controller = AntintwrkWebFeedController()
+        controller.currentUrl = policy.feed("en")
+        var recipient: String? = null
+        controller.onMessenger = { recipient = it }
+        controller.navigate("https://antimsg.com/en/messages?with=123")
+        assertThat(recipient).isEqualTo("123")
+        assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
+    }
+
+    @Test
     fun `feed uses configured origin supported language and guest presentation`() {
         assertThat(policy.feed("ru")).isEqualTo("https://antimsg.com/ru/hero-feed?app=1")
         assertThat(policy.feed("ja")).isEqualTo("https://antimsg.com/en/hero-feed?app=1")

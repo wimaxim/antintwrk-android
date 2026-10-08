@@ -43,6 +43,7 @@ class DefaultPreferencesEntryPoint : PreferencesEntryPoint {
 }
 
 internal fun PreferencesEntryPoint.InitialTarget.toNavTarget() = when (this) {
+    PreferencesEntryPoint.InitialTarget.Logout -> PreferencesFlowNode.NavTarget.SignOut
     is PreferencesEntryPoint.InitialTarget.Root -> PreferencesFlowNode.NavTarget.Root
     is PreferencesEntryPoint.InitialTarget.NotificationSettings -> PreferencesFlowNode.NavTarget.NotificationSettings
     PreferencesEntryPoint.InitialTarget.NotificationTroubleshoot -> PreferencesFlowNode.NavTarget.TroubleshootNotifications

@@ -106,6 +106,7 @@ internal fun AntintwrkMessengerOAuth(
                                         val callback = Uri.parse(next)
                                         require(
                                             callback.scheme == "https" && callback.host == "auth.antimsg.com" && callback.userInfo == null &&
+                                            callback.port in setOf(-1, 443) &&
                                             callback.path?.startsWith("/upstream/callback/") == true
                                         )
                                         processing = false

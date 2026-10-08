@@ -1,5 +1,9 @@
 # AGENTS.md — Element X Android
 
+## antintwrk UX and account recovery — 7 October 2026
+
+Automate technical friction for users wherever data safety and the agreed trust model permit. The owner approved custodial encryption recovery via the social account. Store the recovery secret in the separate encrypted server vault, never logs/preferences/social DB. Preserve existing identities; never reset a recovery key automatically. Bypass the stock logout warning only after confirming durable escrow, SDK recovery and completed backup upload. A failing vault must not disable working chats/social content. Explain actionable failures in ordinary language. Apply the same product contract to iOS.
+
 ## User-Agent соцсети — 7 октября 2026
 
 Для социальных native API и встроенного веба Android/iOS User-Agent обязательно содержит `(+https://qwertynetworks.com)` — URL компании разработчика. Android: `ANTINTWRK Android native-client/1.0 (+https://qwertynetworks.com)`; iOS: `ANTINTWRK iOS native-client/1.0 (+https://qwertynetworks.com)`. Версию обновлять централизованно, URL сохранять. Владелец считает этот маркер достаточным для отнесения User-Agent к относительно доверенным на стороне веба; это классификация клиента, серверная авторизация по сессии сохраняется. Для iOS при подготовке исходников перенести правило в локальный AGENTS.md и настроить одинаковый UA в URLSession/WKWebView. Android использует одну константу для native auth API/WebView; Matrix SDK этим правилом не изменяется.

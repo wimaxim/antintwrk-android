@@ -93,7 +93,7 @@ internal fun AntintwrkTermsDialog(onDismiss: () -> Unit) {
                 if (loading) AntintwrkLoadingView(Modifier.fillMaxSize())
                 if (failed) {
                     Column(Modifier.align(Alignment.Center)) {
-                    Text(stringResource(R.string.screen_ant_auth_session_check_error))
+                    Text(stringResource(R.string.screen_ant_auth_request_error))
                     TextButton(stringResource(R.string.screen_ant_web_retry), { view.reload() })
                 }
                 }

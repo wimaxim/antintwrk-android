@@ -27,6 +27,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
+import io.element.android.appnav.antintwrk.AntintwrkAccountRecovery
 import io.element.android.appnav.antintwrk.AntintwrkNativeAppView
 import io.element.android.appnav.di.SessionGraphFactory
 import io.element.android.libraries.architecture.NodeInputs
@@ -35,6 +36,8 @@ import io.element.android.libraries.architecture.createNode
 import io.element.android.libraries.architecture.inputs
 import io.element.android.libraries.di.DependencyInjectionGraphOwner
 import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
@@ -74,6 +77,7 @@ class LoggedInAppScopeFlowNode(
     ) : NodeInputs
 
     private val inputs: Inputs = inputs()
+    private val accountRecovery by lazy { AntintwrkAccountRecovery(inputs.matrixClient.encryptionService, inputs.matrixClient.sessionId.value) }
     override val graph = sessionGraphFactory.create(inputs.matrixClient)
 
     override fun onBuilt() {
@@ -107,6 +111,15 @@ class LoggedInAppScopeFlowNode(
                 modifier,
                 matrixUserId = inputs.matrixClient.sessionId.value,
                 onMatrixSignOut = { lifecycleScope.launch { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = true) } },
+                onRequestSignOut = { lifecycleScope.launch { attachSession().openAppLogout() } },
+                onPrepareRecovery = { accountRecovery.prepare() },
+                onRecoveredSignOut = { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = false) },
+                onOpenMessage = { recipient ->
+                    val user = UserId(recipient)
+                    val room = inputs.matrixClient.findDM(user).getOrThrow()
+                        ?: inputs.matrixClient.createDM(user, isEncrypted = true).getOrThrow()
+                    attachSession().attachRoom(room.toRoomIdOrAlias())
+                },
                 messengerContent = { contentModifier -> Children(navModel = navModel, modifier = contentModifier) }
             )
         } else {

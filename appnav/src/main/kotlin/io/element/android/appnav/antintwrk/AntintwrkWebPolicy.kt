@@ -7,6 +7,7 @@ import android.net.Uri
 
 /** Routes are presentation hints; account and action permissions stay on the server. */
 internal class AntintwrkWebPolicy(private val origin: String) {
+    data class MessengerLink(val target: String?)
     private val base = Uri.parse(origin)
     private val languages = setOf("en", "ru", "uk", "de", "es", "fr", "it", "ar", "zh")
     private val routes = setOf(
@@ -59,6 +60,14 @@ internal class AntintwrkWebPolicy(private val origin: String) {
         val uri = Uri.parse(url)
         return uri.scheme == "https" && uri.host == base.host && uri.port == base.port && uri.userInfo == null
     }
+    fun messengerLink(url: String): MessengerLink? {
+        if (!sameOrigin(url)) return null
+        val uri = Uri.parse(url)
+        if (uri.pathSegments.size != 2 || uri.pathSegments[0] !in languages || uri.pathSegments[1] != "messages") return null
+        val targets = uri.getQueryParameters("with")
+        if (targets.isEmpty()) return MessengerLink(null)
+        return targets.singleOrNull()?.takeIf { it.matches(Regex("[1-9][0-9]{0,17}")) }?.let(::MessengerLink)
+    }
     fun route(language: String, path: String): String =
         "$origin/${language.takeIf { it in languages } ?: "en"}/$path?app=1"
     fun feed(language: String): String = route(language, "hero-feed")
@@ -90,6 +99,7 @@ internal class AntintwrkWebPolicy(private val origin: String) {
         }
         val parts = uri.pathSegments
         if (parts.size < 2 || parts[0] !in languages || parts[1] !in routes) return null
+        if (parts[1] == "messages" && messengerLink(url) == null) return null
         return uri.buildUpon().clearQuery().apply {
             uri.queryParameterNames.filter { it != "app" }.forEach { name ->
                 uri.getQueryParameters(name).forEach { value -> appendQueryParameter(name, value) }

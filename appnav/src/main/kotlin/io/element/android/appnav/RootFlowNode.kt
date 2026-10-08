@@ -8,6 +8,7 @@
 
 package io.element.android.appnav
 
+import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
 import androidx.compose.animation.core.Spring
@@ -32,6 +33,7 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.JoinedRoom
 import io.element.android.annotations.ContributesNode
+import io.element.android.appnav.antintwrk.AntintwrkAccountSignOut
 import io.element.android.appnav.antintwrk.AntintwrkLoadingView
 import io.element.android.appnav.antintwrk.AntintwrkSignedOutNode
 import io.element.android.appnav.antintwrk.AntintwrkSocialPushRoutes
@@ -57,6 +59,7 @@ import io.element.android.libraries.architecture.createNode
 import io.element.android.libraries.architecture.waitForChildAttached
 import io.element.android.libraries.deeplink.api.DeeplinkData
 import io.element.android.libraries.di.annotations.AppCoroutineScope
+import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.accountprovider.AccountProvider
@@ -103,6 +106,7 @@ class RootFlowNode(
     private val announcementService: AnnouncementService,
     private val analyticsService: AnalyticsService,
     private val analyticsColdStartWatcher: AnalyticsColdStartWatcher,
+    @ApplicationContext private val context: Context,
     @AppCoroutineScope private val appCoroutineScope: CoroutineScope,
 ) : BaseFlowNode<RootFlowNode.NavTarget>(
     backstack = BackStack(
@@ -118,11 +122,15 @@ class RootFlowNode(
      * login params, whatever the order in which the intent and the first nav state emission are processed.
      */
     private var pendingLoginParams: LoginParams? = null
+    private var previousMatrixActor: String? = null
+    private var previousMatrixValid = false
 
     override fun onBuilt() {
         analyticsColdStartWatcher.start()
         appCoroutineScope.launch {
             matrixSessionCache.restoreWithSavedState(buildContext.savedStateMap)
+            previousMatrixActor = sessionStore.getLatestSessionId()?.value
+            previousMatrixValid = sessionStore.getAllSessions().firstOrNull { it.userId == previousMatrixActor }?.isTokenValid == true
             if (buildContext.savedStateMap != null) {
                 restoreSavedState(buildContext.savedStateMap)
                 observeNavState(true)
@@ -147,6 +155,8 @@ class RootFlowNode(
                 Timber.v("navState=$navState")
                 when (navState.loggedInState) {
                     is LoggedInState.LoggedIn -> {
+                        previousMatrixActor = navState.loggedInState.sessionId
+                        previousMatrixValid = navState.loggedInState.isTokenValid
                         if (navState.loggedInState.isTokenValid) {
                             val sessionId = SessionId(navState.loggedInState.sessionId)
                             if (matrixSessionCache.getOrNull(sessionId) != null) {
@@ -162,6 +172,11 @@ class RootFlowNode(
                         }
                     }
                     LoggedInState.NotLoggedIn -> {
+                        if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                            AntintwrkAccountSignOut.afterMatrixLogout(context, previousMatrixActor, previousMatrixValid, appCoroutineScope)
+                        }
+                        previousMatrixActor = null
+                        previousMatrixValid = false
                         switchToNotLoggedInFlow(pendingLoginParams)
                     }
                 }
@@ -228,6 +243,7 @@ class RootFlowNode(
             Timber.v("Succeed to restore session $sessionId")
             onSuccess(sessionId)
         }.onFailure {
+            previousMatrixValid = false
             Timber.e(it, "Failed to restore session $sessionId")
             onFailure()
         }

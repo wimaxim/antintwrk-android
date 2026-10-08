@@ -12,6 +12,7 @@ package io.element.android.appnav
 import android.content.Intent
 import android.net.Uri
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ApplicationProvider
 import com.bumble.appyx.core.modality.AncestryInfo
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.node
@@ -145,6 +146,7 @@ class RootFlowNodeTest : RobolectricTest() {
             )
         )
         return RootFlowNode(
+            context = ApplicationProvider.getApplicationContext(),
             buildContext = BuildContext(
                 ancestryInfo = AncestryInfo.Child(anchor = parentNode),
                 savedStateMap = null,

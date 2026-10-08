@@ -8,8 +8,10 @@ import io.element.android.appnav.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.FormBody
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
@@ -60,8 +62,35 @@ internal class AntintwrkNativeAuthClient(
     suspend fun messengerHandoff(query: String, csrf: String): JSONObject =
         JSONObject(post("messenger-handoff", mapOf("query" to query, "csrf" to csrf)))
 
-    suspend fun session(): AntintwrkAuthSession {
-        val json = JSONObject(post("session"))
+    suspend fun messengerRecipient(target: String, csrf: String): JSONObject =
+        JSONObject(post("messenger-recipient", mapOf("target" to target, "csrf" to csrf)))
+
+    suspend fun recoverySecret(actor: String, operation: String, csrf: String): String? = withContext(Dispatchers.IO) {
+        require(operation in setOf("read", "create"))
+        val ticket = JSONObject(post("messenger-recovery", mapOf("operation" to operation, "csrf" to csrf)))
+        require(ticket.getString("matrixUserId") == actor)
+        val payload = JSONObject().put("operation", operation).put("assertion", ticket.getString("assertion"))
+        val request = Request.Builder().url("https://auth.antimsg.com/social-identity/recovery")
+            .post(payload.toString().toRequestBody("application/json".toMediaType())).build()
+        http.newCall(request).execute().use { response ->
+            require(response.isSuccessful)
+            val source = response.body.source()
+            source.request(4097)
+            require(source.buffer.size <= 4096)
+            val result = JSONObject(source.buffer.readUtf8())
+            require(result.getString("matrixUserId") == actor)
+            if (result.isNull("secret")) {
+                null
+            } else {
+                result.getString("secret").also {
+                require(it.matches(Regex("[A-Za-z0-9_-]{64}")))
+            }
+            }
+        }
+    }
+
+    suspend fun session(cookieSnapshot: String? = null): AntintwrkAuthSession {
+        val json = JSONObject(post("session", cookieSnapshot = cookieSnapshot))
         val csrf = json.getString("csrf")
         require(csrf.matches(Regex("[a-f0-9]{64}")))
         return AntintwrkAuthSession(

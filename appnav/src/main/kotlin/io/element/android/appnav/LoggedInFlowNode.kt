@@ -626,6 +626,10 @@ class LoggedInFlowNode(
         }
     }
 
+    fun openAppLogout() {
+        backstack.push(NavTarget.Settings(PreferencesEntryPoint.InitialTarget.Logout))
+    }
+
     suspend fun attachRoom(
         roomIdOrAlias: RoomIdOrAlias,
         serverNames: List<String> = emptyList(),

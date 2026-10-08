@@ -24,6 +24,9 @@ interface PreferencesEntryPoint : FeatureEntryPoint {
         data object Root : InitialTarget
 
         @Parcelize
+        data object Logout : InitialTarget
+
+        @Parcelize
         data object NotificationSettings : InitialTarget
 
         @Parcelize

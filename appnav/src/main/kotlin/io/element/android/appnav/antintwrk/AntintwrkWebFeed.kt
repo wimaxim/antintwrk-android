@@ -83,6 +83,7 @@ class AntintwrkWebFeedController {
     var refreshVersion by mutableStateOf(0)
     var currentUrl by mutableStateOf<String?>(null)
     var onSection: (AntintwrkSection) -> Unit = {}
+    var onMessenger: ((String?) -> Unit)? = null
     private val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
     fun closeFullscreen() {
         fullscreen = null
@@ -119,6 +120,7 @@ class AntintwrkWebFeedController {
         onSection(destination)
     }
     fun navigate(url: String) {
+        if (interceptMessenger(url)) return
         val destination = nativeSection(url)
         if (destination != null && destination != section) {
             crossSectionHistory.addLast(section)
@@ -127,6 +129,12 @@ class AntintwrkWebFeedController {
         currentUrl = url
         urls[section] = url
         view?.loadUrl(url)
+    }
+    internal fun interceptMessenger(url: String): Boolean {
+        val callback = onMessenger ?: return false
+        val link = policy.messengerLink(url) ?: return false
+        callback(link.target)
+        return true
     }
     internal fun visited(url: String, policy: AntintwrkWebPolicy) {
         if (policy.embedded(url) == null) return
@@ -336,6 +344,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                             if (!request.isForMainFrame) return false
                             val url = policy.canonical(request.url.toString())
+                            if (controller.interceptMessenger(url)) return true
                             if (BuildConfig.ANTINTWRK_NATIVE_AUTH && policy.needsAuth(url)) {
                                 authRequired()
                                 return true
