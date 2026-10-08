@@ -15,6 +15,8 @@ import io.element.android.appconfig.NotificationConfig
 import io.element.android.features.enterprise.api.EnterpriseService
 import io.element.android.libraries.core.log.logger.LoggerTag
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.push.api.PushAccountPolicy
+import io.element.android.libraries.push.api.PushAccountPolicyLock
 import io.element.android.libraries.push.api.notifications.NotificationIdProvider
 import io.element.android.libraries.push.impl.notifications.factories.NotificationAccountParams
 import io.element.android.libraries.push.impl.notifications.factories.NotificationCreator
@@ -40,6 +42,7 @@ class NotificationRenderer(
     private val enterpriseService: EnterpriseService,
     private val sessionStore: SessionStore,
     private val analyticsService: AnalyticsService,
+    private val accountPolicies: Set<PushAccountPolicy> = emptySet(),
 ) {
     suspend fun render(
         currentUser: MatrixUser,
@@ -67,6 +70,8 @@ class NotificationRenderer(
             notificationAccountParams = notificationAccountParams,
         )
 
+        synchronized(PushAccountPolicyLock.monitor) {
+        if (accountPolicies.any { !it.isAllowed(currentUser.userId.value) }) return
         // Remove summary first to avoid briefly displaying it after dismissing the last notification
         if (summaryNotification == SummaryNotification.Removed) {
             Timber.tag(loggerTag.value).d("Removing summary notification")
@@ -128,7 +133,7 @@ class NotificationRenderer(
                 notification = summaryNotification.notification
             )
         }
-
+        }
         for (event in eventsToProcess) {
             // Finish long-running transaction
             val uploaded = analyticsService.finishLongRunningTransaction(AnalyticsLongRunningTransaction.PushToNotification(event.eventId.value))

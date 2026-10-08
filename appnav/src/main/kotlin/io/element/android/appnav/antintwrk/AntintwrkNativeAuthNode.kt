@@ -50,10 +50,10 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
 internal fun AntintwrkNativeAppView(
     modifier: Modifier = Modifier,
     matrixUserId: String? = null,
-    onMatrixSignOut: (() -> Unit)? = null,
     onRequestSignOut: (() -> Unit)? = null,
     onPrepareRecovery: (suspend () -> Boolean)? = null,
     onRecoveredSignOut: (suspend () -> Unit)? = null,
+    onSwitchMatrixAccount: ((String) -> Unit)? = null,
     onOpenMessage: (suspend (String) -> Unit)? = null,
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
 ) {
@@ -61,7 +61,6 @@ internal fun AntintwrkNativeAppView(
         val context = LocalAntintwrkActivity.current ?: LocalContext.current
         val credentials = remember { AntintwrkNativeCredentials(context) }
         val accountPreferences = remember { context.getSharedPreferences("antintwrk-account", android.content.Context.MODE_PRIVATE) }
-        var closingApp by remember { mutableStateOf(matrixUserId != null && accountPreferences.getBoolean("logged-out", false)) }
         var switchingMatrix by remember { mutableStateOf(false) }
 
         val pushStore = remember { AntintwrkSocialPushStore(context.applicationContext) }
@@ -165,8 +164,19 @@ internal fun AntintwrkNativeAppView(
             try {
                 session = request()
                 if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
+                    val previousActor = accountPreferences.getString("social-actor", null)
+                    synchronized(io.element.android.libraries.push.api.PushAccountPolicyLock.monitor) {
+                        accountPreferences.edit().putBoolean("logged-out", false).putString("social-actor", session?.matrixUserId)
+                            .remove("logged-out-actor").commit()
+                        if (previousActor != null && previousActor != session?.matrixUserId) {
+                            androidx.core.app.NotificationManagerCompat.from(context).cancelAll()
+                        }
+                    }
+                    if (previousActor != null && previousActor != session?.matrixUserId) {
+                        pushStore.clear()
+                        AntintwrkSocialPushRoutes.consume()
+                    }
                     AntintwrkMessengerRoutes.discardOtherActor(session?.matrixUserId)
-                    accountPreferences.edit().putBoolean("logged-out", false).putString("social-actor", session?.matrixUserId).commit()
                 }
                 webController.ownProfileIdentity = session?.profileIdentity
                 if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) {
@@ -273,13 +283,20 @@ internal fun AntintwrkNativeAppView(
                 }
             }
         }
-        LaunchedEffect(closingApp, switchingMatrix, matrixUserId) {
-            if ((closingApp || switchingMatrix) && matrixUserId != null) onMatrixSignOut?.invoke()
-        }
-        LaunchedEffect(session?.matrixUserId, matrixUserId) {
+        LaunchedEffect(session?.matrixUserId, matrixUserId, shellState.mode) {
             if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && matrixUserId != null &&
-                session?.matrixUserId != null && session?.matrixUserId != matrixUserId) {
+                session?.matrixUserId != null && session?.matrixUserId != matrixUserId && shellState.mode == AntintwrkMode.Messenger) {
                 switchingMatrix = true
+                val actor = requireNotNull(session?.matrixUserId)
+                accountPreferences.edit().putString("connect-messenger-for", actor).commit()
+                onSwitchMatrixAccount?.invoke(actor)
+            }
+        }
+        LaunchedEffect(session?.matrixUserId) {
+            if (session?.stage == AntintwrkAuthStage.AUTHENTICATED &&
+                accountPreferences.getString("connect-messenger-for", null) == session?.matrixUserId) {
+                shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
+                if (matrixUserId == session?.matrixUserId) accountPreferences.edit().remove("connect-messenger-for").commit()
             }
         }
         LaunchedEffect(shellState.mode, session?.matrixUserId, messengerAttempt) {
@@ -417,8 +434,7 @@ internal fun AntintwrkNativeAppView(
                 val pushFid = pushStore.fid
                 val cookieSnapshot = client.clearLocalSession()
                 AntintwrkMessengerRoutes.clear()
-                accountPreferences.edit().putBoolean("logged-out", true).commit()
-                closingApp = matrixUserId != null
+                accountPreferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", current.matrixUserId).commit()
                 AntintwrkSocialPushRoutes.consume()
                 pushStore.clear()
                 pushOpen = false
@@ -533,9 +549,10 @@ internal fun AntintwrkNativeAppView(
         LaunchedEffect(matrixUserId) {
             if (matrixUserId != null) shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
         }
-        if (closingApp || switchingMatrix) {
+        if (switchingMatrix) {
             AntintwrkLoadingView(modifier)
-        } else if (matrixUserId != null && messengerContent != null && requiresSocialAdmission) {
+        } else if (matrixUserId != null && messengerContent != null && requiresSocialAdmission &&
+            !accountPreferences.getBoolean("logged-out", false) && accountPreferences.getString("social-actor", null) == matrixUserId) {
             AntintwrkShellView(shellState, modifier, socialContent = { SocialAdmission(it) }, messengerContent = messengerContent)
         } else {
             SocialAdmission(modifier)

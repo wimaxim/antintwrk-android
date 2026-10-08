@@ -147,12 +147,33 @@ class RootFlowNode(
         navStateFlowFactory.saveIntoSavedState(state)
     }
 
+    private fun switchToSocialMatrixAccount(userId: String) {
+        lifecycleScope.launch {
+            require(userId.matches(Regex("@u[1-9][0-9]*:matrix\\.antimsg\\.com")))
+            val existing = sessionStore.getSession(userId)
+            if (existing?.isTokenValid == true && matrixSessionCache.getOrRestore(SessionId(userId)).isSuccess) {
+                sessionStore.setLatestSession(userId)
+                switchToLoggedInFlow(SessionId(userId), 0)
+            } else {
+                // Keep the previous actor's encrypted store; login adds/selects this actor.
+                backstack.safeRoot(NavTarget.NotLoggedInFlow(null))
+            }
+        }
+    }
+
     private fun observeNavState(skipFirst: Boolean) {
         navStateFlowFactory.create(buildContext.savedStateMap)
             .distinctUntilChanged()
             .drop(if (skipFirst) 1 else 0)
             .onEach { navState ->
                 Timber.v("navState=$navState")
+                if (BuildConfig.ANTINTWRK_NATIVE_AUTH && previousMatrixValid && previousMatrixActor != null &&
+                    sessionStore.getAllSessions().none { it.userId == previousMatrixActor }) {
+                    // Removing our session may activate a different stored Matrix account.
+                    // Close its matching social admission even without a NotLoggedIn emission.
+                    AntintwrkAccountSignOut.afterMatrixLogout(context, previousMatrixActor, true, appCoroutineScope)
+                    previousMatrixValid = false
+                }
                 when (navState.loggedInState) {
                     is LoggedInState.LoggedIn -> {
                         previousMatrixActor = navState.loggedInState.sessionId
@@ -172,9 +193,6 @@ class RootFlowNode(
                         }
                     }
                     LoggedInState.NotLoggedIn -> {
-                        if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
-                            AntintwrkAccountSignOut.afterMatrixLogout(context, previousMatrixActor, previousMatrixValid, appCoroutineScope)
-                        }
                         previousMatrixActor = null
                         previousMatrixValid = false
                         switchToNotLoggedInFlow(pendingLoginParams)
@@ -331,6 +349,9 @@ class RootFlowNode(
                     override fun navigateToAddAccount() {
                         backstack.push(NavTarget.NotLoggedInFlow(null))
                     }
+                    override fun navigateToSocialAccount(userId: String) {
+                        switchToSocialMatrixAccount(userId)
+                    }
                 }
                 val savedNavState = extractSavedStateForNavTarget(navTarget, this.buildContext.savedStateMap)
                 val buildContext = if (savedNavState != null) {
@@ -359,9 +380,7 @@ class RootFlowNode(
             }
             is NavTarget.SignedOutFlow -> {
                 if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
-                    return AntintwrkSignedOutNode(buildContext, navTarget.sessionId, signedOutEntryPoint) {
-                        lifecycleScope.launch { sessionStore.removeSession(navTarget.sessionId.value) }
-                    }
+                    return AntintwrkSignedOutNode(buildContext, navTarget.sessionId, signedOutEntryPoint, ::switchToSocialMatrixAccount)
                 }
                 signedOutEntryPoint.createNode(
                     parentNode = this,

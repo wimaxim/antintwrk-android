@@ -19,7 +19,10 @@ internal object AntintwrkAccountSignOut {
         val push = AntintwrkSocialPushStore(context)
         val fid = push.fid
         val snapshot = client.clearLocalSession()
-        preferences.edit().putBoolean("logged-out", true).remove("social-actor").commit()
+        synchronized(io.element.android.libraries.push.api.PushAccountPolicyLock.monitor) {
+            preferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", matrixActor).remove("social-actor").commit()
+            androidx.core.app.NotificationManagerCompat.from(context).cancelAll()
+        }
         push.clear()
         AntintwrkSocialPushRoutes.consume()
         AntintwrkMessengerRoutes.clear()

@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit
 interface AntintwrkMessengerBindings {
     fun matrixAuthenticationService(): MatrixAuthenticationService
     fun oauthRedirectUrlProvider(): OAuthRedirectUrlProvider
+    fun sessionStore(): io.element.android.libraries.sessionstorage.api.SessionStore
 }
 
 /** OAuth has its own allowed routes; never runs inside a social content WebView. */

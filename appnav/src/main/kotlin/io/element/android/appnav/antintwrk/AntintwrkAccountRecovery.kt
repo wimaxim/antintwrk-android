@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 package io.element.android.appnav.antintwrk
 
+import io.element.android.libraries.matrix.api.encryption.BackupState
 import io.element.android.libraries.matrix.api.encryption.BackupUploadState
 import io.element.android.libraries.matrix.api.encryption.EncryptionService
 import io.element.android.libraries.matrix.api.encryption.RecoveryState
@@ -24,15 +25,17 @@ internal class AntintwrkAccountRecovery(
             val admission = admission()
             require(admission.stage == AntintwrkAuthStage.AUTHENTICATED && admission.matrixUserId == actor)
             val state = encryption.recoveryStateStateFlow.first { it != RecoveryState.WAITING_FOR_SYNC && it != RecoveryState.UNKNOWN }
+            val canSetUp = state == RecoveryState.DISABLED &&
+                (!encryption.doesBackupExistOnServer().getOrThrow() || encryption.backupStateStateFlow.value == BackupState.ENABLED)
             var secret = secretStore("read", admission.csrf)
             if (secret == null) {
                 // A previously configured recovery key must be imported by its owner,
                 // never replaced just because our new custody store has no record.
-                if (state != RecoveryState.DISABLED || encryption.doesBackupExistOnServer().getOrThrow()) return@withTimeout false
+                if (!canSetUp) return@withTimeout false
                 secret = requireNotNull(secretStore("create", admission.csrf))
                 // Explicit passphrase was stored before encryption setup. A crash cannot lose it.
             }
-            if (state == RecoveryState.DISABLED && !encryption.doesBackupExistOnServer().getOrThrow()) {
+            if (canSetUp) {
                 encryption.enableRecovery(waitForBackupsToUpload = true, passphrase = secret).getOrThrow()
             }
             encryption.recover(secret).getOrThrow()

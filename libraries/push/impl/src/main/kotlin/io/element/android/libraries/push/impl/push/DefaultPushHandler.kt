@@ -14,6 +14,7 @@ import dev.zacsweers.metro.SingleIn
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.log.logger.LoggerTag
 import io.element.android.libraries.core.meta.BuildMeta
+import io.element.android.libraries.push.api.PushAccountPolicy
 import io.element.android.libraries.push.impl.db.PushRequest
 import io.element.android.libraries.push.impl.history.PushHistoryService
 import io.element.android.libraries.push.impl.history.onDiagnosticPush
@@ -56,6 +57,7 @@ class DefaultPushHandler(
     private val syncPendingNotificationsRequestFactory: SyncPendingNotificationsRequestBuilder.Factory,
     resultProcessor: NotificationResultProcessor,
     private val dispatchers: CoroutineDispatchers,
+    private val accountPolicies: Set<PushAccountPolicy> = emptySet(),
 ) : PushHandler {
     init {
         resultProcessor.start()
@@ -124,6 +126,7 @@ class DefaultPushHandler(
                 return false
             }
 
+            if (accountPolicies.any { !it.isAllowed(userId.value) }) return false
             val areNotificationsEnabled = userPushStoreFactory.getOrCreate(userId).getNotificationEnabledForDevice().first()
             if (!areNotificationsEnabled) {
                 Timber.w("Push notification received when push notifications are disabled.")

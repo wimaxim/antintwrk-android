@@ -11,6 +11,7 @@
 package io.element.android.libraries.push.impl.push
 
 import app.cash.turbine.test
+import com.google.common.truth.Truth.assertThat
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.meta.BuildMeta
 import io.element.android.libraries.matrix.api.core.EventId
@@ -53,6 +54,28 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val A_PUSHER_INFO = "info"
 
 class DefaultPushHandlerTest {
+    @Test
+    fun `inactive account push is rejected before notification work`() = runTest {
+        var checked = false
+        val queue = lambdaRecorder<PushRequest, Result<Unit>> { Result.success(Unit) }
+        val scheduler = lambdaRecorder<WorkManagerRequestBuilder, Unit> {}
+        val handler = createDefaultPushHandler(
+            incrementPushCounterResult = {},
+            pushClientSecret = FakePushClientSecret(getUserIdFromSecretResult = { A_USER_ID }),
+            pushHistoryService = FakePushHistoryService(enqueuePushRequest = queue),
+            workManagerScheduler = FakeWorkManagerScheduler(submitLambda = scheduler),
+            accountPolicies = setOf(object : io.element.android.libraries.push.api.PushAccountPolicy {
+                override fun isAllowed(userId: String): Boolean {
+                    checked = true
+                    return false
+                }
+            }),
+        )
+        assertThat(handler.handle(PushData(AN_EVENT_ID, A_ROOM_ID, 0, A_SECRET), A_PUSHER_INFO)).isFalse()
+        assertThat(checked).isTrue()
+        queue.assertions().isNeverCalled()
+        scheduler.assertions().isNeverCalled()
+    }
     @Test
     fun `check handleInvalid behavior`() = runTest {
         val incrementPushCounterResult = lambdaRecorder<Unit> {}
@@ -230,6 +253,7 @@ class DefaultPushHandlerTest {
             stop = {},
         ),
         dispatchers: CoroutineDispatchers = testCoroutineDispatchers(),
+        accountPolicies: Set<io.element.android.libraries.push.api.PushAccountPolicy> = emptySet(),
     ): DefaultPushHandler {
         return DefaultPushHandler(
             incrementPushDataStore = object : IncrementPushDataStore {
@@ -251,6 +275,7 @@ class DefaultPushHandlerTest {
                 FakeSyncPendingNotificationsRequestBuilder()
             },
             dispatchers = dispatchers,
+            accountPolicies = accountPolicies,
         )
     }
 }

@@ -65,6 +65,7 @@ class LoggedInAppScopeFlowNode(
     interface Callback : Plugin {
         fun navigateToBugReport()
         fun navigateToAddAccount()
+        fun navigateToSocialAccount(userId: String)
     }
 
     private val callback: Callback = callback()
@@ -110,10 +111,10 @@ class LoggedInAppScopeFlowNode(
             AntintwrkNativeAppView(
                 modifier,
                 matrixUserId = inputs.matrixClient.sessionId.value,
-                onMatrixSignOut = { lifecycleScope.launch { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = true) } },
                 onRequestSignOut = { lifecycleScope.launch { attachSession().openAppLogout() } },
                 onPrepareRecovery = { accountRecovery.prepare() },
                 onRecoveredSignOut = { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = false) },
+                onSwitchMatrixAccount = { callback.navigateToSocialAccount(it) },
                 onOpenMessage = { recipient ->
                     val user = UserId(recipient)
                     val room = inputs.matrixClient.findDM(user).getOrThrow()

@@ -45,6 +45,28 @@ private val ONE_SHOT_NOTIFICATION =
     OneShotNotification(notification = A_NOTIFICATION, tag = "ignored", isNoisy = false, timestamp = -1)
 
 class NotificationRendererTest : RobolectricTest() {
+    @Test
+    fun `an account change during async notification preparation prevents posting`() = runTest {
+        var allowed = true
+        roomGroupMessageCreator.createRoomMessageResult = lambdaRecorder { _, _, _, _, _, _ ->
+            allowed = false
+            A_NOTIFICATION
+        }
+        val renderer = createNotificationRenderer(
+            notificationDisplayer = notificationDisplayer,
+            notificationDataFactory = notificationDataFactory,
+            accountPolicies = setOf(object : io.element.android.libraries.push.api.PushAccountPolicy {
+                override fun isAllowed(userId: String) = allowed
+            }),
+        )
+        renderer.render(
+            MatrixUser(A_SESSION_ID, MY_USER_DISPLAY_NAME, MY_USER_AVATAR_URL),
+            USE_COMPLETE_NOTIFICATION_FORMAT,
+            listOf(aNotifiableMessageEvent()),
+            FakeImageLoader()
+        )
+        notificationDisplayer.showNotificationResult.assertions().isNeverCalled()
+    }
     private val notificationDisplayer = FakeNotificationDisplayer()
 
     private val notificationCreator = FakeNotificationCreator()
@@ -122,10 +144,12 @@ fun createNotificationRenderer(
     enterpriseService: EnterpriseService = FakeEnterpriseService(),
     sessionStore: SessionStore = InMemorySessionStore(),
     analyticsService: FakeAnalyticsService = FakeAnalyticsService(),
+    accountPolicies: Set<io.element.android.libraries.push.api.PushAccountPolicy> = emptySet(),
 ) = NotificationRenderer(
     notificationDisplayer = notificationDisplayer,
     notificationDataFactory = notificationDataFactory,
     enterpriseService = enterpriseService,
     sessionStore = sessionStore,
     analyticsService = analyticsService,
+    accountPolicies = accountPolicies,
 )

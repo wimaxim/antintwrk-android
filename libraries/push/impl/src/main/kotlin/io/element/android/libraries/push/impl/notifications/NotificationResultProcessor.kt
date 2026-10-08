@@ -19,6 +19,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.exception.NotificationResolverException
 import io.element.android.libraries.matrix.api.notification.CallIntent
+import io.element.android.libraries.push.api.PushAccountPolicy
 import io.element.android.libraries.push.impl.db.PushRequest
 import io.element.android.libraries.push.impl.history.PushHistoryService
 import io.element.android.libraries.push.impl.history.onSuccess
@@ -68,6 +69,7 @@ class DefaultNotificationResultProcessor(
     private val elementCallEntryPoint: ElementCallEntryPoint,
     private val notificationChannels: NotificationChannels,
     @AppCoroutineScope private val coroutineScope: CoroutineScope,
+    private val accountPolicies: Set<PushAccountPolicy> = emptySet(),
 ) : NotificationResultProcessor {
     private data class PendingResults(
         val results: Map<PushRequest, Result<ResolvedPushEvent>>,
@@ -126,6 +128,16 @@ class DefaultNotificationResultProcessor(
     private suspend fun processResults(results: Map<PushRequest, Result<ResolvedPushEvent>>) {
         // TODO what happens with items that weren't reported back?
         for ((request, result) in results) {
+            if (accountPolicies.any { !it.isAllowed(request.sessionId) }) {
+                pushHistoryService.onSuccess(
+                    request.providerInfo,
+                    EventId(request.eventId),
+                    RoomId(request.roomId),
+                    SessionId(request.sessionId),
+                    "Notification filtered by account admission"
+                )
+                continue
+            }
             result.fold(
                 onSuccess = {
                     if (it is ResolvedPushEvent.Event && it.notifiableEvent is FallbackNotifiableEvent) {
@@ -186,6 +198,7 @@ class DefaultNotificationResultProcessor(
 
         @Suppress("LoopWithTooManyJumpStatements")
         for ((request, result) in results) {
+            if (accountPolicies.any { !it.isAllowed(request.sessionId) }) continue
             val event = result.recover { exception ->
                 // If the event could not be resolved, we create a fallback notification
                 when (exception) {

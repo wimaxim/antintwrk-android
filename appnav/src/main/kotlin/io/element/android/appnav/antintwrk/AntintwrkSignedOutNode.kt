@@ -18,7 +18,7 @@ internal class AntintwrkSignedOutNode(
     buildContext: BuildContext,
     private val sessionId: SessionId,
     private val entryPoint: SignedOutEntryPoint,
-    private val onRemoveSession: () -> Unit,
+    private val onSwitchMatrixAccount: (String) -> Unit,
 ) : ParentNode<AntintwrkSignedOutNode.Target>(
     navModel = PermanentNavModel(navTargets = setOf(Target), savedStateMap = buildContext.savedStateMap),
     buildContext = buildContext,
@@ -34,7 +34,7 @@ internal class AntintwrkSignedOutNode(
         AntintwrkNativeAppView(
             modifier,
             matrixUserId = sessionId.value,
-            onMatrixSignOut = onRemoveSession,
+            onSwitchMatrixAccount = onSwitchMatrixAccount,
             messengerContent = { contentModifier -> Children(navModel = navModel, modifier = contentModifier) },
         )
     }

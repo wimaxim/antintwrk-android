@@ -2,6 +2,7 @@
 package io.element.android.appnav.antintwrk
 
 import com.google.common.truth.Truth.assertThat
+import io.element.android.libraries.matrix.api.encryption.BackupState
 import io.element.android.libraries.matrix.api.encryption.BackupUploadState
 import io.element.android.libraries.matrix.api.encryption.RecoveryState
 import io.element.android.libraries.matrix.test.encryption.FakeEncryptionService
@@ -75,5 +76,37 @@ class AntintwrkAccountRecoveryTest {
         }
         val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ -> "synthetic-secret" })
         assertThat(runCatching { recovery.prepare() }.isFailure).isTrue()
+    }
+
+    @Test
+    fun `SDK automatic backup is reused only when this device owns it`() = runTest {
+        var enabled = false
+        val encryption = FakeEncryptionService(enableRecoveryLambda = { _, _ ->
+            enabled = true
+            Result.success("unused")
+        }).apply {
+            recoveryStateStateFlow.value = RecoveryState.DISABLED
+            backupStateStateFlow.value = BackupState.ENABLED
+            givenDoesBackupExistOnServerResult(Result.success(true))
+            givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Done))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ -> "synthetic-secret" })
+        assertThat(recovery.prepare()).isTrue()
+        assertThat(enabled).isTrue()
+    }
+
+    @Test
+    fun `an existing backup without local keys is never replaced`() = runTest {
+        var wrote = false
+        val encryption = FakeEncryptionService().apply {
+            recoveryStateStateFlow.value = RecoveryState.DISABLED
+            givenDoesBackupExistOnServerResult(Result.success(true))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { operation, _ ->
+            if (operation == "create") wrote = true
+            null
+        })
+        assertThat(recovery.prepare()).isFalse()
+        assertThat(wrote).isFalse()
     }
 }
