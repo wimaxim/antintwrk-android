@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="screen_ant_account_messages_preparing">Готуємо листування…</string>
+  <string name="screen_ant_account_messages_retry">Не вдалося підготувати листування. Перевірте з’єднання та спробуйте ще раз.</string>
+</resources>

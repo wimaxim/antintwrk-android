@@ -9,9 +9,18 @@
 package io.element.android.features.ftue.impl.sessionverification
 
 import android.os.Parcelable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
@@ -31,9 +40,15 @@ import io.element.android.libraries.architecture.BackstackView
 import io.element.android.libraries.architecture.BaseFlowNode
 import io.element.android.libraries.architecture.callback
 import io.element.android.libraries.architecture.createNode
+import io.element.android.libraries.designsystem.theme.components.CircularProgressIndicator
+import io.element.android.libraries.designsystem.theme.components.Text
+import io.element.android.libraries.designsystem.theme.components.TextButton
 import io.element.android.libraries.designsystem.utils.OpenUrlInTabView
 import io.element.android.libraries.di.SessionScope
+import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.encryption.AntintwrkRecoveryStatus
 import io.element.android.libraries.matrix.api.verification.VerificationRequest
+import io.element.android.libraries.ui.strings.CommonStrings
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -44,6 +59,7 @@ class FtueSessionVerificationFlowNode(
     @Assisted plugins: List<Plugin>,
     private val outgoingVerificationEntryPoint: OutgoingVerificationEntryPoint,
     private val secureBackupEntryPoint: SecureBackupEntryPoint,
+    private val matrixClient: MatrixClient,
 ) : BaseFlowNode<FtueSessionVerificationFlowNode.NavTarget>(
     backstack = BackStack(
         initialElement = NavTarget.Root,
@@ -154,6 +170,24 @@ class FtueSessionVerificationFlowNode(
 
     @Composable
     override fun View(modifier: Modifier) {
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            val phases by AntintwrkRecoveryStatus.phases.collectAsState()
+            val actor = matrixClient.sessionId.value
+            Column(
+                modifier.fillMaxSize().padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                if (phases[actor] == AntintwrkRecoveryStatus.Phase.Failed) {
+                    Text(stringResource(CommonStrings.screen_ant_account_messages_retry))
+                    TextButton(stringResource(CommonStrings.action_retry), onClick = { AntintwrkRecoveryStatus.retry(actor) })
+                } else {
+                    CircularProgressIndicator()
+                    Text(stringResource(CommonStrings.screen_ant_account_messages_preparing))
+                }
+            }
+            return
+        }
         BackstackView()
 
         OpenUrlInTabView(learnMoreUrl)

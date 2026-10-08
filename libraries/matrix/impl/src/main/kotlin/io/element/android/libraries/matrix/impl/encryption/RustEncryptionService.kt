@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.EnableRecoveryProgressListener
 import org.matrix.rustcomponents.sdk.Encryption
@@ -46,7 +47,7 @@ import org.matrix.rustcomponents.sdk.EnableRecoveryProgress as RustEnableRecover
 import org.matrix.rustcomponents.sdk.RecoveryException as RustRecoveryException
 
 class RustEncryptionService(
-    client: Client,
+    private val client: Client,
     syncService: RustSyncService,
     sessionCoroutineScope: CoroutineScope,
     private val dispatchers: CoroutineDispatchers,
@@ -148,6 +149,9 @@ class RustEncryptionService(
                 },
                 passphrase = passphrase,
             )
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                requireSigningSecretsStored()
+            }
             // Pin Done explicitly so observers get a coherent terminal value. For the passphrase
             // path the user never sees the SDK base58 key, so keep it out of this session-scoped
             // (in-memory) flow entirely; the caller still receives it as the return value and is
@@ -205,6 +209,7 @@ class RustEncryptionService(
     override suspend fun recover(recoveryKey: String): Result<Unit> = withContext(dispatchers.io) {
         runCatchingExceptions {
             if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                requireSigningSecretsStored()
                 // Never delete/recreate an existing backup during account-based restore.
                 service.recover(recoveryKey)
             } else {
@@ -218,6 +223,20 @@ class RustEncryptionService(
                     Unit
                 }
                 else -> throw it.mapRecoveryException()
+            }
+        }
+    }
+
+    private suspend fun requireSigningSecretsStored() {
+        val names = listOf("m.cross_signing.master", "m.cross_signing.self_signing", "m.cross_signing.user_signing")
+        val default = JSONObject(requireNotNull(client.accountData("m.secret_storage.default_key")))
+        val key = (default.optJSONObject("content") ?: default).getString("key")
+        check(key.isNotBlank())
+        names.forEach { name ->
+            val event = JSONObject(requireNotNull(client.accountData(name)))
+            val secret = (event.optJSONObject("content") ?: event).getJSONObject("encrypted").getJSONObject(key)
+            check(listOf("iv", "ciphertext", "mac").all { secret.optString(it).isNotBlank() }) {
+                "Signing secrets are not backed up"
             }
         }
     }

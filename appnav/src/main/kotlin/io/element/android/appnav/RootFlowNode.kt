@@ -147,9 +147,9 @@ class RootFlowNode(
         navStateFlowFactory.saveIntoSavedState(state)
     }
 
-    private fun switchToSocialMatrixAccount(userId: String) {
+    internal fun switchToSocialMatrixAccount(userId: String) {
         lifecycleScope.launch {
-            require(userId.matches(Regex("@u[1-9][0-9]*:matrix\\.antimsg\\.com")))
+            if (io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(userId) == null) return@launch
             val existing = sessionStore.getSession(userId)
             if (existing?.isTokenValid == true && matrixSessionCache.getOrRestore(SessionId(userId)).isSuccess) {
                 sessionStore.setLatestSession(userId)

@@ -11,4 +11,6 @@
     <string name="a11y_active">Active</string>
     <string name="a11y_inactive">Inactive</string>
     <string name="common_switch_account">Switch accounts</string>
+  <string name="screen_ant_account_messages_preparing">Preparing your messages…</string>
+  <string name="screen_ant_account_messages_retry">Unable to prepare your messages. Check your connection and try again.</string>
 </resources>

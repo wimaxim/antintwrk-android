@@ -59,14 +59,16 @@ fun ElementThemeApp(
     compoundLight: SemanticColors,
     compoundDark: SemanticColors,
     buildMeta: BuildMeta,
+    themeOverride: Theme? = null,
     content: @Composable () -> Unit,
 ) {
     val isBlackThemeAllowed by remember {
         featureFlagService.isFeatureEnabledFlow(FeatureFlags.AllowBlackTheme)
     }.collectAsState(initial = false)
-    val theme by remember(isBlackThemeAllowed) {
+    val preferenceTheme by remember(isBlackThemeAllowed) {
         appPreferencesStore.getThemeFlow().mapToTheme(allowBlackTheme = isBlackThemeAllowed)
     }.collectAsState(initial = Theme.System)
+    val theme = themeOverride ?: preferenceTheme
     LaunchedEffect(theme) {
         AppCompatDelegate.setDefaultNightMode(
             when (theme) {

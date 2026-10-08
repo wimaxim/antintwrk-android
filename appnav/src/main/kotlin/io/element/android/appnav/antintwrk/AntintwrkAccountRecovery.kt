@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 package io.element.android.appnav.antintwrk
 
+import io.element.android.libraries.matrix.api.encryption.AntintwrkRecoveryStatus
 import io.element.android.libraries.matrix.api.encryption.BackupState
 import io.element.android.libraries.matrix.api.encryption.BackupUploadState
 import io.element.android.libraries.matrix.api.encryption.EncryptionService
@@ -12,6 +13,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
 
 /** Never reset an existing identity. Escrow must be durable before SDK key creation. */
 internal class AntintwrkAccountRecovery(
@@ -21,12 +23,18 @@ internal class AntintwrkAccountRecovery(
     private val admission: suspend () -> AntintwrkAuthSession = { client.session() },
     private val secretStore: suspend (String, String) -> String? = { operation, csrf -> client.recoverySecret(actor, operation, csrf) },
 ) {
-    private val mutex = Mutex()
+    private val mutex = actorLocks.getOrPut(actor) { Mutex() }
+
+    private companion object {
+        val actorLocks = ConcurrentHashMap<String, Mutex>()
+    }
 
     suspend fun prepare(): Boolean = mutex.withLock {
         var step = "admission"
+        var ready = false
+        AntintwrkRecoveryStatus.update(actor, AntintwrkRecoveryStatus.Phase.Working)
         try {
-            withTimeout(120_000) {
+            ready = withTimeout(120_000) {
                 val admission = admission()
                 require(admission.stage == AntintwrkAuthStage.AUTHENTICATED && admission.matrixUserId == actor)
                 step = "initialization"
@@ -76,12 +84,15 @@ internal class AntintwrkAccountRecovery(
                 Timber.i("Account recovery ready")
                 true
             }
+            ready
         } catch (failure: Exception) {
             if (failure !is CancellationException) {
                 // Log only a fixed stage and exception type, never exception text or credentials.
                 Timber.w("Account recovery failed at %s (%s)", step, failure.javaClass.simpleName)
             }
             throw failure
+        } finally {
+            AntintwrkRecoveryStatus.update(actor, if (ready) AntintwrkRecoveryStatus.Phase.Ready else AntintwrkRecoveryStatus.Phase.Failed)
         }
     }
 }

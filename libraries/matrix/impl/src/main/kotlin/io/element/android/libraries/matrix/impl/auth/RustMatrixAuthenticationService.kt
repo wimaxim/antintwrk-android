@@ -418,6 +418,15 @@ class RustMatrixAuthenticationService(
                 isMessageSearchAvailable = isMessageSearchAvailable(),
             )
             .config()
+            .let { builder ->
+                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    // This OAuth client is disposed immediately after login. Only the
+                    // final session client may initialize signing and account recovery.
+                    builder.autoEnableCrossSigning(false).autoEnableBackups(false)
+                } else {
+                    builder
+                }
+            }
             .build()
     }
 

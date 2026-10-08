@@ -32,6 +32,7 @@ import io.element.android.appnav.antintwrk.AntintwrkLoadingView
 import io.element.android.appnav.antintwrk.LocalAntintwrkActivity
 import io.element.android.compound.colors.SemanticColorsLightDark
 import io.element.android.compound.theme.ElementTheme
+import io.element.android.compound.theme.Theme
 import io.element.android.features.lockscreen.api.LockScreenEntryPoint
 import io.element.android.features.lockscreen.api.LockScreenLockState
 import io.element.android.features.lockscreen.api.LockScreenService
@@ -84,7 +85,8 @@ class MainActivity : NodeActivity() {
             featureFlagService = appBindings.featureFlagService(),
             compoundLight = colors.light,
             compoundDark = colors.dark,
-            buildMeta = appBindings.buildMeta()
+            buildMeta = appBindings.buildMeta(),
+            themeOverride = if (AppNavBuildConfig.ANTINTWRK_NATIVE_AUTH) Theme.Dark else null,
         ) {
             CompositionLocalProvider(
                 LocalAntintwrkActivity provides if (AppNavBuildConfig.ANTINTWRK_ONBOARDING) this@MainActivity else null,

@@ -82,8 +82,18 @@ android {
                 "[]"
             }
         )
-        versionCode = Versions.VERSION_CODE
-        versionName = Versions.VERSION_NAME
+        versionCode = if (nativeSocial) {
+            providers.gradleProperty("antintwrkVersionCode").orNull?.toInt()?.also {
+                require(it in 1..214_748_364) { "Own version code must leave room for the ABI suffix." }
+            } ?: Versions.VERSION_CODE
+        } else {
+            Versions.VERSION_CODE
+        }
+        versionName = if (nativeSocial) {
+            providers.gradleProperty("antintwrkVersionName").orElse(Versions.VERSION_NAME).get()
+        } else {
+            Versions.VERSION_NAME
+        }
 
         // Keep abiFilter for the universalApk
         ndk {
@@ -249,7 +259,10 @@ android {
 androidComponents {
     beforeVariants(selector().withFlavor("store" to "gplay")) { variant ->
         if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean() &&
-            providers.gradleProperty("antintwrkFirebaseResources").orNull == null) variant.enable = false
+            providers.gradleProperty("antintwrkFirebaseResources").orNull == null
+        ) {
+            variant.enable = false
+        }
     }
     // map for the version codes last digit
     // x86 must have greater values than arm

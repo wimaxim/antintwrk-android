@@ -82,6 +82,27 @@ class RootFlowNodeTest : RobolectricTest() {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
+    fun `public social realm can select a new account without crashing`() = runTest {
+        val root = createRootFlowNode(loginEntryPoint = FakeLoginEntryPoint { buildContext, _ -> node(buildContext) {} })
+        root.parentNodeTestHelper()
+        runCurrent()
+        root.switchToSocialMatrixAccount("@u18:antintwrk.com")
+        runCurrent()
+        assertThat(root.backstack.activeElement).isEqualTo(RootFlowNode.NavTarget.NotLoggedInFlow(null))
+    }
+
+    @Test
+    fun `foreign realm cannot select a social account`() = runTest {
+        val root = createRootFlowNode(loginEntryPoint = FakeLoginEntryPoint { buildContext, _ -> node(buildContext) {} })
+        root.parentNodeTestHelper()
+        runCurrent()
+        val before = root.backstack.activeElement
+        root.switchToSocialMatrixAccount("@u18:antintwrk.com.evil")
+        runCurrent()
+        assertThat(root.backstack.activeElement).isEqualTo(before)
+    }
+
+    @Test
     fun `given no session, when a login link is handled before the nav state is observed, then the login params are kept`() = runTest {
         var loginEntryPointParams: LoginEntryPoint.Params? = null
         val rootFlowNode = createRootFlowNode(

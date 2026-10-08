@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="screen_ant_account_messages_preparing">Preparazione delle conversazioni…</string>
+  <string name="screen_ant_account_messages_retry">Impossibile preparare le conversazioni. Controlla la connessione e riprova.</string>
+</resources>

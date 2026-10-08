@@ -87,6 +87,7 @@ internal fun AntintwrkNativeAppView(
         var pushOpen by remember { mutableStateOf(false) }
         var licencesOpen by remember { mutableStateOf(false) }
         val pushRequests by AntintwrkSocialPushRoutes.opens.collectAsState()
+        val recoveryRetries by io.element.android.libraries.matrix.api.encryption.AntintwrkRecoveryStatus.retries.collectAsState()
         val profileRequests by AntintwrkSocialProfileRoutes.opens.collectAsState()
         val memberProfileRequest by AntintwrkProfileNavigation.requests.collectAsState()
         val presenter = remember { AntintwrkWelcomePresenter() }
@@ -333,7 +334,7 @@ internal fun AntintwrkNativeAppView(
                 webController.navigate(AntintwrkWebPolicy(io.element.android.appnav.BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "notifications"))
             }
         }
-        LaunchedEffect(session?.matrixUserId, matrixUserId) {
+        LaunchedEffect(session?.matrixUserId, matrixUserId, recoveryRetries[matrixUserId.orEmpty()]) {
             if (matrixUserId != null && session?.matrixUserId == matrixUserId && onPrepareRecovery != null) {
                 AntintwrkRecoveryMonitor(recoveryStates, onPrepareRecovery).run()
             }

@@ -718,6 +718,7 @@ class LoggedInFlowNode(
             compoundLight = colors.light,
             compoundDark = colors.dark,
             buildMeta = buildMeta,
+            themeOverride = if (BuildConfig.ANTINTWRK_NATIVE_AUTH) io.element.android.compound.theme.Theme.Dark else null,
         ) {
             CompositionLocalProvider(LocalMapTilerConfig provides updatedMapTilerConfig) {
                 val isOnline by syncService.isOnline.collectAsState()

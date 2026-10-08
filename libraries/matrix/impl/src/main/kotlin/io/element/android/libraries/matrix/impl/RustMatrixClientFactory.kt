@@ -166,7 +166,9 @@ class RustMatrixClientFactory(
             }
             .setSessionDelegate(sessionDelegate)
             .userAgent(userAgentProvider.provide())
-            .autoEnableBackups(true)
+            // Account-managed recovery creates backup and secret storage together,
+            // after signing initialization, instead of racing a second backup creator.
+            .autoEnableBackups(!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
             .autoEnableCrossSigning(true)
             .roomKeyRecipientStrategy(
                 strategy = if (featureFlagService.isFeatureEnabled(FeatureFlags.OnlySignedDeviceIsolationMode)) {

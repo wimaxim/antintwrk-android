@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="screen_ant_account_messages_preparing">Подготавливаем переписку…</string>
+  <string name="screen_ant_account_messages_retry">Не удалось подготовить переписку. Проверьте соединение и повторите попытку.</string>
+</resources>
