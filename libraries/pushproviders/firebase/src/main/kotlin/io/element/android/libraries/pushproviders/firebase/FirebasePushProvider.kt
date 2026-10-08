@@ -17,7 +17,12 @@ import io.element.android.libraries.pushproviders.api.Config
 import io.element.android.libraries.pushproviders.api.Distributor
 import io.element.android.libraries.pushproviders.api.PushProvider
 import io.element.android.libraries.pushproviders.api.PusherSubscriber
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
+import kotlin.time.Duration.Companion.seconds
 
 private val loggerTag = LoggerTag("FirebasePushProvider", LoggerTag.PushLoggerTag)
 
@@ -28,6 +33,7 @@ class FirebasePushProvider(
     private val isPlayServiceAvailable: IsPlayServiceAvailable,
     private val rotateFirebaseSession: RotateFirebaseSession,
     private val firebaseGatewayProvider: FirebaseGatewayProvider,
+    private val registerFirebaseSession: RegisterFirebaseSession,
 ) : PushProvider {
     override val index = FirebaseConfig.INDEX
     override val name = FirebaseConfig.NAME
@@ -40,6 +46,15 @@ class FirebasePushProvider(
     }
 
     override suspend fun registerWith(matrixClient: MatrixClient, distributor: Distributor): Result<Unit> {
+        if (BuildConfig.ANTINTWRK_NATIVE_AUTH && firebaseStore.getInstallationId() == null) {
+            // Own builds defer FCM until opt-in; Matrix must not depend on social push registration.
+            val registration = withContext(Dispatchers.IO) { registerFirebaseSession() }
+            if (registration.isFailure) return registration
+            val installationId = withTimeoutOrNull(30.seconds) {
+                firebaseStore.fcmInstallationIdFlow().first { it != null }
+            }
+            if (installationId == null) return Result.failure(IllegalStateException("Firebase registration timed out."))
+        }
         val pushKey = firebaseStore.getInstallationId() ?: return Result.failure<Unit>(
             IllegalStateException(
                 "Unable to register pusher, Firebase token is not known."

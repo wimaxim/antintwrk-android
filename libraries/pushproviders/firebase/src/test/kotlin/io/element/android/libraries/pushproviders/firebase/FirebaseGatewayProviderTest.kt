@@ -16,8 +16,11 @@ class FirebaseGatewayProviderTest {
             "https://enterprise.example/_matrix/push/v1/notify"
         }))
         assertThat(provider.getFirebaseGateway()).isEqualTo(
-            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) FirebaseConfig.ANTINTWRK_PUSHER_HTTP_URL
-            else "https://enterprise.example/_matrix/push/v1/notify"
+            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                FirebaseConfig.ANTINTWRK_PUSHER_HTTP_URL
+            } else {
+                "https://enterprise.example/_matrix/push/v1/notify"
+            }
         )
         assertThat(calls).isEqualTo(if (BuildConfig.ANTINTWRK_NATIVE_AUTH) 0 else 1)
     }

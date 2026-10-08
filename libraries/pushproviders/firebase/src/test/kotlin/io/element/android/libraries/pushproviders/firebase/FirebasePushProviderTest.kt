@@ -20,6 +20,7 @@ import io.element.android.libraries.pushproviders.api.PusherSubscriber
 import io.element.android.tests.testutils.lambda.lambdaRecorder
 import io.element.android.tests.testutils.lambda.value
 import kotlinx.coroutines.test.runTest
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class FirebasePushProviderTest {
@@ -86,6 +87,36 @@ class FirebasePushProviderTest {
         )
         val result = firebasePushProvider.registerWith(FakeMatrixClient(), Distributor("value", "Name"))
         assertThat(result.isFailure).isTrue()
+    }
+
+    @Test
+    fun `own first registration waits for installation id before subscribing`() = runTest {
+        assumeTrue(BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val store = InMemoryFirebaseStore(installationId = null)
+        val subscribe = lambdaRecorder<MatrixClient, String, String, Result<Unit>> { _, _, _ -> Result.success(Unit) }
+        val provider = createFirebasePushProvider(
+            firebaseStore = store,
+            pusherSubscriber = FakePusherSubscriber(registerPusherResult = subscribe),
+            registerFirebaseSession = RegisterFirebaseSession {
+                store.storeInstallationId("new-token")
+                Result.success(Unit)
+            },
+        )
+        val client = FakeMatrixClient()
+        assertThat(provider.registerWith(client, Distributor("Firebase", "Firebase")).isSuccess).isTrue()
+        subscribe.assertions().isCalledOnce().with(value(client), value("new-token"), value(A_FIREBASE_GATEWAY))
+    }
+
+    @Test
+    fun `own registration failure does not subscribe`() = runTest {
+        assumeTrue(BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val subscribe = lambdaRecorder<MatrixClient, String, String, Result<Unit>> { _, _, _ -> Result.success(Unit) }
+        val provider = createFirebasePushProvider(
+            firebaseStore = InMemoryFirebaseStore(installationId = null),
+            pusherSubscriber = FakePusherSubscriber(registerPusherResult = subscribe),
+        )
+        assertThat(provider.registerWith(FakeMatrixClient(), Distributor("Firebase", "Firebase")).isFailure).isTrue()
+        subscribe.assertions().isNeverCalled()
     }
 
     @Test
@@ -195,7 +226,8 @@ class FirebasePushProviderTest {
         pusherSubscriber: PusherSubscriber = FakePusherSubscriber(),
         isPlayServiceAvailable: IsPlayServiceAvailable = FakeIsPlayServiceAvailable(false),
         rotateFirebaseSession: RotateFirebaseSession = FakeRotateFirebaseSession(),
-        firebaseGatewayProvider: FirebaseGatewayProvider = FakeFirebaseGatewayProvider()
+        firebaseGatewayProvider: FirebaseGatewayProvider = FakeFirebaseGatewayProvider(),
+        registerFirebaseSession: RegisterFirebaseSession = RegisterFirebaseSession { Result.failure(AN_EXCEPTION) }
     ): FirebasePushProvider {
         return FirebasePushProvider(
             firebaseStore = firebaseStore,
@@ -203,6 +235,7 @@ class FirebasePushProviderTest {
             isPlayServiceAvailable = isPlayServiceAvailable,
             rotateFirebaseSession = rotateFirebaseSession,
             firebaseGatewayProvider = firebaseGatewayProvider,
+            registerFirebaseSession = registerFirebaseSession,
         )
     }
 }

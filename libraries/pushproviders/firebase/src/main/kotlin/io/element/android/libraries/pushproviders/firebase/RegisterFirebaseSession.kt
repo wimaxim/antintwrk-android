@@ -29,6 +29,12 @@ class DefaultRegisterFirebaseSession(
         // 'app should always check the device for a compatible Google Play services APK before accessing Google Play services features'
         isPlayServiceAvailable.checkAvailableOrThrow()
         return runFirebaseTask { FirebaseMessaging.getInstance().register() }
+            .onSuccess {
+                if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    // Explicit opt-in enables token maintenance for either part of the own app.
+                    FirebaseMessaging.getInstance().isAutoInitEnabled = true
+                }
+            }
             .onFailure { Timber.e(it, "## registerFirebaseMessaging() : failed") }
             // Change return type from Void! to Unit
             .map {}

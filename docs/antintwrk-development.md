@@ -148,3 +148,12 @@ Actual emulator acceptance: native password relogin, automatic Matrix SSO, SDK v
 ## Own analytics composition — 8 October 2026
 
 `antintwrkNativeAuth=true` selects the upstream noop analytics service instead of Element Posthog/Sentry providers in the application dependency graph. This removes Element analytics consent onboarding and transmission providers from our app; flags-off builds retain the existing analytics configuration. Own gplayDebug and original fdroidDebug builds pass.
+
+
+## First Matrix push opt-in and two-device RTC acceptance — 8 October 2026
+
+A clean second emulator exposed an own-build defect: FCM auto-initialisation is deliberately deferred, but Matrix subscribed before the initial Firebase installation ID existed. The own provider now explicitly registers Firebase off the UI thread and waits up to 30 seconds for the stored installation ID before subscribing. Registration failure cannot subscribe a missing token. Successful explicit registration enables token maintenance independently of social push. Flags-off behavior is retained. The pre-existing gateway-test formatting was corrected. Own gplayDebug, all 46 Firebase module tests and module ktlint pass.
+
+On the clean second device, native sign-in recovered the existing identity and encrypted history automatically without the manual verification or Element analytics screens. Following the fix, initial Matrix push registration succeeded without first opting into social push. A separate private encrypted QA peer sent a synthetic message while the app was backgrounded; Firebase delivery and the Matrix handler were observed, Android displayed the decrypted notification, and tapping it selected Messenger and opened the correct decrypted conversation.
+
+Two distinct Android device sessions of the designated test account joined the private QA room call. Both received the other's synthetic-camera video through the own RTC/SFU endpoint; logs confirm encrypted audio/video subscriptions. Camera/microphone permission dialogs and explicit hangup worked. This verifies device-to-device encrypted media routing, not independent-user ringing, acoustic quality on phones or forced TURN relay. A transient missing-media-key warning during joining resolved; no encryption was disabled. The technical peer's private room needed explicit call-event power levels, which were applied only to that QA room; app-created rooms already configure these. Full final acceptance remains open for the other cases tracked in shared documentation. No GitHub push.
