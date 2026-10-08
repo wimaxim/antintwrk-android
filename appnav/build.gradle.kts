@@ -32,7 +32,7 @@ android {
             "ANTINTWRK_SHELL_PREVIEW",
             providers.gradleProperty("antintwrkShellPreview").map { it.toBoolean().toString() }.orElse("false").get()
         )
-        buildConfigField("String", "ANTINTWRK_SOCIAL_ORIGIN", "\"https://antintwrk.com\"")
+        buildConfigField("String", "ANTINTWRK_SOCIAL_ORIGIN", "\"https://antimsg.com\"")
         buildConfigField("boolean", "ANTINTWRK_NATIVE_AUTH", providers.gradleProperty("antintwrkNativeAuth").orElse("false").get())
         buildConfigField(
             "boolean",

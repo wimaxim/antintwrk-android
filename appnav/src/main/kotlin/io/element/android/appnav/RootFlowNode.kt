@@ -33,6 +33,7 @@ import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.JoinedRoom
 import io.element.android.annotations.ContributesNode
 import io.element.android.appnav.antintwrk.AntintwrkLoadingView
+import io.element.android.appnav.antintwrk.AntintwrkSignedOutNode
 import io.element.android.appnav.antintwrk.AntintwrkSocialPushRoutes
 import io.element.android.appnav.intent.IntentResolver
 import io.element.android.appnav.intent.ResolvedIntent
@@ -341,6 +342,11 @@ class RootFlowNode(
                 createNode<NotLoggedInFlowNode>(buildContext, plugins = listOf(params, callback))
             }
             is NavTarget.SignedOutFlow -> {
+                if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    return AntintwrkSignedOutNode(buildContext, navTarget.sessionId, signedOutEntryPoint) {
+                        lifecycleScope.launch { sessionStore.removeSession(navTarget.sessionId.value) }
+                    }
+                }
                 signedOutEntryPoint.createNode(
                     parentNode = this,
                     buildContext = buildContext,

@@ -495,7 +495,22 @@ class RustMatrixClient(
     override suspend fun searchUsers(searchTerm: String, limit: Long): Result<MatrixSearchUserResults> =
         withContext(sessionDispatcher) {
             runCatchingExceptions {
-                innerClient.searchUsers(searchTerm, limit.toULong()).let(UserSearchResultMapper::map)
+                val standard = innerClient.searchUsers(searchTerm, limit.toULong()).let(UserSearchResultMapper::map)
+                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
+                    sessionId.value.endsWith(":matrix.antimsg.com")) {
+                    val alias = runCatchingExceptions {
+                        io.element.android.libraries.matrix.impl.user.antintwrkHandleLookup(searchTerm, innerClient.session().accessToken)
+                    }.getOrNull()
+                    val profile = alias?.let { getProfile(it).getOrNull() }
+                    if (profile !=
+                        null) {
+                            standard.copy(results = (listOf(profile) + standard.results).distinctBy { it.userId }.take(limit.toInt()).toImmutableList())
+                        } else {
+                            standard
+                        }
+                } else {
+                    standard
+                }
             }
         }
 

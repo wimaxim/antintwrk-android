@@ -93,6 +93,10 @@ interface MatrixAuthenticationService {
      */
     suspend fun loginWithOAuth(callbackUrl: String): Result<SessionId>
 
+    /** Validate the upstream account before persisting/notifying a newly created session. */
+    suspend fun loginWithOAuthForAccount(callbackUrl: String, expectedUserId: UserId): Result<SessionId> =
+        Result.failure(UnsupportedOperationException("Account-bound OAuth is not supported"))
+
     /**
      * Logs in by acting on a QR code shown by an already signed in device, reporting each step of the exchange as it happens.
      *

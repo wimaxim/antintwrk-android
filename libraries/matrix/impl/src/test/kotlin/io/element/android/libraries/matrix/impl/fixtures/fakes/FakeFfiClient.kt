@@ -60,6 +60,8 @@ class FakeFfiClient(
     private val getProfileResult: (String) -> UserProfile = { aRustUserProfile() },
     private val homeserverLoginDetailsResult: () -> HomeserverLoginDetails = { lambdaError() },
     private val loginResult: (String, String) -> Unit = { _, _ -> lambdaError() },
+    private val oauthCallbackResult: (String) -> Unit = { lambdaError() },
+    private val logoutResult: () -> Unit = { lambdaError() },
     private val newLoginWithQrCodeHandlerResult: () -> LoginWithQrCodeHandler = { lambdaError() },
     private val getStoreSizesResult: () -> StoreSizes = { lambdaError() },
     private val createRoomResult: (CreateRoomParameters) -> String = { lambdaError() },
@@ -129,6 +131,10 @@ class FakeFfiClient(
     override suspend fun login(username: String, password: String, initialDeviceName: String?, deviceId: String?) {
         loginResult(username, password)
     }
+
+    override suspend fun loginWithOauthCallback(callbackUrl: String) = oauthCallbackResult(callbackUrl)
+
+    override suspend fun logout() = logoutResult()
 
     override fun newLoginWithQrCodeHandler(oauthConfiguration: OAuthConfiguration): LoginWithQrCodeHandler {
         return newLoginWithQrCodeHandlerResult()

@@ -24,6 +24,7 @@ android {
     }
 
     defaultConfig {
+        buildConfigField("boolean", "ANTINTWRK_NATIVE_AUTH", providers.gradleProperty("antintwrkNativeAuth").orElse("false").get())
         buildConfigField(
             name = "OAUTH_CLIENT_URI_PATH",
             type = "String",

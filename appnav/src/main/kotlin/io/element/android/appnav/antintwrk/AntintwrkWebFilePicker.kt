@@ -6,7 +6,6 @@ package io.element.android.appnav.antintwrk
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
-import timber.log.Timber
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -14,6 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 /** Registered above the admission screen so a picker survives foreground session checks. */
 @Composable
@@ -22,7 +22,9 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
         val callback = controller.fileCallback
         controller.fileCallback = null
         val selected = selectedSocialFiles(
-            result.resultCode, result.data, controller.allowMultipleFiles,
+            result.resultCode,
+            result.data,
+            controller.allowMultipleFiles,
             controller.view?.context?.packageName.orEmpty(),
         )
         Timber.d("Social file picker callback=%s result=%d selected=%d", callback != null, result.resultCode, selected?.size ?: 0)

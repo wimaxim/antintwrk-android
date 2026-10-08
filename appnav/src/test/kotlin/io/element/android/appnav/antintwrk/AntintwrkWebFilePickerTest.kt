@@ -18,7 +18,10 @@ class AntintwrkWebFilePickerTest : RobolectricTest() {
 
     @Test
     fun `multiple photo picker results work without intent data`() {
-        val clip = ClipData.newRawUri("photo", first).apply { addItem(ClipData.Item(second)); addItem(ClipData.Item(first)) }
+        val clip = ClipData.newRawUri("photo", first).apply {
+            addItem(ClipData.Item(second))
+            addItem(ClipData.Item(first))
+        }
         val intent = Intent().apply { clipData = clip }
         assertThat(selectedSocialFiles(Activity.RESULT_OK, intent, true, app)?.toList()).containsExactly(first, second).inOrder()
         assertThat(selectedSocialFiles(Activity.RESULT_OK, intent, false, app)?.toList()).containsExactly(first)

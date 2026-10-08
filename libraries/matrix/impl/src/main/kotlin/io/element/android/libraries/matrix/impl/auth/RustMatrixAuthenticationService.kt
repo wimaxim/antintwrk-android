@@ -278,7 +278,12 @@ class RustMatrixAuthenticationService(
     /**
      * callbackUrl should be the `url` from `OAuthAction` (with all the parameters).
      */
-    override suspend fun loginWithOAuth(callbackUrl: String): Result<SessionId> {
+    override suspend fun loginWithOAuth(callbackUrl: String): Result<SessionId> = completeOAuth(callbackUrl, null)
+
+    override suspend fun loginWithOAuthForAccount(callbackUrl: String, expectedUserId: UserId): Result<SessionId> =
+        completeOAuth(callbackUrl, expectedUserId.value)
+
+    private suspend fun completeOAuth(callbackUrl: String, expectedUserId: String?): Result<SessionId> {
         return withContext(coroutineDispatchers.io) {
             runCatchingExceptions {
                 val client = currentClient ?: error("You need to call `setHomeserver()` first")
@@ -286,6 +291,10 @@ class RustMatrixAuthenticationService(
                 client.loginWithOauthCallback(
                     callbackUrl = callbackUrl,
                 )
+                if (expectedUserId != null && client.userId() != expectedUserId) {
+                    runCatching { client.logout() }
+                    error("Upstream account mismatch")
+                }
                 // Free the pending data since we won't use it to abort the flow anymore
                 pendingOAuthAuthorizationData?.close()
                 pendingOAuthAuthorizationData = null

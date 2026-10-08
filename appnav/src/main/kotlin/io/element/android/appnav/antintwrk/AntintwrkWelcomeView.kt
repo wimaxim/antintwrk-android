@@ -24,10 +24,13 @@ import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
@@ -65,7 +68,8 @@ fun AntintwrkWelcomeView(
     onOpenLicences: (() -> Unit)? = null,
 ) = AntintwrkBrandTheme {
     val context = LocalAntintwrkActivity.current ?: LocalContext.current
-    val uriHandler = LocalUriHandler.current
+    var termsOpen by remember { mutableStateOf(false) }
+    if (termsOpen) AntintwrkTermsDialog { termsOpen = false }
     val emit = state.eventSink
     BackHandler(enabled = state.page != AntintwrkPage.Welcome) { emit(AntintwrkWelcomeEvent.Back) }
     Column(
@@ -190,7 +194,7 @@ fun AntintwrkWelcomeView(
                     }
                 )
                 TextButton(stringResource(R.string.screen_antintwrk_terms), {
-                    uriHandler.openUri("https://antintwrk.com/terms")
+                    termsOpen = true
                 })
                 Row(Modifier.fillMaxWidth().toggleable(
                     state.agreed,

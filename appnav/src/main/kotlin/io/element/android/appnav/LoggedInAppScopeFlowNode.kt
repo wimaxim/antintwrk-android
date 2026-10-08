@@ -13,6 +13,7 @@ package io.element.android.appnav
 import android.os.Parcelable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
 import com.bumble.appyx.core.composable.Children
@@ -26,6 +27,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
+import io.element.android.appnav.antintwrk.AntintwrkNativeAppView
 import io.element.android.appnav.di.SessionGraphFactory
 import io.element.android.libraries.architecture.NodeInputs
 import io.element.android.libraries.architecture.callback
@@ -34,6 +36,7 @@ import io.element.android.libraries.architecture.inputs
 import io.element.android.libraries.di.DependencyInjectionGraphOwner
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
+import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -99,9 +102,15 @@ class LoggedInAppScopeFlowNode(
 
     @Composable
     override fun View(modifier: Modifier) {
-        Children(
-            navModel = navModel,
-            modifier = modifier,
-        )
+        if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            AntintwrkNativeAppView(
+                modifier,
+                matrixUserId = inputs.matrixClient.sessionId.value,
+                onMatrixSignOut = { lifecycleScope.launch { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = true) } },
+                messengerContent = { contentModifier -> Children(navModel = navModel, modifier = contentModifier) }
+            )
+        } else {
+            Children(navModel = navModel, modifier = modifier)
+        }
     }
 }

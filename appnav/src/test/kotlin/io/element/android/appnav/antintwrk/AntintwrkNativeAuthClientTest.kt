@@ -105,8 +105,11 @@ class AntintwrkNativeAuthClientTest {
             server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "/"))
             server.enqueue(session(stage))
             val result = runCatching { client.login("member@example.invalid", "fixture-password", "en", csrf) }
-            if (stage == "LOGIN") assertThat(result.isFailure).isTrue()
-            else assertThat(result.getOrThrow().stage.name).isEqualTo(stage)
+            if (stage == "LOGIN") {
+                assertThat(result.isFailure).isTrue()
+            } else {
+                assertThat(result.getOrThrow().stage.name).isEqualTo(stage)
+            }
             assertThat(server.takeRequest().path).isEqualTo("/antintwrk_mobile.php")
             assertThat(server.takeRequest().body.readUtf8()).isEqualTo("action=session")
         }

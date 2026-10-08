@@ -44,6 +44,17 @@ internal class AntintwrkWebPolicy(private val origin: String) {
         "community",
         "safety",
     )
+
+    /** Canonicalise legacy navigation only; legacy origins never become trusted JS origins. */
+    fun canonical(url: String): String {
+        val uri = Uri.parse(url)
+        return if (base.host == "antimsg.com" && uri.scheme == "https" && uri.host in setOf("antintwrk.com", "www.antintwrk.com") &&
+            uri.userInfo == null && uri.port in setOf(-1, 443)) {
+                uri.buildUpon().authority("antimsg.com").build().toString()
+            } else {
+                url
+            }
+    }
     fun sameOrigin(url: String): Boolean {
         val uri = Uri.parse(url)
         return uri.scheme == "https" && uri.host == base.host && uri.port == base.port && uri.userInfo == null
@@ -68,7 +79,8 @@ internal class AntintwrkWebPolicy(private val origin: String) {
         Uri.parse(url).pathSegments.any { it in setOf("activitycheck", "g2fa", "logoff") } ||
             Uri.parse(url).getQueryParameter("auth") != null
         )
-    fun embedded(url: String): String? {
+    fun embedded(input: String): String? {
+        val url = canonical(input)
         if (!sameOrigin(url) || outbound(url) || needsAuth(url)) return null
         val uri = Uri.parse(url)
         if (uri.path == "/_firstvisit.html") {
@@ -94,5 +106,8 @@ internal class AntintwrkWebPolicy(private val origin: String) {
             else -> null // Search, notifications and other people's profiles retain their entry section.
         }
     }
-    fun external(url: String): Boolean = Uri.parse(url).scheme in setOf("https", "http", "mailto", "tel")
+    fun external(url: String): Boolean = Uri.parse(url).let { uri ->
+        uri.scheme in setOf("https", "http", "mailto", "tel") && uri.userInfo == null &&
+            uri.host !in setOf(base.host, "antintwrk.com", "www.antintwrk.com")
+    }
 }

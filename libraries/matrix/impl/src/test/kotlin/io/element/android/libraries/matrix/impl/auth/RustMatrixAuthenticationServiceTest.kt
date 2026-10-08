@@ -12,6 +12,7 @@ import com.google.common.truth.Truth.assertThat
 import io.element.android.features.enterprise.api.EnterpriseService
 import io.element.android.features.enterprise.test.FakeEnterpriseService
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.paths.SessionPaths
 import io.element.android.libraries.matrix.impl.ClientBuilderProvider
 import io.element.android.libraries.matrix.impl.FakeClientBuilderProvider
@@ -49,6 +50,47 @@ import java.io.File
 class RustMatrixAuthenticationServiceTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
+
+    @Test
+    fun `account-bound OAuth rejects and revokes another account before storing or notifying`() = runTest {
+        val store = InMemorySessionStore(updateUserProfileResult = { _, _, _ -> })
+        var revoked = false
+        var notified = false
+        val sut = createRustMatrixAuthenticationService(
+            sessionStore = store,
+            clientBuilderProvider = FakeSequentialClientBuilderProvider({
+                FakeFfiClient(
+                    homeserverLoginDetailsResult = { FakeFfiHomeserverLoginDetails() },
+                    oauthCallbackResult = {},
+                    logoutResult = { revoked = true },
+                )
+            }),
+        )
+        sut.listenToNewMatrixClients { notified = true }
+        assertThat(sut.setHomeserver("matrix.org").isSuccess).isTrue()
+        assertThat(sut.loginWithOAuthForAccount("app://callback?code=synthetic", UserId("@other:matrix.org")).isFailure).isTrue()
+        assertThat(revoked).isTrue()
+        assertThat(notified).isFalse()
+        assertThat(store.getAllSessions()).isEmpty()
+    }
+
+    @Test
+    fun `account-bound OAuth preserves the normal successful SDK session flow`() = runTest {
+        val store = InMemorySessionStore(updateUserProfileResult = { _, _, _ -> })
+        val sut = createRustMatrixAuthenticationService(
+            sessionStore = store,
+            clientBuilderProvider = FakeSequentialClientBuilderProvider(
+                { FakeFfiClient(homeserverLoginDetailsResult = { FakeFfiHomeserverLoginDetails() }, oauthCallbackResult = {}) },
+                { FakeFfiClient(withUtdHook = {}) },
+            ),
+        )
+        var notified = false
+        sut.listenToNewMatrixClients { notified = true }
+        assertThat(sut.setHomeserver("matrix.org").isSuccess).isTrue()
+        assertThat(sut.loginWithOAuthForAccount("app://callback?code=synthetic", A_USER_ID).getOrNull()).isEqualTo(A_USER_ID)
+        assertThat(notified).isTrue()
+        assertThat(store.getAllSessions().map { it.userId }).containsExactly(A_USER_ID.value)
+    }
 
     @Test
     fun `setHomeserver is successful`() = runTest {

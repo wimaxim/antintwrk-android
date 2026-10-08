@@ -3,14 +3,10 @@
  */
 package io.element.android.appnav.antintwrk
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import io.element.android.libraries.designsystem.theme.components.Text
-import io.element.android.libraries.designsystem.theme.components.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,10 +16,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -31,6 +29,8 @@ import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import io.element.android.appnav.R
 import io.element.android.libraries.architecture.bindings
+import io.element.android.libraries.designsystem.theme.components.Text
+import io.element.android.libraries.designsystem.theme.components.TextButton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,10 +39,23 @@ import kotlinx.coroutines.withTimeout
 /** Social authentication stays independent of Matrix session storage and callbacks. */
 class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = buildContext) {
     @Composable
-    override fun View(modifier: Modifier) {
+    override fun View(modifier: Modifier) = AntintwrkNativeAppView(modifier)
+}
+
+@Composable
+internal fun AntintwrkNativeAppView(
+    modifier: Modifier = Modifier,
+    matrixUserId: String? = null,
+    onMatrixSignOut: (() -> Unit)? = null,
+    messengerContent: (@Composable (Modifier) -> Unit)? = null,
+) {
         val client = remember { AntintwrkNativeAuthClient() }
         val context = LocalAntintwrkActivity.current ?: LocalContext.current
         val credentials = remember { AntintwrkNativeCredentials(context) }
+        val accountPreferences = remember { context.getSharedPreferences("antintwrk-account", android.content.Context.MODE_PRIVATE) }
+        var closingApp by remember { mutableStateOf(matrixUserId != null && accountPreferences.getBoolean("logged-out", false)) }
+        var switchingMatrix by remember { mutableStateOf(false) }
+
         val pushStore = remember { AntintwrkSocialPushStore(context.applicationContext) }
         val pushRegistrar =
             remember {
@@ -51,6 +64,12 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             ?: options.first()
                 }
             }
+        val messengerBindings = remember { context.bindings<AntintwrkMessengerBindings>() }
+        val authentication = messengerBindings.matrixAuthenticationService()
+        var oauthUrl by remember { mutableStateOf<String?>(null) }
+        var messengerBusy by remember { mutableStateOf(false) }
+        var messengerFailed by remember { mutableStateOf(false) }
+        var messengerAttempt by remember { mutableLongStateOf(0L) }
         var pushOpen by remember { mutableStateOf(false) }
         var licencesOpen by remember { mutableStateOf(false) }
         val pushRequests by AntintwrkSocialPushRoutes.opens.collectAsState()
@@ -68,7 +87,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
         val sessionExpiredError = stringResource(R.string.screen_ant_auth_session_expired)
         val rateLimitError = stringResource(R.string.screen_ant_auth_rate_limited)
         var session by remember { mutableStateOf<AntintwrkAuthSession?>(null) }
-        var busy by remember { mutableStateOf(true) }
+        var busy by remember { mutableStateOf(!accountPreferences.getBoolean("logged-out", false)) }
         var failed by remember { mutableStateOf(false) }
         var sessionVerificationFailed by remember { mutableStateOf(false) }
         var googleRegistration by remember { mutableStateOf("") }
@@ -82,6 +101,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             serverMessage = ""
             try {
                 session = request()
+                if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) accountPreferences.edit().putBoolean("logged-out", false).apply()
                 webController.ownProfileIdentity = session?.profileIdentity
                 if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) {
                     pushStore.clear()
@@ -152,7 +172,8 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
             }
         }
         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-            if (session?.stage == AntintwrkAuthStage.AUTHENTICATED || !busy || (session == null && state.page == AntintwrkPage.Welcome)) {
+            if (!accountPreferences.getBoolean("logged-out", false) &&
+                (session?.stage == AntintwrkAuthStage.AUTHENTICATED || !busy || (session == null && state.page == AntintwrkPage.Welcome))) {
                 scope.launch { runRequest(revalidate = true) { client.session() } }
             }
         }
@@ -169,6 +190,68 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 webController.navigate(AntintwrkWebPolicy(io.element.android.appnav.BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "notifications"))
             }
         }
+        LaunchedEffect(closingApp, switchingMatrix, matrixUserId) {
+            if ((closingApp || switchingMatrix) && matrixUserId != null) onMatrixSignOut?.invoke()
+        }
+        LaunchedEffect(session?.matrixUserId, matrixUserId) {
+            if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && matrixUserId != null &&
+                session?.matrixUserId != null && session?.matrixUserId != matrixUserId) {
+                switchingMatrix = true
+            }
+        }
+        LaunchedEffect(shellState.mode, session?.matrixUserId, messengerAttempt) {
+            if (shellState.mode == AntintwrkMode.Messenger && matrixUserId == null &&
+                session?.stage == AntintwrkAuthStage.AUTHENTICATED && !messengerBusy && !messengerFailed) {
+                messengerBusy = true
+                try {
+                    authentication.setHomeserver("https://matrix.antimsg.com").getOrThrow()
+                    oauthUrl = authentication.getOAuthUrl(io.element.android.libraries.matrix.api.auth.OAuthPrompt.Login, null).getOrThrow().url
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    messengerFailed = true
+                    messengerBusy = false
+                }
+            }
+        }
+        oauthUrl?.let { url ->
+            val expected = session?.matrixUserId
+            if (expected != null && session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
+                AntintwrkMessengerOAuth(
+                    url,
+                    expected,
+                    session!!.csrf,
+                    client,
+                    messengerBindings.oauthRedirectUrlProvider().provide(),
+                    onComplete = { callback ->
+                        oauthUrl = null
+                        scope.launch {
+                            try {
+                                authentication.loginWithOAuthForAccount(callback, io.element.android.libraries.matrix.api.core.UserId(expected)).getOrThrow()
+                            } catch (cancelled: CancellationException) {
+                                throw cancelled
+                            } catch (_: Exception) {
+                                messengerFailed = true
+                            } finally {
+                                messengerBusy = false
+                            }
+                        }
+                    },
+                    onCancel = {
+                        oauthUrl = null
+                        messengerBusy = false
+                        messengerFailed = true
+                        scope.launch { authentication.cancelOAuthLogin() }
+                    },
+                    onError = {
+                        oauthUrl = null
+                        messengerBusy = false
+                        messengerFailed = true
+                        scope.launch { authentication.cancelOAuthLogin() }
+                    }
+                )
+            }
+        }
         AntintwrkPushSettings(
             client,
             session?.takeIf { it.stage == AntintwrkAuthStage.AUTHENTICATED }?.csrf,
@@ -182,6 +265,8 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 scope.launch { runRequest(revalidate = true) { client.session() } }
             }
         )
+        @Composable
+        fun SocialAdmission(modifier: Modifier) {
         if (busy && (session == null || session?.stage == AntintwrkAuthStage.AUTHENTICATED)) {
             AntintwrkLoadingView(modifier)
         } else if (sessionVerificationFailed) {
@@ -192,16 +277,43 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 }
             }
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
-            AntintwrkShellView(shellState, modifier, webFeed = true, retainedWebController = webController, onAuthRequired = {
+            AntintwrkShellView(
+                shellState,
+                modifier,
+                webFeed = true,
+                retainedWebController = webController,
+                messengerContent = { contentModifier ->
+                    if (messengerContent != null && matrixUserId == session?.matrixUserId) {
+                        messengerContent(contentModifier)
+                    } else {
+                        Column(contentModifier) {
+                            if (messengerBusy) {
+                                AntintwrkLoadingView()
+                            } else {
+                                TextButton(stringResource(R.string.screen_ant_web_retry), {
+                                messengerFailed = false
+                                messengerAttempt++
+                            })
+                            }
+                        }
+                    }
+                },
+                onAuthRequired = {
                 val returnUrl = webController.currentUrl
                 webController.destroy()
                 webController.currentUrl = returnUrl
                 session = null
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
                 scope.launch { runRequest(revalidate = true) { client.session() } }
-            }, onPushSettings = { pushOpen = true }, onOpenLicences = { licencesOpen = true }, onSignOut = {
+            },
+                onPushSettings = { pushOpen = true },
+                onOpenLicences = { licencesOpen = true },
+                onSignOut = {
                 val current = session!!
                 val pushFid = pushStore.fid
+                val cookieSnapshot = client.clearLocalSession()
+                accountPreferences.edit().putBoolean("logged-out", true).commit()
+                closingApp = matrixUserId != null
                 AntintwrkSocialPushRoutes.consume()
                 pushStore.clear()
                 pushOpen = false
@@ -212,15 +324,22 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 scope.launch {
                     runRequest {
                     try {
-                        if (pushFid.isNotEmpty()) runCatching { withTimeout(5_000) { client.push("push-unsubscribe", current.csrf, mapOf("fid" to pushFid)) } }
-                        client.logout(current.csrf)
+                        if (pushFid.isNotEmpty()) {
+                            runCatching {
+                            withTimeout(
+                                5_000
+                            ) { client.push("push-unsubscribe", current.csrf, mapOf("fid" to pushFid), cookieSnapshot) }
+                        }
+                        }
+                        client.logout(current.csrf, cookieSnapshot)
                     } finally {
                         runCatching { credentials.clear() }
                     }
                     client.session()
                 }
                 }
-            })
+            }
+            )
         } else if (session?.stage in setOf(AntintwrkAuthStage.DEVICE, AntintwrkAuthStage.TOTP, AntintwrkAuthStage.SETUP_REQUIRED)) {
             AntintwrkAuthChallengeView(
                 session!!.stage,
@@ -303,6 +422,17 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext) : Node(buildContext = 
                 }
             }), modifier, onOpenLicences = { licencesOpen = true })
         }
+        }
+        val requiresSocialAdmission = busy || session?.stage != AntintwrkAuthStage.AUTHENTICATED || sessionVerificationFailed
+        LaunchedEffect(matrixUserId) {
+            if (matrixUserId != null) shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
+        }
+        if (closingApp || switchingMatrix) {
+            AntintwrkLoadingView(modifier)
+        } else if (matrixUserId != null && messengerContent != null && requiresSocialAdmission) {
+            AntintwrkShellView(shellState, modifier, socialContent = { SocialAdmission(it) }, messengerContent = messengerContent)
+        } else {
+            SocialAdmission(modifier)
+        }
         if (licencesOpen) AntintwrkLicencesDialog { licencesOpen = false }
     }
-}

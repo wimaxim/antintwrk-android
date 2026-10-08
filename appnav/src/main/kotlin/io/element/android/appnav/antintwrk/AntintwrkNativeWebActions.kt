@@ -14,11 +14,25 @@ internal data class AntintwrkWebDocument(val content: String, val complete: (Boo
 
 /** Called only after exact-origin/main-frame validation; never reads session or clipboard data. */
 internal object AntintwrkNativeWebActions {
+    private fun publicSocialLink(url: String): String {
+        val uri = Uri.parse(url)
+        if (uri.scheme != "https" || uri.host != "antimsg.com" || uri.userInfo != null) return url
+        require(AntintwrkWebPolicy("https://antimsg.com").embedded(url) != null)
+        return uri.buildUpon().authority("antintwrk.com").clearQuery().apply {
+            uri.queryParameterNames.filter {
+                it !in
+                setOf("app", "native_legal", "token", "csrf", "ticket", "code", "access_token", "id_token", "refresh_token", "state", "session")
+            }.forEach { name ->
+                uri.getQueryParameters(name).forEach { appendQueryParameter(name, it) }
+            }
+        }.build().toString()
+    }
     fun handle(context: Context, controller: AntintwrkWebFeedController, json: JSONObject, complete: (Boolean) -> Unit) {
         runCatching {
             when (json.optString("type")) {
                 "copy" -> {
-                    val text = json.getString("text")
+                    val original = json.getString("text")
+                    val text = if (original.startsWith("https://antimsg.com/")) publicSocialLink(original) else original
                     require(text.length <= 1800)
                     context.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("antintwrk", text))
                     complete(true)
@@ -26,8 +40,11 @@ internal object AntintwrkNativeWebActions {
                 "share" -> {
                     val uri = Uri.parse(json.getString("url"))
                     require(uri.scheme in setOf("https", "http") && uri.userInfo == null)
-                    val url = uri.buildUpon().clearQuery().apply {
-                        uri.queryParameterNames.filter { it != "app" }.forEach { name ->
+                    val url = Uri.parse(publicSocialLink(uri.toString())).buildUpon().clearQuery().apply {
+                        uri.queryParameterNames.filter {
+                            it !in
+                            setOf("app", "native_legal", "token", "csrf", "ticket", "code", "access_token", "id_token", "refresh_token", "state", "session")
+                        }.forEach { name ->
                             uri.getQueryParameters(name).forEach { appendQueryParameter(name, it) }
                         }
                     }.build().toString()

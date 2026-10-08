@@ -59,6 +59,8 @@ fun AntintwrkShellView(
     onPushSettings: (() -> Unit)? = null,
     onOpenLicences: (() -> Unit)? = null,
     retainedWebController: AntintwrkWebFeedController? = null,
+    messengerContent: (@Composable (Modifier) -> Unit)? = null,
+    socialContent: (@Composable (Modifier) -> Unit)? = null,
 ) = AntintwrkBrandTheme {
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
@@ -73,7 +75,7 @@ fun AntintwrkShellView(
         webController?.selectSection(section, policy.root(language, section, webController?.ownProfileIdentity))
     }
     BackHandler(
-        (webController == null || !webController.canGoBack) &&
+        (state.mode != AntintwrkMode.Social || webController == null || !webController.canGoBack) &&
             (state.overlay != AntintwrkOverlay.None || state.mode != AntintwrkMode.Social || state.section != AntintwrkSection.Feed)
     ) {
         if (webController != null && state.mode == AntintwrkMode.Social) {
@@ -111,11 +113,11 @@ fun AntintwrkShellView(
             }
             } else {
                 null
-            }, notifications = webController?.notifications ?: 0)
+            }, notifications = webController?.notifications ?: 0, socialReady = socialContent == null || webFeed)
             }
         },
         bottomBar = {
-            if (state.mode == AntintwrkMode.Social && webController?.fullscreen == null) {
+            if (state.mode == AntintwrkMode.Social && (socialContent == null || webFeed) && webController?.fullscreen == null) {
                 NavigationBar(containerColor = AntintwrkBackground) {
                     AntintwrkSection.entries.forEach { section ->
                         NavigationBarItem(
@@ -153,7 +155,7 @@ fun AntintwrkShellView(
         },
     ) { padding ->
         Column(Modifier.padding(padding)) {
-            if (!webFeed) {
+            if (!webFeed && socialContent == null && messengerContent == null) {
                 Text(
                 stringResource(R.string.screen_ant_shell_preview),
                 Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -162,7 +164,10 @@ fun AntintwrkShellView(
             )
             }
             if (state.mode == AntintwrkMode.Messenger) {
-                ShellEmpty(R.string.screen_ant_shell_messenger, R.string.screen_ant_shell_messenger_pending)
+                messengerContent?.invoke(Modifier.fillMaxSize())
+                    ?: ShellEmpty(R.string.screen_ant_shell_messenger, R.string.screen_ant_shell_messenger_pending)
+            } else if (socialContent != null) {
+                socialContent(Modifier.fillMaxSize())
             } else {
                 if (webController != null) {
                     Column(Modifier.fillMaxSize()) {
@@ -189,14 +194,21 @@ fun AntintwrkShellView(
 }
 
 @Composable
-private fun ShellHeader(state: AntintwrkShellState, onSearch: () -> Unit, onNotifications: () -> Unit, onRoute: ((String) -> Unit)?, notifications: Int) {
+private fun ShellHeader(
+    state: AntintwrkShellState,
+    onSearch: () -> Unit,
+    onNotifications: () -> Unit,
+    onRoute: ((String) -> Unit)?,
+    notifications: Int,
+    socialReady: Boolean,
+) {
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             ShellModeTabs(state, Modifier.weight(1f))
-            if (!expanded && state.mode == AntintwrkMode.Social) ShellSocialActions(onSearch, onNotifications, onRoute, notifications)
+            if (!expanded && state.mode == AntintwrkMode.Social && socialReady) ShellSocialActions(onSearch, onNotifications, onRoute, notifications)
         }
-        if (expanded && state.mode == AntintwrkMode.Social) {
+        if (expanded && state.mode == AntintwrkMode.Social && socialReady) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) { ShellSocialActions(onSearch, onNotifications, onRoute, notifications) }
         }
     }

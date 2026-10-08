@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +52,9 @@ import io.element.android.appnav.BuildConfig
 import io.element.android.appnav.R
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import java.io.ByteArrayInputStream
 
 class AntintwrkWebFeedController {
     private val pages = mutableMapOf<AntintwrkSection, WebView>()
@@ -208,6 +212,22 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
     val policy = remember { AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN) }
     val language = LocalConfiguration.current.locales[0].language
     val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
+    fun openExternal(input: String) {
+        scope.launch {
+            try {
+                val url = policy.canonical(input)
+                val target = if (policy.sameOrigin(url) && policy.outbound(url)) antintwrkExternalRedirect(url, policy) else url
+                require(policy.external(target))
+                uriHandler.openUri(target)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                controller.failed = true
+                controller.loading = false
+            }
+        }
+    }
     val startUrl = controller.currentUrl?.let(policy::embedded) ?: policy.root(language, controller.section, controller.ownProfileIdentity)
     val authRequired by rememberUpdatedState(onAuthRequired)
     BackHandler(backEnabled && controller.canGoBack) { controller.back() }
@@ -242,12 +262,12 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             popup.settings.allowContentAccess = false
                             popup.webViewClient = object : WebViewClient() {
                                 override fun shouldOverrideUrlLoading(child: WebView, request: WebResourceRequest): Boolean {
-                                    val url = request.url.toString()
+                                    val url = policy.canonical(request.url.toString())
                                     val target = policy.embedded(url)
                                     if (target != null) {
                                         controller.navigate(target)
-                                    } else if (policy.external(url)) {
-                                        runCatching { uriHandler.openUri(url) }
+                                    } else if (policy.external(url) || policy.outbound(url)) {
+                                        openExternal(url)
                                     }
                                     controller.popups.remove(popup)
                                     popup.destroy()
@@ -315,7 +335,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                     webViewClient = object : WebViewClient() {
                         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                             if (!request.isForMainFrame) return false
-                            val url = request.url.toString()
+                            val url = policy.canonical(request.url.toString())
                             if (BuildConfig.ANTINTWRK_NATIVE_AUTH && policy.needsAuth(url)) {
                                 authRequired()
                                 return true
@@ -327,14 +347,27 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                                         return false
                                     }
                                 controller.navigate(target)
-                            } else if (policy.external(url) &&
+                            } else if ((policy.external(url) || policy.outbound(url)) &&
                                 (request.hasGesture() || policy.outbound(url) || (request.isRedirect && policy.embedded(view.url.orEmpty()) != null))) {
-                                runCatching { uriHandler.openUri(url) }
+                                openExternal(url)
                             } else {
                                 controller.failed = true
                                 controller.loading = false
                             }
                             return true
+                        }
+                        override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                            if (request.url.host in setOf("antintwrk.com", "www.antintwrk.com")) {
+                                return WebResourceResponse(
+                                    "text/plain",
+                                    "UTF-8",
+                                    403,
+                                    "Legacy social domain blocked",
+                                    emptyMap(),
+                                    ByteArrayInputStream(ByteArray(0))
+                                )
+                            }
+                            return null
                         }
                         override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
                             if (controller.view === view) controller.visited(url, policy)
@@ -370,7 +403,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         }
                     }
                     setDownloadListener { url, _, _, _, _ ->
-                        if (policy.external(url)) runCatching { uriHandler.openUri(url) }
+                        if (policy.external(url) || policy.outbound(url)) openExternal(url)
                     }
                     loadUrl(startUrl)
                 }).also { view ->
@@ -378,8 +411,13 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                     view.onResume()
                 }
             },
-            update = { it.visibility = if (controller.failed) View.INVISIBLE else View.VISIBLE },
-            onRelease = { it.onPause() },
+            update = {
+                it.visibility = if (controller.failed) View.INVISIBLE else View.VISIBLE
+                it.onResume()
+            },
+            onRelease = { view ->
+                view.post { if (!view.isAttachedToWindow) view.onPause() }
+            },
         )
         }
         }
