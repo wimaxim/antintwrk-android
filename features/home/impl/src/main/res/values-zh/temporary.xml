@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_backup_check_title">聊天记录备份</string>
+    <string name="screen_ant_backup_check_message">备份尚未确认。应用通过社交网络账号管理恢复。请检查备份状态，无需输入恢复密钥。</string>
+    <string name="screen_ant_backup_check_action">检查备份</string>
+</resources>

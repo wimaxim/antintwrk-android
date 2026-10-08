@@ -67,6 +67,10 @@ internal class AntintwrkAccountRecovery(
                     it == BackupUploadState.Done || it == BackupUploadState.Error || it is BackupUploadState.SteadyException
                 }
                 require(upload == BackupUploadState.Done)
+                step = "state_confirm"
+                withTimeout(10_000) {
+                    encryption.recoveryStateStateFlow.first { it == RecoveryState.ENABLED }
+                }
                 Timber.i("Account recovery ready")
                 true
             }

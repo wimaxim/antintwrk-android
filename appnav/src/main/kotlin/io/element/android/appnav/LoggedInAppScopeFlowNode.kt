@@ -153,6 +153,7 @@ class LoggedInAppScopeFlowNode(
                 matrixUserId = inputs.matrixClient.sessionId.value,
                 onRequestSignOut = ::requestManagedSignOut,
                 onPrepareRecovery = { accountRecovery.prepare() && attachSession().completeAppRecovery() },
+                recoveryStates = inputs.matrixClient.encryptionService.recoveryStateStateFlow,
                 onRecoveredSignOut = { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = false) },
                 onSwitchMatrixAccount = { callback.navigateToSocialAccount(it) },
                 onOpenMessage = { recipient ->

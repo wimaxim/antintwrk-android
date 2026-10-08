@@ -175,3 +175,11 @@ Source message routes and validated legacy-room links open the main SDK DM. Own 
 Social WebView honors the page viewport (useWideViewPort/loadWithOverviewMode), starts with textZoom=100 to match the site's CSS/PWA baseline, and supports pinch zoom without legacy floating zoom buttons. Native text still follows Android accessibility font settings. No CSS font-size reduction or global screen-density override is applied. This deliberately normalizes only embedded web text; larger system-font users can zoom web content manually. iOS must use the page viewport and avoid an extra automatic text/page zoom layer when implementing the same contract.
 
 Own debug build and WebFeed tests/ktlint pass; Android emulator feed renders within the content width. Exact visual parity on the owner's phone remains to be confirmed using the updated APK.
+
+## Automatic recovery monitoring — 8 October 2026
+
+The startup recovery task previously stopped after prepare returned false as well as after success. Android now retries failed/false outcomes with 30s/60s/120s/240s/300s capped backoff, rechecks healthy sessions every five minutes and reacts to SDK Incomplete/Disabled changes after setup. Actor-bound admission and immutable escrow remain required; unknown pre-existing keys are never reset. SDK cancellation propagates. Simplified logout additionally waits for RecoveryState.ENABLED after backup upload completion.
+
+Own home banners no longer request a manual recovery key: they explain that backup is not yet confirmed and offer an app-managed status check. Stock Element text is preserved in flags-off builds. Nine social languages are included. The notice is not a claim that backup succeeded. This does not determine the exact cause on the owner's phone from a screenshot; real phone retry/status still needs confirmation.
+
+Validation: nine account-recovery cases, three monitoring cases and 15 RoomListPresenter cases pass; own build/ktlint pass. iOS must implement equivalent monitoring rather than a one-time startup check.

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_backup_check_title">نسخة احتياطية للمحادثات</string>
+    <string name="screen_ant_backup_check_message">لم يتم تأكيد النسخة الاحتياطية بعد. يدير التطبيق الاستعادة عبر حسابك في الشبكة الاجتماعية. تحقق من الحالة دون إدخال مفتاح استعادة.</string>
+    <string name="screen_ant_backup_check_action">تحقق من النسخة</string>
+</resources>

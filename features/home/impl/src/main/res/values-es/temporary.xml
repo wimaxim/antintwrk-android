@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_backup_check_title">Copia de seguridad de los chats</string>
+    <string name="screen_ant_backup_check_message">La copia aún no está confirmada. La aplicación gestiona la recuperación mediante tu cuenta de la red social. Comprueba el estado sin introducir una clave de recuperación.</string>
+    <string name="screen_ant_backup_check_action">Comprobar copia</string>
+</resources>

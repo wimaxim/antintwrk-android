@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_backup_check_title">Sauvegarde des conversations</string>
+    <string name="screen_ant_backup_check_message">La sauvegarde reste à confirmer. La récupération est gérée via votre compte du réseau social. Vérifiez son état sans saisir de clé de récupération.</string>
+    <string name="screen_ant_backup_check_action">Vérifier</string>
+</resources>

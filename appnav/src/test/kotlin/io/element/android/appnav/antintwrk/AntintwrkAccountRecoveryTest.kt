@@ -47,11 +47,13 @@ class AntintwrkAccountRecoveryTest {
     fun `escrow is durable before creation and crash retry uses same secret`() = runTest {
         var secret: String? = null
         var created = 0
-        val encryption = FakeEncryptionService(enableRecoveryLambda = { wait, passphrase ->
+        lateinit var encryption: FakeEncryptionService
+        encryption = FakeEncryptionService(enableRecoveryLambda = { wait, passphrase ->
             assertThat(wait).isTrue()
             assertThat(passphrase).isEqualTo(secret)
             assertThat(secret).isNotNull()
             created++
+            encryption.recoveryStateStateFlow.value = RecoveryState.ENABLED
             Result.success("unused-sdk-return")
         }).apply {
             recoveryStateStateFlow.value = RecoveryState.DISABLED
@@ -82,7 +84,9 @@ class AntintwrkAccountRecoveryTest {
     @Test
     fun `SDK automatic backup is reused only when this device owns it`() = runTest {
         var enabled = false
-        val encryption = FakeEncryptionService(enableRecoveryLambda = { _, _ ->
+        lateinit var encryption: FakeEncryptionService
+        encryption = FakeEncryptionService(enableRecoveryLambda = { _, _ ->
+            encryption.recoveryStateStateFlow.value = RecoveryState.ENABLED
             enabled = true
             Result.success("unused")
         }).apply {
@@ -129,6 +133,16 @@ class AntintwrkAccountRecoveryTest {
             recoveryStateStateFlow.value = RecoveryState.ENABLED
             backupStateStateFlow.value = BackupState.UNKNOWN
             givenEnableBackupsFailure(RecoveryException.BackupExistsOnServer)
+            givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Done))
+        }
+        val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ -> "synthetic-secret" })
+        assertThat(runCatching { recovery.prepare() }.isFailure).isTrue()
+    }
+    @Test
+    fun `SDK success without enabled recovery cannot permit simplified logout`() = runTest {
+        val encryption = FakeEncryptionService().apply {
+            recoveryStateStateFlow.value = RecoveryState.INCOMPLETE
+            backupStateStateFlow.value = BackupState.ENABLED
             givenWaitForBackupUploadSteadyStateFlow(flowOf(BackupUploadState.Done))
         }
         val recovery = AntintwrkAccountRecovery(encryption, actor, admission = { admitted }, secretStore = { _, _ -> "synthetic-secret" })

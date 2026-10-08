@@ -15,4 +15,7 @@
     <string name="search_no_results_title">No results</string>
     <string name="search_no_results_subtitle">There are no results for “%1$s”. Try a new search term.</string>
     <string name="screen_search_recent_searches_section_title">Recent searches</string>
+    <string name="screen_ant_backup_check_title">Chat history backup</string>
+    <string name="screen_ant_backup_check_message">The backup is not confirmed yet. The app manages recovery through your social account. Check the backup status without entering a recovery key.</string>
+    <string name="screen_ant_backup_check_action">Check backup</string>
 </resources>

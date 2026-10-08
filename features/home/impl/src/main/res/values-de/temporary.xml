@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_backup_check_title">Sicherung des Chatverlaufs</string>
+    <string name="screen_ant_backup_check_message">Die Sicherung ist noch nicht bestätigt. Die App verwaltet die Wiederherstellung über dein Konto im sozialen Netzwerk. Prüfe den Status ohne Eingabe eines Wiederherstellungsschlüssels.</string>
+    <string name="screen_ant_backup_check_action">Sicherung prüfen</string>
+</resources>

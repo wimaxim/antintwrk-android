@@ -16,6 +16,7 @@ import io.element.android.libraries.designsystem.components.Announcement
 import io.element.android.libraries.designsystem.components.AnnouncementType
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
+import io.element.android.libraries.matrix.api.BuildConfig as MatrixBuildConfig
 
 @Composable
 internal fun SetUpRecoveryKeyBanner(
@@ -25,10 +26,14 @@ internal fun SetUpRecoveryKeyBanner(
 ) {
     Announcement(
         modifier = modifier.roomListBannerPadding(),
-        title = stringResource(R.string.banner_set_up_recovery_title),
-        description = stringResource(R.string.banner_set_up_recovery_content),
+        title = stringResource(if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) R.string.screen_ant_backup_check_title else R.string.banner_set_up_recovery_title),
+        description = stringResource(
+            if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) R.string.screen_ant_backup_check_message else R.string.banner_set_up_recovery_content
+        ),
         type = AnnouncementType.Actionable(
-            actionText = stringResource(R.string.banner_set_up_recovery_submit),
+            actionText = stringResource(
+                if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) R.string.screen_ant_backup_check_action else R.string.banner_set_up_recovery_submit
+            ),
             onActionClick = onContinueClick,
             onDismissClick = onDismissClick,
         ),

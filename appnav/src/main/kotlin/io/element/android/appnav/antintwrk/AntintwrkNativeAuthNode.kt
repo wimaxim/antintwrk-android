@@ -57,6 +57,7 @@ internal fun AntintwrkNativeAppView(
     matrixUserId: String? = null,
     onRequestSignOut: (() -> Unit)? = null,
     onPrepareRecovery: (suspend () -> Boolean)? = null,
+    recoveryStates: kotlinx.coroutines.flow.StateFlow<io.element.android.libraries.matrix.api.encryption.RecoveryState>? = null,
     onRecoveredSignOut: (suspend () -> Unit)? = null,
     onSwitchMatrixAccount: ((String) -> Unit)? = null,
     onOpenMessage: (suspend (String) -> Unit)? = null,
@@ -301,19 +302,7 @@ internal fun AntintwrkNativeAppView(
         }
         LaunchedEffect(session?.matrixUserId, matrixUserId) {
             if (matrixUserId != null && session?.matrixUserId == matrixUserId && onPrepareRecovery != null) {
-                while (true) {
-                    try {
-                        onPrepareRecovery()
-                        break
-                    } catch (_: TimeoutCancellationException) {
-                        // A later periodic attempt can recover after sync/network becomes available.
-                    } catch (cancelled: CancellationException) {
-                        throw cancelled
-                    } catch (_: Exception) {
-                        // Independent recovery failure never hides or logs out the working social/Matrix session.
-                    }
-                    delay(300_000)
-                }
+                AntintwrkRecoveryMonitor(recoveryStates, onPrepareRecovery).run()
             }
         }
         LaunchedEffect(session?.matrixUserId, matrixUserId, shellState.mode) {

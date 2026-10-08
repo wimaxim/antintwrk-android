@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_backup_check_title">Резервная копия переписки</string>
+    <string name="screen_ant_backup_check_message">Резервная копия пока не подтверждена. Приложение управляет восстановлением через аккаунт соцсети. Проверьте статус без ввода ключа восстановления.</string>
+    <string name="screen_ant_backup_check_action">Проверить</string>
+</resources>
