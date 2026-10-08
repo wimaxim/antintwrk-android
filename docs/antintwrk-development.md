@@ -164,3 +164,8 @@ Two distinct Android device sessions of the designated test account joined the p
 Own preferences route profile/account actions into native Social/Profile. Encryption settings show custodial status/retry without reset/disable. Both exit actions require escrow/readback, backup upload and SDK Verified before Matrix revocation. Failed remote logout preserves scope/store/delegate and permits retry/cancel. Own invalid Firebase payload history is redacted; stock flags-off paths remain upstream.
 
 Own gplay build/changed-module ktlint, 46 Firebase tests and 8 Matrix client tests pass. Stock fdroid/preferences/Matrix checks pass. Actual social name edit appeared in Matrix without relogin; original QA name restored and observed in Matrix. Final managed settings exit reached welcome without manual keys. Shared docs/android-integration-report-2026-10-08.md lists remaining phone/provider/release acceptance; iOS not implemented. No push.
+
+
+## Social navigation and DM lifecycle - 8 October 2026
+
+Source message routes and validated legacy-room links open the main SDK DM. Own lookup ignores departed membership. Actor-scoped resolver serializes creation, reuses encrypted joined/invited conversations, replaces a departed recipient, and fails safely on ban/membership lookup outage/unencrypted or group rooms. Participant cards expose social profiles by immutable ID; own share links use public social IDs. Message and thread social content links stay in the native shell via an optional composition-local host handler; stock defaults retain external link behavior. Physical UI and test evidence, old-web store separation and remaining distributed creation/phone/provider acceptance are in shared docs/social-messenger-navigation.md. No push.

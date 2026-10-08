@@ -61,6 +61,26 @@ class AntintwrkWebFeedController {
     private val urls = mutableMapOf<AntintwrkSection, String>()
     private val crossSectionHistory = ArrayDeque<AntintwrkSection>()
     var ownProfileIdentity: String? = null
+    internal var onReturnToMessenger: (() -> Unit)? = null
+    internal var messengerProfileDepth by mutableStateOf<Int?>(null)
+    internal var messengerProfilePendingFinish by mutableStateOf(false)
+    internal fun openMessengerProfile(url: String) {
+        crossSectionHistory.clear()
+        select(AntintwrkSection.Profile, url)
+        val page = view
+        messengerProfileDepth = if (page?.url == url) page.copyBackForwardList().currentIndex else (page?.copyBackForwardList()?.currentIndex ?: -1) + 1
+        messengerProfilePendingFinish = true
+        navigate(url)
+    }
+    internal fun finishMessengerProfileNavigation(page: WebView) {
+        if (messengerProfilePendingFinish && section == AntintwrkSection.Profile && view === page) {
+            messengerProfileDepth = page.copyBackForwardList().currentIndex
+            messengerProfilePendingFinish = false
+        }
+    }
+    internal fun atMessengerProfileRoot(): Boolean = messengerProfileDepth?.let {
+        section == AntintwrkSection.Profile && (messengerProfilePendingFinish || (view?.copyBackForwardList()?.currentIndex ?: 0) <= it)
+    } == true
     internal val popups = mutableSetOf<WebView>()
     var section by mutableStateOf(AntintwrkSection.Feed)
     var view: WebView?
@@ -100,6 +120,8 @@ class AntintwrkWebFeedController {
             }
     }
     fun selectSection(destination: AntintwrkSection, root: String) {
+        messengerProfileDepth = null
+        messengerProfilePendingFinish = false
         crossSectionHistory.clear()
         if (destination == section) {
             val previousUrl = currentUrl
@@ -153,7 +175,11 @@ class AntintwrkWebFeedController {
         onSection(section)
     }
     fun back() {
-        if (view?.canGoBack() == true) {
+        if (atMessengerProfileRoot() && onReturnToMessenger != null) {
+            messengerProfileDepth = null
+            messengerProfilePendingFinish = false
+            onReturnToMessenger?.invoke()
+        } else if (view?.canGoBack() == true) {
             view?.goBack()
         } else if (crossSectionHistory.isNotEmpty()) {
             val previous = crossSectionHistory.removeLast()
@@ -184,6 +210,8 @@ class AntintwrkWebFeedController {
         renderer.destroy()
     }
     fun destroy() {
+        messengerProfileDepth = null
+        messengerProfilePendingFinish = false
         closeFullscreen()
         prompt?.result?.cancel()
         prompt = null
@@ -238,7 +266,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
     }
     val startUrl = controller.currentUrl?.let(policy::embedded) ?: policy.root(language, controller.section, controller.ownProfileIdentity)
     val authRequired by rememberUpdatedState(onAuthRequired)
-    BackHandler(backEnabled && controller.canGoBack) { controller.back() }
+    BackHandler(backEnabled && (controller.canGoBack || controller.atMessengerProfileRoot())) { controller.back() }
     Box(Modifier.fillMaxSize()) {
         key(controller.section) {
         if (controller.view != null || !controller.failed) {
@@ -395,6 +423,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             if (controller.view === view) {
                                 controller.loading = false
                                 url?.let { controller.visited(it, policy) }
+                                controller.finishMessengerProfileNavigation(view)
                             }
                         }
                         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {

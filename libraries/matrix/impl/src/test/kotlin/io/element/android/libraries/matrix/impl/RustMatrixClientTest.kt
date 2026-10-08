@@ -15,6 +15,7 @@ import io.element.android.libraries.core.data.bytes
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
 import io.element.android.libraries.matrix.api.paths.SessionPaths
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiClient
+import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiRoom
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiSyncService
 import io.element.android.libraries.matrix.impl.room.FakeTimelineEventFilterFactory
 import io.element.android.libraries.matrix.test.AN_AVATAR_URL
@@ -40,6 +41,7 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.CreateRoomParameters
+import org.matrix.rustcomponents.sdk.Membership
 import org.matrix.rustcomponents.sdk.RoomHistoryVisibility
 import org.matrix.rustcomponents.sdk.StoreSizes
 import org.matrix.rustcomponents.sdk.UserProfile
@@ -186,6 +188,22 @@ class RustMatrixClientTest {
         assertThat(client.isShuttingDown).isTrue()
         assertThat(closed).isTrue()
         assertThat(sessionStore.getSession(A_USER_ID.value)).isNull()
+    }
+
+    @Test
+    fun `managed direct lookup never reopens a left or banned room`() = runTest {
+        for (membership in listOf(Membership.LEFT, Membership.BANNED, Membership.INVITED, Membership.JOINED)) {
+            val client = createRustMatrixClient(
+                client = FakeFfiClient(getDmRoomResult = { FakeFfiRoom(currentMembership = membership) }),
+            )
+            val actual = client.findDM(A_USER_ID).getOrThrow()
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && membership != Membership.JOINED) {
+                assertThat(actual).isNull()
+            } else {
+                assertThat(actual).isEqualTo(A_ROOM_ID)
+            }
+            client.destroy()
+        }
     }
 
     private fun TestScope.createRustMatrixClient(

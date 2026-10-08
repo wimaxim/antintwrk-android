@@ -13,6 +13,7 @@ import io.element.android.libraries.matrix.impl.fixtures.factories.aRustRoomInfo
 import io.element.android.libraries.matrix.test.A_ROOM_ID
 import io.element.android.tests.testutils.lambda.lambdaError
 import org.matrix.rustcomponents.sdk.LatestEventValue
+import org.matrix.rustcomponents.sdk.Membership
 import org.matrix.rustcomponents.sdk.NoHandle
 import org.matrix.rustcomponents.sdk.Room
 import org.matrix.rustcomponents.sdk.RoomInfo
@@ -21,6 +22,7 @@ import uniffi.matrix_sdk.RoomMemberRole
 
 class FakeFfiRoom(
     private val roomId: RoomId = A_ROOM_ID,
+    private val currentMembership: Membership = Membership.JOINED,
     private val getMembers: () -> RoomMembersIterator = { lambdaError() },
     private val getMembersNoSync: () -> RoomMembersIterator = { lambdaError() },
     private val leaveLambda: () -> Unit = { lambdaError() },
@@ -28,6 +30,8 @@ class FakeFfiRoom(
     private val suggestedRoleForUserLambda: (String) -> RoomMemberRole = { lambdaError() },
     private val roomInfo: RoomInfo = aRustRoomInfo(id = roomId.value),
 ) : Room(NoHandle) {
+    override fun membership(): Membership = currentMembership
+
     override fun id(): String {
         return roomId.value
     }

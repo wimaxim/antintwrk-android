@@ -34,6 +34,7 @@ import org.matrix.rustcomponents.sdk.OAuthConfiguration
 import org.matrix.rustcomponents.sdk.ProfileListener
 import org.matrix.rustcomponents.sdk.PusherIdentifiers
 import org.matrix.rustcomponents.sdk.PusherKind
+import org.matrix.rustcomponents.sdk.Room
 import org.matrix.rustcomponents.sdk.RoomDirectorySearch
 import org.matrix.rustcomponents.sdk.Session
 import org.matrix.rustcomponents.sdk.SessionVerificationController
@@ -64,6 +65,7 @@ class FakeFfiClient(
     private val logoutResult: () -> Unit = { lambdaError() },
     private val newLoginWithQrCodeHandlerResult: () -> LoginWithQrCodeHandler = { lambdaError() },
     private val getStoreSizesResult: () -> StoreSizes = { lambdaError() },
+    private val getDmRoomResult: (String) -> Room? = { null },
     private val createRoomResult: (CreateRoomParameters) -> String = { lambdaError() },
     private val homeserverCapabilities: HomeserverCapabilities = FakeFfiHomeserverCapabilities(),
     private val accountDataResult: (String) -> String? = { lambdaError() },
@@ -145,6 +147,8 @@ class FakeFfiClient(
     override suspend fun getStoreSizes(): StoreSizes {
         return getStoreSizesResult()
     }
+
+    override fun getDmRoom(userId: String): Room? = getDmRoomResult(userId)
 
     override suspend fun createRoom(request: CreateRoomParameters): String {
         return createRoomResult(request)

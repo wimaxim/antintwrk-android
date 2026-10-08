@@ -34,6 +34,7 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
 import io.element.android.appnav.antintwrk.AntintwrkAccountRecovery
+import io.element.android.appnav.antintwrk.AntintwrkDirectRoomResolver
 import io.element.android.appnav.antintwrk.AntintwrkLoadingView
 import io.element.android.appnav.antintwrk.AntintwrkNativeAppView
 import io.element.android.appnav.di.SessionGraphFactory
@@ -89,6 +90,7 @@ class LoggedInAppScopeFlowNode(
 
     private val inputs: Inputs = inputs()
     private val accountRecovery by lazy { AntintwrkAccountRecovery(inputs.matrixClient.encryptionService, inputs.matrixClient.sessionId.value) }
+    private val directRoomResolver by lazy { AntintwrkDirectRoomResolver(inputs.matrixClient) }
     private var managedSignOutBusy by mutableStateOf(false)
     private var managedSignOutFailed by mutableStateOf(false)
 
@@ -155,8 +157,7 @@ class LoggedInAppScopeFlowNode(
                 onSwitchMatrixAccount = { callback.navigateToSocialAccount(it) },
                 onOpenMessage = { recipient ->
                     val user = UserId(recipient)
-                    val room = inputs.matrixClient.findDM(user).getOrThrow()
-                        ?: inputs.matrixClient.createDM(user, isEncrypted = true).getOrThrow()
+                    val room = directRoomResolver.resolve(user)
                     attachSession().attachRoom(room.toRoomIdOrAlias())
                 },
                 messengerContent = { contentModifier -> Children(navModel = navModel, modifier = contentModifier) }

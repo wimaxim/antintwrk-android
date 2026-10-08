@@ -52,6 +52,7 @@ import io.element.android.libraries.architecture.NodeInputs
 import io.element.android.libraries.architecture.callback
 import io.element.android.libraries.architecture.inputs
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
+import io.element.android.libraries.designsystem.utils.LocalEmbeddedLinkHandler
 import io.element.android.libraries.designsystem.utils.OnLifecycleEvent
 import io.element.android.libraries.di.RoomScope
 import io.element.android.libraries.di.annotations.ApplicationContext
@@ -270,6 +271,7 @@ class MessagesNode(
 
     @Composable
     override fun View(modifier: Modifier) {
+        val embeddedLinkHandler = LocalEmbeddedLinkHandler.current
         val activity = requireNotNull(LocalActivity.current)
         val isDark = ElementTheme.isLightTheme.not()
         val canUseOverlay = !isTalkbackActive() && !hasExternalKeyboard()
@@ -319,13 +321,15 @@ class MessagesNode(
                 },
                 onUserDataClick = callback::navigateToRoomMemberDetails,
                 onLinkClick = { url, customTab ->
-                    onLinkClick(
+                    if (embeddedLinkHandler?.invoke(url) != true) {
+                        onLinkClick(
                         activity = activity,
                         darkTheme = isDark,
                         url = url,
                         eventSink = state.timelineState.eventSink,
                         customTab = customTab,
                     )
+                    }
                 },
                 onSendLocationClick = callback::navigateToSendLocation,
                 onCreatePollClick = callback::navigateToCreatePoll,

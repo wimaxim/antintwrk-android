@@ -37,12 +37,14 @@ class AntintwrkWebFeedTest : RobolectricTest() {
     fun `social message links carry only a validated source recipient`() {
         assertThat(policy.messengerLink("https://antimsg.com/en/messages")?.target).isNull()
         assertThat(policy.messengerLink("https://antimsg.com/ru/messages?with=123")?.target).isEqualTo("123")
+        assertThat(policy.messengerLink("https://antimsg.com/ru/messages/abcdefghijklmnop")?.target).isEqualTo("room:abcdefghijklmnop")
         for (url in listOf(
             "https://foreign.example/en/messages?with=123",
             "https://antimsg.com/en/messages?with=@other:matrix.antimsg.com",
             "https://antimsg.com/en/messages?with=123&with=456",
             "https://antimsg.com/en/messages?with=0",
             "https://antimsg.com/en/messages/123",
+            "https://antimsg.com/en/messages/abcdefghijklmnop?with=123",
         )) {
             assertThat(policy.messengerLink(url)).isNull()
         }
@@ -250,5 +252,19 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         assertThat(controller.refreshVersion).isEqualTo(1)
         send("https://antimsg.com", true, """{"type":"auth-required"}""")
         assertThat(auth).isEqualTo(1)
+    }
+
+    @Test
+    fun `back from a messenger profile returns through the host once`() {
+        val controller = AntintwrkWebFeedController()
+        var returns = 0
+        controller.onReturnToMessenger = { returns++ }
+        controller.openMessengerProfile("https://antimsg.com/en/hero/123?app=1")
+        assertThat(controller.atMessengerProfileRoot()).isTrue()
+        controller.back()
+        assertThat(returns).isEqualTo(1)
+        assertThat(controller.atMessengerProfileRoot()).isFalse()
+        controller.back()
+        assertThat(returns).isEqualTo(1)
     }
 }

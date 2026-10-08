@@ -58,6 +58,7 @@ fun UserProfileView(
     openAvatarPreview: (username: String, url: String) -> Unit,
     onVerifyClick: (UserId) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenSocialProfile: (() -> Unit)? = null,
 ) {
     val snackbarHostState = rememberSnackbarHostState(snackbarMessage = state.snackbarMessage)
     Scaffold(
@@ -94,6 +95,13 @@ fun UserProfileView(
                 onStartDM = { state.eventSink(UserProfileEvent.StartDM) },
                 onCall = { intent -> state.dmRoomId?.let { onStartCall(it, intent) } }
             )
+            if (onOpenSocialProfile != null) {
+                ListItem(
+                    content = { Text(stringResource(R.string.screen_ant_social_profile)) },
+                    leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.UserProfile())),
+                    onClick = onOpenSocialProfile,
+                )
+            }
             Spacer(modifier = Modifier.height(26.dp))
             if (!state.isCurrentUser) {
                 VerifyUserSection(state, onVerifyClick = { onVerifyClick(state.userId) })

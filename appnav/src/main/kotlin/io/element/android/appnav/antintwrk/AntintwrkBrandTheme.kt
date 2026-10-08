@@ -53,11 +53,11 @@ private val AntintwrkOnCoral = Color(0xFF160F0D)
 private val activeWindowOwners = WeakHashMap<ComponentActivity, AntintwrkSystemBarOwner>()
 
 @Composable
-internal fun AntintwrkBrandTheme(content: @Composable () -> Unit) {
+internal fun AntintwrkBrandTheme(systemBarsKey: Any? = null, content: @Composable () -> Unit) {
     val activity = LocalAntintwrkActivity.current
     val parentIsLight = ElementTheme.isLightTheme
     val parentBackground = ElementTheme.colors.bgCanvasDefault
-    LaunchedEffect(activity, parentIsLight, parentBackground) {
+    LaunchedEffect(activity, parentIsLight, parentBackground, systemBarsKey) {
         // Apply after the parent theme has updated the window on entry.
         withFrameNanos { }
         activity?.enableEdgeToEdge(

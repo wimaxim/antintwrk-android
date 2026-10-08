@@ -61,7 +61,7 @@ fun AntintwrkShellView(
     retainedWebController: AntintwrkWebFeedController? = null,
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
     socialContent: (@Composable (Modifier) -> Unit)? = null,
-) = AntintwrkBrandTheme {
+) = AntintwrkBrandTheme(systemBarsKey = state.mode) {
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
     val language = LocalConfiguration.current.locales[0].language

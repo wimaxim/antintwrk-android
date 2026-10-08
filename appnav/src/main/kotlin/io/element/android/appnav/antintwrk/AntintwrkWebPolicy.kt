@@ -63,7 +63,12 @@ internal class AntintwrkWebPolicy(private val origin: String) {
     fun messengerLink(url: String): MessengerLink? {
         if (!sameOrigin(url)) return null
         val uri = Uri.parse(url)
-        if (uri.pathSegments.size != 2 || uri.pathSegments[0] !in languages || uri.pathSegments[1] != "messages") return null
+        val parts = uri.pathSegments
+        if (parts.size !in 2..3 || parts[0] !in languages || parts[1] != "messages") return null
+        if (parts.size == 3) {
+            if (uri.getQueryParameters("with").isNotEmpty()) return null
+            return parts[2].takeIf { it.matches(Regex("[A-Za-z0-9_-]{16,128}")) }?.let { MessengerLink("room:$it") }
+        }
         val targets = uri.getQueryParameters("with")
         if (targets.isEmpty()) return MessengerLink(null)
         return targets.singleOrNull()?.takeIf { it.matches(Regex("[1-9][0-9]{0,17}")) }?.let(::MessengerLink)

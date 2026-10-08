@@ -9,9 +9,11 @@
 package io.element.android.features.userprofile.shared
 
 import android.content.Context
+import io.element.android.features.userprofile.api.AntintwrkProfileNavigation
 import io.element.android.libraries.androidutils.R
 import io.element.android.libraries.androidutils.system.startSharePlainTextIntent
 import io.element.android.libraries.architecture.NodeInputs
+import io.element.android.libraries.matrix.api.BuildConfig
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.CallIntent
@@ -33,7 +35,14 @@ class UserProfileNodeHelper(
         context: Context,
         permalinkBuilder: PermalinkBuilder,
     ) {
-        val permalinkResult = permalinkBuilder.permalinkForUser(userId)
+        val sourceId = if (BuildConfig.ANTINTWRK_NATIVE_AUTH) AntintwrkProfileNavigation.socialId(userId.value) else null
+        val permalinkResult = if (sourceId != null) {
+            val language =
+                context.resources.configuration.locales[0].language.takeIf { it in setOf("en", "ru", "uk", "de", "es", "fr", "it", "ar", "zh") } ?: "en"
+            Result.success("https://antintwrk.com/$language/hero/$sourceId")
+        } else {
+            permalinkBuilder.permalinkForUser(userId)
+        }
         permalinkResult.onSuccess { permalink ->
             context.startSharePlainTextIntent(
                 activityResultLauncher = null,

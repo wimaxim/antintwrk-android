@@ -395,7 +395,13 @@ class RustMatrixClient(
 
     override suspend fun findDM(userId: UserId): Result<RoomId?> = withContext(sessionDispatcher) {
         runCatchingExceptions {
-            innerClient.getDmRoom(userId.value)?.use { RoomId(it.id()) }
+            innerClient.getDmRoom(userId.value)?.use {
+                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && it.membership() != Membership.JOINED) {
+                    null
+                } else {
+                    RoomId(it.id())
+                }
+            }
         }
     }
 

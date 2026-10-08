@@ -19,11 +19,14 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import im.vector.app.features.analytics.plan.MobileScreen
 import io.element.android.annotations.ContributesNode
+import io.element.android.features.userprofile.api.AntintwrkProfileNavigation
 import io.element.android.features.userprofile.shared.UserProfileNodeHelper
 import io.element.android.features.userprofile.shared.UserProfileView
 import io.element.android.libraries.architecture.NodeInputs
 import io.element.android.libraries.architecture.inputs
 import io.element.android.libraries.di.RoomScope
+import io.element.android.libraries.matrix.api.BuildConfig
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.CallIntent
@@ -35,6 +38,7 @@ import io.element.android.services.analytics.api.AnalyticsService
 class RoomMemberDetailsNode(
     @Assisted buildContext: BuildContext,
     @Assisted plugins: List<Plugin>,
+    private val matrixClient: MatrixClient,
     private val analyticsService: AnalyticsService,
     private val permalinkBuilder: PermalinkBuilder,
     presenterFactory: RoomMemberDetailsPresenter.Factory,
@@ -83,6 +87,11 @@ class RoomMemberDetailsNode(
             onStartCall = ::onStartCall,
             openAvatarPreview = callback::navigateToAvatarPreview,
             onVerifyClick = callback::startVerifyUserFlow,
+            onOpenSocialProfile = if (BuildConfig.ANTINTWRK_NATIVE_AUTH && AntintwrkProfileNavigation.socialId(state.userId.value) != null) {
+                { AntintwrkProfileNavigation.open(matrixClient.sessionId.value, state.userId.value) }
+            } else {
+                null
+            },
         )
     }
 }
