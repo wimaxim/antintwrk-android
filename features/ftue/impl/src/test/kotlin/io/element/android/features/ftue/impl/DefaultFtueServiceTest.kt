@@ -34,6 +34,31 @@ import org.junit.Test
 
 class DefaultFtueServiceTest {
     @Test
+    fun `automated acknowledgement cannot bypass an unverified session`() = runTest {
+        val verification = FakeSessionVerificationService()
+        val service = createDefaultFtueService(sessionVerificationService = verification)
+        verification.emitVerifiedStatus(SessionVerifiedStatus.NotVerified)
+        testScheduler.runCurrent()
+        assertThat(service.acknowledgeVerifiedSession()).isFalse()
+        testScheduler.runCurrent()
+        assertThat(service.ftueStepStateFlow.value).isEqualTo(InternalFtueState.Incomplete(FtueStep.SessionVerification))
+    }
+
+    @Test
+    fun `automated verified recovery advances without skipping notification consent`() = runTest {
+        val verification = FakeSessionVerificationService()
+        val service = createDefaultFtueService(sessionVerificationService = verification)
+        verification.emitVerifiedStatus(SessionVerifiedStatus.NotVerified)
+        testScheduler.runCurrent()
+        verification.emitVerifiedStatus(SessionVerifiedStatus.Verified)
+        testScheduler.runCurrent()
+        assertThat(service.ftueStepStateFlow.value).isEqualTo(InternalFtueState.Incomplete(FtueStep.SessionVerification))
+        assertThat(service.acknowledgeVerifiedSession()).isTrue()
+        testScheduler.runCurrent()
+        assertThat(service.ftueStepStateFlow.value).isEqualTo(InternalFtueState.Incomplete(FtueStep.NotificationsOptIn))
+    }
+
+    @Test
     fun `given any check being false and session verification state being loaded, FtueState is Incomplete`() = runTest {
         val sessionVerificationService = FakeSessionVerificationService().apply {
             emitVerifiedStatus(SessionVerifiedStatus.Unknown)

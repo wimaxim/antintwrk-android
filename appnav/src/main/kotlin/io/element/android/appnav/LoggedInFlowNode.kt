@@ -626,6 +626,11 @@ class LoggedInFlowNode(
         }
     }
 
+    suspend fun completeAppRecovery(): Boolean = withTimeout(30.seconds) {
+        matrixClient.sessionVerificationService.sessionVerifiedStatus.first { it.isVerified() }
+        ftueService.acknowledgeVerifiedSession()
+    }
+
     fun openAppLogout() {
         backstack.push(NavTarget.Settings(PreferencesEntryPoint.InitialTarget.Logout))
     }

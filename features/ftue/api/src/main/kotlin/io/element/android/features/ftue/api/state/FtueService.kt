@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 interface FtueService {
     /** The current state of the FTUE. */
     val state: StateFlow<FtueState>
+
+    /** Acknowledge automated recovery only when the SDK already verifies this session. */
+    fun acknowledgeVerifiedSession(): Boolean
 }
 
 /** The state of the FTUE. */

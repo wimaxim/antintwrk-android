@@ -142,6 +142,13 @@ class DefaultFtueService(
         return lockScreenService.isSetupRequired().first()
     }
 
+    override fun acknowledgeVerifiedSession(): Boolean {
+        if (sessionVerificationService.sessionVerifiedStatus.value != SessionVerifiedStatus.Verified) return false
+        userNeedsToConfirmSessionVerificationSuccess.value = false
+        updateFtueStep()
+        return true
+    }
+
     fun onUserCompletedSessionVerification() {
         userNeedsToConfirmSessionVerificationSuccess.value = false
     }

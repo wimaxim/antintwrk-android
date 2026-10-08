@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class FakeFtueService : FtueService {
     override val state: MutableStateFlow<FtueState> = MutableStateFlow(FtueState.Unknown)
 
+    override fun acknowledgeVerifiedSession(): Boolean = false
+
     suspend fun emitState(newState: FtueState) {
         state.emit(newState)
     }
