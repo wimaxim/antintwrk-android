@@ -36,6 +36,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.CreateRoomParameters
@@ -164,6 +165,27 @@ class RustMatrixClientTest {
         assertThat(client.setAccountData(AN_ACCOUNT_DATA_EVENT_TYPE, AN_ACCOUNT_DATA_CONTENT).isSuccess).isTrue()
         setAccountDataResult.assertions().isCalledOnce().with(value(AN_ACCOUNT_DATA_EVENT_TYPE), value(AN_ACCOUNT_DATA_CONTENT))
         client.destroy()
+    }
+
+    @Test
+    fun `failed managed logout keeps the session open and allows retry`() = runTest {
+        assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        var fail = true
+        var closed = false
+        val sessionStore = InMemorySessionStore(initialList = listOf(aSessionData(sessionId = A_USER_ID.value)), updateUserProfileResult = { _, _, _ -> })
+        val client = createRustMatrixClient(
+            client = FakeFfiClient(logoutResult = { if (fail) error("synthetic outage") }, closeResult = { closed = true }),
+            sessionStore = sessionStore,
+        )
+        assertThat(runCatching { client.logout(userInitiated = true, ignoreSdkError = false) }.isFailure).isTrue()
+        assertThat(client.isShuttingDown).isFalse()
+        assertThat(closed).isFalse()
+        assertThat(sessionStore.getSession(A_USER_ID.value)).isNotNull()
+        fail = false
+        client.logout(userInitiated = true, ignoreSdkError = false)
+        assertThat(client.isShuttingDown).isTrue()
+        assertThat(closed).isTrue()
+        assertThat(sessionStore.getSession(A_USER_ID.value)).isNull()
     }
 
     private fun TestScope.createRustMatrixClient(

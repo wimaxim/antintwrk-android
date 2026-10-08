@@ -11,8 +11,14 @@
 package io.element.android.appnav
 
 import android.os.Parcelable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
@@ -28,17 +34,21 @@ import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
 import io.element.android.appnav.antintwrk.AntintwrkAccountRecovery
+import io.element.android.appnav.antintwrk.AntintwrkLoadingView
 import io.element.android.appnav.antintwrk.AntintwrkNativeAppView
 import io.element.android.appnav.di.SessionGraphFactory
 import io.element.android.libraries.architecture.NodeInputs
 import io.element.android.libraries.architecture.callback
 import io.element.android.libraries.architecture.createNode
 import io.element.android.libraries.architecture.inputs
+import io.element.android.libraries.designsystem.theme.components.Text
+import io.element.android.libraries.designsystem.theme.components.TextButton
 import io.element.android.libraries.di.DependencyInjectionGraphOwner
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -79,6 +89,29 @@ class LoggedInAppScopeFlowNode(
 
     private val inputs: Inputs = inputs()
     private val accountRecovery by lazy { AntintwrkAccountRecovery(inputs.matrixClient.encryptionService, inputs.matrixClient.sessionId.value) }
+    private var managedSignOutBusy by mutableStateOf(false)
+    private var managedSignOutFailed by mutableStateOf(false)
+
+    private fun requestManagedSignOut() {
+        if (managedSignOutBusy) return
+        managedSignOutBusy = true
+        managedSignOutFailed = false
+        lifecycleScope.launch {
+            try {
+                if (accountRecovery.prepare() && attachSession().completeAppRecovery()) {
+                    inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = false)
+                } else {
+                    managedSignOutFailed = true
+                }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                managedSignOutFailed = true
+            } finally {
+                managedSignOutBusy = false
+            }
+        }
+    }
     override val graph = sessionGraphFactory.create(inputs.matrixClient)
 
     override fun onBuilt() {
@@ -92,6 +125,11 @@ class LoggedInAppScopeFlowNode(
 
     override fun resolve(navTarget: NavTarget, buildContext: BuildContext): Node {
         val callback = object : LoggedInFlowNode.Callback {
+            override fun requestManagedSignOut(): Boolean {
+                if (!BuildConfig.ANTINTWRK_NATIVE_AUTH) return false
+                this@LoggedInAppScopeFlowNode.requestManagedSignOut()
+                return true
+            }
             override fun navigateToBugReport() {
                 callback.navigateToBugReport()
             }
@@ -111,7 +149,7 @@ class LoggedInAppScopeFlowNode(
             AntintwrkNativeAppView(
                 modifier,
                 matrixUserId = inputs.matrixClient.sessionId.value,
-                onRequestSignOut = { lifecycleScope.launch { attachSession().openAppLogout() } },
+                onRequestSignOut = ::requestManagedSignOut,
                 onPrepareRecovery = { accountRecovery.prepare() && attachSession().completeAppRecovery() },
                 onRecoveredSignOut = { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = false) },
                 onSwitchMatrixAccount = { callback.navigateToSocialAccount(it) },
@@ -125,6 +163,17 @@ class LoggedInAppScopeFlowNode(
             )
         } else {
             Children(navModel = navModel, modifier = modifier)
+        }
+        if (managedSignOutFailed) {
+            AlertDialog(
+                onDismissRequest = { managedSignOutFailed = false },
+                text = { Text(stringResource(R.string.screen_ant_recovery_retry)) },
+                confirmButton = { TextButton(stringResource(R.string.screen_ant_web_retry), ::requestManagedSignOut) },
+                dismissButton = { TextButton(stringResource(android.R.string.cancel), { managedSignOutFailed = false }) },
+            )
+        }
+        if (managedSignOutBusy) {
+            Dialog(onDismissRequest = {}) { AntintwrkLoadingView() }
         }
     }
 }

@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">La demande de connexion a expiré. Réessayez.</string>
     <string name="screen_ant_auth_rate_limited">Trop de demandes. Attendez quelques minutes, puis réessayez.</string>
     <string name="screen_ant_auth_session_check_error">Impossible de vérifier votre connexion au compte. Vérifiez votre connexion Internet et réessayez.</string>
+    <string name="screen_ant_recovery_account">Votre historique est restauré via votre compte du réseau social. Les clés sont gérées automatiquement.</string>
+    <string name="screen_ant_recovery_ready">La restauration est prête. Votre historique chiffré est sauvegardé.</string>
+    <string name="screen_ant_recovery_retry">Impossible de vérifier la restauration. Vos discussions restent disponibles. Vérifiez votre connexion et réessayez.</string>
 </resources>

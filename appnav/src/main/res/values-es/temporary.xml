@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">La solicitud de inicio de sesión ha caducado. Inténtalo de nuevo.</string>
     <string name="screen_ant_auth_rate_limited">Demasiadas solicitudes. Espera unos minutos e inténtalo de nuevo.</string>
     <string name="screen_ant_auth_session_check_error">No se pudo comprobar tu sesión. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="screen_ant_recovery_account">El historial de chats se recupera mediante tu cuenta de la red social. La aplicación gestiona las claves automáticamente.</string>
+    <string name="screen_ant_recovery_ready">La recuperación está lista. Se ha guardado una copia del historial cifrado.</string>
+    <string name="screen_ant_recovery_retry">No se pudo comprobar la recuperación. Tus chats siguen disponibles. Comprueba la conexión e inténtalo de nuevo.</string>
 </resources>

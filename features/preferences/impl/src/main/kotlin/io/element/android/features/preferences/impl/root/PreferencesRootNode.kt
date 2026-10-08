@@ -37,6 +37,8 @@ class PreferencesRootNode(
     private val directLogoutView: DirectLogoutView,
 ) : Node(buildContext, plugins = plugins) {
     interface Callback : PreferencesAccountCallback, Plugin {
+        fun requestManagedSignOut(): Boolean = false
+        fun requestManagedProfile(): Boolean = false
         fun navigateToAddAccount()
         fun navigateToAnalyticsSettings()
         fun navigateToAbout()
@@ -86,17 +88,19 @@ class PreferencesRootNode(
             onSecureBackupClick = callback::navigateToSecureBackup,
             onModerationAndSafetyClick = callback::navigateToModerationAndSafety,
             onLinkNewDeviceClick = callback::navigateToLinkNewDevice,
-            onManageAccountClick = { onManageAccountClick(activity, it, isDark) },
+            onManageAccountClick = { if (!callback.requestManagedProfile()) onManageAccountClick(activity, it, isDark) },
             onOpenNotificationSettings = callback::navigateToNotificationSettings,
             onEditProfileClick = callback::navigateToUserProfile,
             onSignOutClick = {
-                if (state.preferencesAccountState.directLogoutState.canDoDirectSignOut) {
+                if (callback.requestManagedSignOut()) {
+                    // The host waits for its durable account recovery before removing the session.
+                } else if (state.preferencesAccountState.directLogoutState.canDoDirectSignOut) {
                     state.preferencesAccountState.directLogoutState.eventSink(DirectLogoutEvent.Logout(ignoreSdkError = false))
                 } else {
                     callback.startSignOutFlow()
                 }
             },
-            onDeactivateClick = callback::startAccountDeactivationFlow
+            onDeactivateClick = { if (!callback.requestManagedProfile()) callback.startAccountDeactivationFlow() }
         )
 
         directLogoutView.Render(state = state.preferencesAccountState.directLogoutState)

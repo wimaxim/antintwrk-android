@@ -80,6 +80,7 @@ internal fun AntintwrkNativeAppView(
         var pushOpen by remember { mutableStateOf(false) }
         var licencesOpen by remember { mutableStateOf(false) }
         val pushRequests by AntintwrkSocialPushRoutes.opens.collectAsState()
+        val profileRequests by AntintwrkSocialProfileRoutes.opens.collectAsState()
         val presenter = remember { AntintwrkWelcomePresenter() }
         val shell = remember { AntintwrkShellPresenter() }
         val shellState = shell.present()
@@ -175,6 +176,7 @@ internal fun AntintwrkNativeAppView(
                     if (previousActor != null && previousActor != session?.matrixUserId) {
                         pushStore.clear()
                         AntintwrkSocialPushRoutes.consume()
+                        AntintwrkSocialProfileRoutes.consume()
                     }
                     AntintwrkMessengerRoutes.discardOtherActor(session?.matrixUserId)
                 }
@@ -259,9 +261,17 @@ internal fun AntintwrkNativeAppView(
                 pushRegistrar.register()
             }
         }
+        LaunchedEffect(profileRequests, session?.stage, busy) {
+            if (profileRequests > 0 && session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
+                AntintwrkSocialProfileRoutes.consume()
+                shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
+                shellState.eventSink(AntintwrkShellEvent.Section(AntintwrkSection.Profile))
+            }
+        }
         LaunchedEffect(pushRequests, session?.stage, busy) {
             if (pushRequests > 0 && session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
                 AntintwrkSocialPushRoutes.consume()
+                AntintwrkSocialProfileRoutes.consume()
                 shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
                 webController.navigate(AntintwrkWebPolicy(io.element.android.appnav.BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "notifications"))
             }
@@ -436,6 +446,7 @@ internal fun AntintwrkNativeAppView(
                 AntintwrkMessengerRoutes.clear()
                 accountPreferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", current.matrixUserId).commit()
                 AntintwrkSocialPushRoutes.consume()
+                AntintwrkSocialProfileRoutes.consume()
                 pushStore.clear()
                 pushOpen = false
                 // Hide content immediately, even if the revocation request fails.

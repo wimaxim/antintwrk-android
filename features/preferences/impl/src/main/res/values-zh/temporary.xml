@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_account_profile">社交网络个人资料</string>
+    <string name="screen_ant_account_sign_out">退出登录</string>
+</resources>

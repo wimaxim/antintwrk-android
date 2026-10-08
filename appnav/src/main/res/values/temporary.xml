@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">The sign-in request expired. Please try again.</string>
     <string name="screen_ant_auth_rate_limited">Too many requests. Wait a few minutes, then try again.</string>
     <string name="screen_ant_auth_session_check_error">Could not verify your sign-in. Check your connection and try again.</string>
+    <string name="screen_ant_recovery_account">Your chat history is restored through your social account. Recovery keys are managed automatically.</string>
+    <string name="screen_ant_recovery_ready">Recovery is ready. Your encrypted history is backed up.</string>
+    <string name="screen_ant_recovery_retry">Recovery could not be checked. Your chats remain available. Check your connection and try again.</string>
 </resources>

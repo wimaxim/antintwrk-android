@@ -701,8 +701,13 @@ class RustMatrixClient(
     }
 
     override suspend fun logout(userInitiated: Boolean, ignoreSdkError: Boolean) {
-        _isShuttingDown.set(true)
-        sessionCoroutineScope.cancel()
+        val managedLogout = io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH
+        // A failed managed logout must leave the existing session usable. destroy() cancels
+        // its scope only after remote revocation succeeds (or the caller explicitly ignores it).
+        if (!managedLogout) {
+            _isShuttingDown.set(true)
+            sessionCoroutineScope.cancel()
+        }
         // Remove current delegate so we don't receive an auth error
         clientDelegateTaskHandle?.cancelAndDestroy()
         clientDelegateTaskHandle = null
@@ -716,11 +721,13 @@ class RustMatrixClient(
                     } else {
                         // If the logout failed we need to restore the delegate
                         clientDelegateTaskHandle = innerClient.setDelegate(sessionDelegate)
+                        if (managedLogout) _isShuttingDown.set(false)
                         Timber.e(failure, "Fail to call logout on HS.")
                         throw failure
                     }
                 }
             }
+            _isShuttingDown.set(true)
             destroy()
 
             deleteSessionDirectory()

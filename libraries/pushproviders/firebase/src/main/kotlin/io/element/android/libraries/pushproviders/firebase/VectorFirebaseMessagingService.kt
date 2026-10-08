@@ -66,8 +66,10 @@ class VectorFirebaseMessagingService : FirebaseMessagingService() {
                 Timber.tag(loggerTag.value).w("Invalid data received from Firebase")
                 pushHandler.handleInvalid(
                     providerInfo = FirebaseConfig.NAME,
-                    data = message.data.keys.joinToString("\n") {
-                        "$it: ${message.data[it]}"
+                    data = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                        "Firebase payload omitted"
+                    } else {
+                        message.data.keys.joinToString("\n") { "$it: ${message.data[it]}" }
                     },
                 )
                 if (isHighPriority) {

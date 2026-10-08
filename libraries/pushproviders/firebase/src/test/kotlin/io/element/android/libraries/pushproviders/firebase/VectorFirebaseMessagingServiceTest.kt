@@ -12,6 +12,7 @@ package io.element.android.libraries.pushproviders.firebase
 
 import android.os.Bundle
 import com.google.firebase.messaging.RemoteMessage
+import io.element.android.libraries.matrix.api.BuildConfig
 import io.element.android.libraries.matrix.test.AN_EVENT_ID
 import io.element.android.libraries.matrix.test.A_ROOM_ID
 import io.element.android.libraries.matrix.test.A_SECRET
@@ -50,7 +51,7 @@ class VectorFirebaseMessagingServiceTest : RobolectricTest() {
         lambda.assertions().isCalledOnce()
             .with(
                 value(FirebaseConfig.NAME),
-                value("a: A\nb: B"),
+                value(if (BuildConfig.ANTINTWRK_NATIVE_AUTH) "Firebase payload omitted" else "a: A\nb: B"),
             )
     }
 

@@ -34,6 +34,18 @@ internal object AntintwrkSocialPushRoutes {
     }
 }
 
+/** Internal navigation only; never carries credentials or external URLs. */
+internal object AntintwrkSocialProfileRoutes {
+    private val requests = MutableStateFlow(0)
+    val opens = requests.asStateFlow()
+    fun open() {
+        requests.value++
+    }
+    fun consume() {
+        requests.value = 0
+    }
+}
+
 internal class AntintwrkSocialPushStore(val context: Context) {
     private val preferences = context.getSharedPreferences("antintwrk-social-push", Context.MODE_PRIVATE)
     var fid: String

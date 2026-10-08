@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">Die Anmeldeanfrage ist abgelaufen. Versuche es erneut.</string>
     <string name="screen_ant_auth_rate_limited">Zu viele Anfragen. Warte einige Minuten und versuche es erneut.</string>
     <string name="screen_ant_auth_session_check_error">Deine Anmeldung konnte nicht geprüft werden. Prüfe die Verbindung und versuche es erneut.</string>
+    <string name="screen_ant_recovery_account">Ihr Chatverlauf wird über Ihr Konto im sozialen Netzwerk wiederhergestellt. Die App verwaltet die Schlüssel automatisch.</string>
+    <string name="screen_ant_recovery_ready">Die Wiederherstellung ist bereit. Ihr verschlüsselter Verlauf ist gesichert.</string>
+    <string name="screen_ant_recovery_retry">Die Wiederherstellung konnte nicht geprüft werden. Ihre Chats bleiben verfügbar. Prüfen Sie die Verbindung und versuchen Sie es erneut.</string>
 </resources>

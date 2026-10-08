@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">La richiesta di accesso è scaduta. Riprova.</string>
     <string name="screen_ant_auth_rate_limited">Troppe richieste. Attendi qualche minuto, poi riprova.</string>
     <string name="screen_ant_auth_session_check_error">Impossibile verificare il tuo accesso. Controlla la connessione e riprova.</string>
+    <string name="screen_ant_recovery_account">La cronologia delle chat viene ripristinata tramite il tuo account del social network. Le chiavi sono gestite automaticamente.</string>
+    <string name="screen_ant_recovery_ready">Il ripristino è pronto. La cronologia crittografata è stata salvata.</string>
+    <string name="screen_ant_recovery_retry">Impossibile verificare il ripristino. Le chat restano disponibili. Controlla la connessione e riprova.</string>
 </resources>

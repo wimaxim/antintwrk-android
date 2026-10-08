@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="screen_ant_account_profile">Профиль в соцсети</string>
+    <string name="screen_ant_account_sign_out">Выйти</string>
+</resources>

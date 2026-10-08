@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">Запит входу застарів. Спробуйте ще раз.</string>
     <string name="screen_ant_auth_rate_limited">Забагато запитів. Зачекайте кілька хвилин і повторіть.</string>
     <string name="screen_ant_auth_session_check_error">Не вдалося перевірити вхід. Перевірте з’єднання та спробуйте ще раз.</string>
+    <string name="screen_ant_recovery_account">Історія листування відновлюється через обліковий запис соцмережі. Застосунок керує ключами автоматично.</string>
+    <string name="screen_ant_recovery_ready">Відновлення готове. Резервну копію зашифрованої історії збережено.</string>
+    <string name="screen_ant_recovery_retry">Не вдалося перевірити відновлення. Листування залишається доступним. Перевірте з’єднання та повторіть спробу.</string>
 </resources>

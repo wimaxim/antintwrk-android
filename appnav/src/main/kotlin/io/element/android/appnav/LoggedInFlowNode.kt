@@ -173,6 +173,7 @@ class LoggedInFlowNode(
     plugins = plugins
 ) {
     interface Callback : Plugin {
+        fun requestManagedSignOut(): Boolean = false
         fun navigateToBugReport()
         fun navigateToAddAccount()
     }
@@ -470,6 +471,12 @@ class LoggedInFlowNode(
             }
             is NavTarget.Settings -> {
                 val callback = object : PreferencesEntryPoint.Callback {
+                    override fun requestManagedSignOut(): Boolean = callback.requestManagedSignOut()
+                    override fun requestManagedProfile(): Boolean {
+                        if (!BuildConfig.ANTINTWRK_NATIVE_AUTH) return false
+                        io.element.android.appnav.antintwrk.AntintwrkSocialProfileRoutes.open()
+                        return true
+                    }
                     override fun navigateToAddAccount() {
                         callback.navigateToAddAccount()
                     }
@@ -548,7 +555,10 @@ class LoggedInFlowNode(
                     .build()
             }
             is NavTarget.SecureBackup -> {
-                secureBackupEntryPoint.createNode(
+                if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    io.element.android.appnav.antintwrk.AntintwrkRecoveryNode(buildContext, matrixClient)
+                } else {
+                    secureBackupEntryPoint.createNode(
                     parentNode = this,
                     buildContext = buildContext,
                     params = SecureBackupEntryPoint.Params(initialElement = navTarget.initialElement),
@@ -558,6 +568,7 @@ class LoggedInFlowNode(
                         }
                     },
                 )
+                }
             }
             NavTarget.Ftue -> {
                 ftueEntryPoint.createNode(this, buildContext)

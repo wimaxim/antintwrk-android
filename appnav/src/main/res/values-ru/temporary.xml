@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">Запрос входа устарел. Попробуйте ещё раз.</string>
     <string name="screen_ant_auth_rate_limited">Слишком много запросов. Подождите несколько минут и повторите.</string>
     <string name="screen_ant_auth_session_check_error">Не удалось проверить вход. Проверьте соединение и повторите попытку.</string>
+    <string name="screen_ant_recovery_account">История переписки восстанавливается через аккаунт соцсети. Приложение управляет ключами автоматически.</string>
+    <string name="screen_ant_recovery_ready">Восстановление готово. Резервная копия зашифрованной истории сохранена.</string>
+    <string name="screen_ant_recovery_retry">Не удалось проверить восстановление. Переписка остаётся доступна. Проверьте соединение и повторите попытку.</string>
 </resources>

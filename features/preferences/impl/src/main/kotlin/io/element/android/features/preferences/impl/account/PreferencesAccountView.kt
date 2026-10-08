@@ -25,6 +25,7 @@ import io.element.android.libraries.designsystem.theme.components.ListItem
 import io.element.android.libraries.designsystem.theme.components.ListItemStyle
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.ui.strings.CommonStrings
+import io.element.android.libraries.matrix.api.BuildConfig as MatrixBuildConfig
 
 @Composable
 fun PreferencesAccountView(
@@ -74,9 +75,16 @@ private fun ManageAccountSection(
     ) {
         state.accountManagementUrl?.let { url ->
             ListItem(
-                content = { Text(stringResource(id = CommonStrings.action_manage_account_and_devices)) },
+                content = {
+                    val label = if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                        R.string.screen_ant_account_profile
+                    } else {
+                        CommonStrings.action_manage_account_and_devices
+                    }
+                    Text(stringResource(label))
+                },
                 leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.UserProfile())),
-                trailingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.PopOut())),
+                trailingContent = if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) null else ListItemContent.Icon(IconSource.Vector(CompoundIcons.PopOut())),
                 onClick = { onManageAccountClick(url) },
             )
         }
@@ -135,7 +143,11 @@ private fun ColumnScope.GeneralSection(
     }
     HorizontalDivider()
     ListItem(
-        content = { Text(stringResource(id = CommonStrings.action_signout)) },
+        content = {
+            Text(
+            stringResource(id = if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) R.string.screen_ant_account_sign_out else CommonStrings.action_signout)
+        )
+        },
         leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Close())),
         style = ListItemStyle.Destructive,
         onClick = onSignOutClick,

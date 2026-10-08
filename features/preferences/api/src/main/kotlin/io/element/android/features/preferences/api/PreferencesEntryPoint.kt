@@ -46,6 +46,9 @@ interface PreferencesEntryPoint : FeatureEntryPoint {
     ): Node
 
     interface Callback : Plugin {
+        /** Return true when the host coordinates account-wide recovery and sign-out. */
+        fun requestManagedSignOut(): Boolean = false
+        fun requestManagedProfile(): Boolean = false
         fun navigateToAddAccount()
         fun navigateToLinkNewDevice()
         fun navigateToBugReport()

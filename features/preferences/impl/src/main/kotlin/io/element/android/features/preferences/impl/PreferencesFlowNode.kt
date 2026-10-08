@@ -137,6 +137,8 @@ class PreferencesFlowNode(
         return when (navTarget) {
             NavTarget.Root -> {
                 val callback = object : PreferencesRootNode.Callback {
+                    override fun requestManagedSignOut(): Boolean = callback.requestManagedSignOut()
+                    override fun requestManagedProfile(): Boolean = callback.requestManagedProfile()
                     override fun navigateToAddAccount() {
                         callback.navigateToAddAccount()
                     }
@@ -190,7 +192,7 @@ class PreferencesFlowNode(
                     }
 
                     override fun navigateToUserProfile(matrixUser: MatrixUser) {
-                        backstack.push(NavTarget.UserProfile(matrixUser))
+                        if (!callback.requestManagedProfile()) backstack.push(NavTarget.UserProfile(matrixUser))
                     }
 
                     override fun startSignOutFlow() {

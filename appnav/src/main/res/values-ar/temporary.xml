@@ -107,4 +107,7 @@
     <string name="screen_ant_auth_session_expired">انتهت صلاحية طلب تسجيل الدخول. حاول مرة أخرى.</string>
     <string name="screen_ant_auth_rate_limited">طلبات كثيرة جدًا. انتظر بضع دقائق ثم حاول مرة أخرى.</string>
     <string name="screen_ant_auth_session_check_error">تعذّر التحقّق من تسجيل دخولك. تحقّق من اتصالك وحاول مرة أخرى.</string>
+    <string name="screen_ant_recovery_account">تُستعاد محادثاتك عبر حسابك في الشبكة الاجتماعية. يدير التطبيق مفاتيح الاستعادة تلقائيًا.</string>
+    <string name="screen_ant_recovery_ready">الاستعادة جاهزة. تم حفظ نسخة احتياطية من سجل محادثاتك المشفّر.</string>
+    <string name="screen_ant_recovery_retry">تعذّر التحقق من الاستعادة. تظل محادثاتك متاحة. تحقق من الاتصال وحاول مجددًا.</string>
 </resources>
