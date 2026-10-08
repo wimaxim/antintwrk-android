@@ -279,7 +279,14 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                     settings.apply {
                         if (BuildConfig.ANTINTWRK_NATIVE_AUTH) userAgentString = AntintwrkNativeAuthClient.USER_AGENT
                         javaScriptEnabled = true
+                        // Honor the responsive page viewport, as a mobile browser does.
                         domStorageEnabled = true
+                        useWideViewPort = true
+                        // Match the site/PWA CSS baseline rather than WebView font inflation.
+                        loadWithOverviewMode = true
+                        textZoom = 100
+                        builtInZoomControls = true
+                        displayZoomControls = false
                         allowFileAccess = false
                         allowContentAccess = false
                         mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW

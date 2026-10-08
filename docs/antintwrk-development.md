@@ -169,3 +169,9 @@ Own gplay build/changed-module ktlint, 46 Firebase tests and 8 Matrix client tes
 ## Social navigation and DM lifecycle - 8 October 2026
 
 Source message routes and validated legacy-room links open the main SDK DM. Own lookup ignores departed membership. Actor-scoped resolver serializes creation, reuses encrypted joined/invited conversations, replaces a departed recipient, and fails safely on ban/membership lookup outage/unencrypted or group rooms. Participant cards expose social profiles by immutable ID; own share links use public social IDs. Message and thread social content links stay in the native shell via an optional composition-local host handler; stock defaults retain external link behavior. Physical UI and test evidence, old-web store separation and remaining distributed creation/phone/provider acceptance are in shared docs/social-messenger-navigation.md. No push.
+
+## WebView scale parity — 8 October 2026
+
+Social WebView honors the page viewport (useWideViewPort/loadWithOverviewMode), starts with textZoom=100 to match the site's CSS/PWA baseline, and supports pinch zoom without legacy floating zoom buttons. Native text still follows Android accessibility font settings. No CSS font-size reduction or global screen-density override is applied. This deliberately normalizes only embedded web text; larger system-font users can zoom web content manually. iOS must use the page viewport and avoid an extra automatic text/page zoom layer when implementing the same contract.
+
+Own debug build and WebFeed tests/ktlint pass; Android emulator feed renders within the content width. Exact visual parity on the owner's phone remains to be confirmed using the updated APK.
