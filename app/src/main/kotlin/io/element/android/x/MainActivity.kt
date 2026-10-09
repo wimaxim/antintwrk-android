@@ -63,6 +63,7 @@ class MainActivity : NodeActivity() {
         Timber.tag(loggerTag.value).d("onCreate, with savedInstanceState: ${savedInstanceState != null}")
         installSplashScreen()
         super.onCreate(savedInstanceState)
+        if (AppNavBuildConfig.ANTINTWRK_NATIVE_AUTH) AntintwrkBillingRuntime.attach(this)
         appBindings = bindings()
         setupLockManagement(appBindings.lockScreenService(), appBindings.lockScreenEntryPoint())
         enableEdgeToEdge()

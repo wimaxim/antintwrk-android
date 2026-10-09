@@ -350,6 +350,7 @@ dependencies {
     // Google Play Services fused location backend. Discovered at runtime via ServiceLoader by the
     // location feature.
     "gplayImplementation"(libs.maplibre.compose.location.runtime.gms)
+    "gplayImplementation"(libs.google.play.billing)
 
     implementation(libs.appyx.core)
     implementation(libs.androidx.splash)

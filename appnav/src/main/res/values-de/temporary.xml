@@ -122,4 +122,11 @@
     <string name="a11y_ant_unread_messages">%1$d ungelesene Nachrichten</string>
     <string name="screen_ant_settings_messenger_notifications">Messenger-Benachrichtigungen</string>
     <string name="screen_ant_settings_retry">Die Einstellungen konnten nicht geöffnet werden. Bitte versuche es erneut.</string>
+    <string name="screen_ant_licences_project">antintwrk — Projekt und Rechte</string>
+    <string name="screen_ant_licences_operator">Projektbetreiber: %1$s</string>
+    <string name="screen_ant_licences_author">Projektautor: %1$s</string>
+    <string name="screen_ant_licences_backend_title">Server- und Webprodukt</string>
+    <string name="screen_ant_licences_backend">Das unabhängig entwickelte ursprüngliche Backend des sozialen Netzwerks und das entfernte Webprodukt sind proprietär. Alle Rechte der jeweiligen Rechteinhaber bleiben vorbehalten. Diese Bedingungen beschränken keine durch die AGPL gewährten Rechte am Android-Client.</string>
+    <string name="screen_ant_licences_client_title">Android-Client und Open-Source-Komponenten</string>
+    <string name="screen_ant_licences_client">Der Android-Client einschließlich unserer nativen Integration des sozialen Netzwerks steht unter AGPL-3.0-only. Urheberrecht an unseren eigenen Beiträgen: Maxim Novichkov. Ursprüngliche Hinweise und Abhängigkeitslizenzen sind unten erhalten.</string>
 </resources>

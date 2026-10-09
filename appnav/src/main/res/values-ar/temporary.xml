@@ -122,4 +122,11 @@
     <string name="a11y_ant_unread_messages">%1$d رسائل غير مقروءة</string>
     <string name="screen_ant_settings_messenger_notifications">إشعارات المراسلة</string>
     <string name="screen_ant_settings_retry">تعذر فتح الإعدادات. يرجى المحاولة مرة أخرى.</string>
+    <string name="screen_ant_licences_project">antintwrk — المشروع والحقوق</string>
+    <string name="screen_ant_licences_operator">مشغّل المشروع: %1$s</string>
+    <string name="screen_ant_licences_author">مؤلف المشروع: %1$s</string>
+    <string name="screen_ant_licences_backend_title">الخادم ومنتج الويب</string>
+    <string name="screen_ant_licences_backend">الخادم الأصلي للشبكة الاجتماعية ومنتج الويب البعيد المطوّران بصورة مستقلة هما برمجيات مملوكة. جميع حقوق أصحاب الحقوق محفوظة. لا تقيّد هذه الشروط الحقوق الممنوحة لعميل Android بموجب AGPL.</string>
+    <string name="screen_ant_licences_client_title">عميل Android ومكوّنات المصدر المفتوح</string>
+    <string name="screen_ant_licences_client">عميل Android، بما في ذلك تكاملنا الأصلي للشبكة الاجتماعية، مرخّص بموجب AGPL-3.0-only. حقوق مساهماتنا الأصلية: Maxim Novichkov. تُحفظ الإشعارات الأصلية وتراخيص التبعيات أدناه.</string>
 </resources>

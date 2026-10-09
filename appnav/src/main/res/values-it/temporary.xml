@@ -122,4 +122,11 @@
     <string name="a11y_ant_unread_messages">%1$d messaggi non letti</string>
     <string name="screen_ant_settings_messenger_notifications">Notifiche del messenger</string>
     <string name="screen_ant_settings_retry">Impossibile aprire le impostazioni. Riprova.</string>
+    <string name="screen_ant_licences_project">antintwrk — progetto e diritti</string>
+    <string name="screen_ant_licences_operator">Operatore del progetto: %1$s</string>
+    <string name="screen_ant_licences_author">Autore del progetto: %1$s</string>
+    <string name="screen_ant_licences_backend_title">Server e prodotto web</string>
+    <string name="screen_ant_licences_backend">Il backend originale del social network e il prodotto web remoto, sviluppati indipendentemente, sono proprietari. Tutti i diritti dei rispettivi titolari sono riservati. Queste condizioni non limitano i diritti sul client Android concessi da AGPL.</string>
+    <string name="screen_ant_licences_client_title">Client Android e componenti open source</string>
+    <string name="screen_ant_licences_client">Il client Android, inclusa la nostra integrazione nativa del social network, è distribuito con AGPL-3.0-only. Diritti sui nostri contributi originali: Maxim Novichkov. Gli avvisi originali e le licenze delle dipendenze sono conservati di seguito.</string>
 </resources>

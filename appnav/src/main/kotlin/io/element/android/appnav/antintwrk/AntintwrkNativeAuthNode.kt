@@ -928,7 +928,21 @@ internal fun AntintwrkNativeAppView(
         } else {
             SocialAdmission(modifier)
         }
-        if (licencesOpen) AntintwrkLicencesDialog { licencesOpen = false }
+        if (licencesOpen) {
+            AntintwrkLicencesDialog(
+            onOpenAuthor = if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
+                {
+                    licencesOpen = false
+                    settingsOpen = false
+                    shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
+                    webController.navigate(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "hero/2266620"))
+                }
+            } else {
+                null
+            },
+            onDismiss = { licencesOpen = false },
+        )
+        }
         if (directBusy) {
             Dialog(onDismissRequest = {
                 directJob?.cancel()

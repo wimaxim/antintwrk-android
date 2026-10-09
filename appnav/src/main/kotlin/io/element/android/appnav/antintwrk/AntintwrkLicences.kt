@@ -26,7 +26,7 @@ import org.json.JSONArray
 private data class AntintwrkLicence(val name: String, val licences: List<Pair<String, String>>)
 
 @Composable
-internal fun AntintwrkLicencesDialog(onDismiss: () -> Unit) = AntintwrkBrandTheme {
+internal fun AntintwrkLicencesDialog(onOpenAuthor: (() -> Unit)? = null, onDismiss: () -> Unit) = AntintwrkBrandTheme {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     var licence by remember { mutableStateOf("") }
@@ -67,7 +67,18 @@ internal fun AntintwrkLicencesDialog(onDismiss: () -> Unit) = AntintwrkBrandThem
         text = {
             LazyColumn(Modifier.heightIn(max = 480.dp)) {
                 item {
-                    Text("antintwrk\nElement X — AGPL-3.0-only\nCopyright 2022–2025 New Vector Ltd.\nCopyright 2025 Element Creations Ltd.")
+                    Text(stringResource(R.string.screen_ant_licences_project))
+                    Text(stringResource(R.string.screen_ant_licences_operator, "Super David Universe LLC"))
+                    TextButton(stringResource(R.string.screen_ant_licences_author, "Maxim Novichkov"), onClick = {
+                        onOpenAuthor?.invoke() ?: uriHandler.openUri("https://antintwrk.com/en/hero/2266620")
+                    })
+                    Text(stringResource(R.string.screen_ant_licences_backend_title))
+                    Text(stringResource(R.string.screen_ant_licences_backend))
+                    Text(stringResource(R.string.screen_ant_licences_client_title))
+                    Text(stringResource(R.string.screen_ant_licences_client))
+                    Text(
+                        "Copyright 2026 Maxim Novichkov\nElement X — AGPL-3.0-only\nCopyright 2022–2025 New Vector Ltd.\nCopyright 2025 Element Creations Ltd."
+                    )
                     TextButton(stringResource(R.string.screen_ant_source), onClick = { uriHandler.openUri("https://github.com/wimaxim/antintwrk-android") })
                     TextButton("AGPL-3.0", onClick = { expanded = !expanded })
                     if (expanded) Text(licence)

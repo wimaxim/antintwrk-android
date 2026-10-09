@@ -1,5 +1,12 @@
 # Сохранение этапов разработки antintwrk
 
+## 9 October 2026 — Play Billing foundation and project notices
+
+Gplay-only Billing 9.1.0 is connected to the native activity lifecycle; product/ownership query APIs have bounded timeouts. This prepares integration, but paid checkout and server verification are not active: blue-badge integration waits for the parallel web implementation. Owner clarified Kindness purchases in Android also use Play Billing; independent Ukraine/David assistance keeps third-party providers without purchasing app points/features.
+
+Licences start with Super David Universe LLC as operator, Maxim Novichkov as project author (stable social profile 2266620), independent original server/web rights, then client AGPL/upstream/dependency notices. Native integration remains covered client code. See [PROJECT-NOTICES](../PROJECT-NOTICES.md) and [shared milestone](../../docs/play-billing-foundation-2026-10-09.md) for actual validation and uncompleted Console/server/source-publication work. All nine supported locales are updated. No push or Drive replacement.
+
+
 ## Active bottom tab returns to its root — 7 October 2026
 
 Re-selecting the active native bottom tab now returns from an auxiliary web page to its section root; selecting a different tab retains its page, and tapping an existing root scrolls to the top. This fixes the real emulator case where tapping Feed left People open. 49 social tests pass. Background notification tapping opened Notifications after admission; disabling this device removed its sole subscription while account-wide enabled stayed on. Shared Android/iOS documentation updated.

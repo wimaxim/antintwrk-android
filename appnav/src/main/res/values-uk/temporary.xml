@@ -122,4 +122,11 @@
     <string name="a11y_ant_unread_messages">Непрочитаних повідомлень: %1$d</string>
     <string name="screen_ant_settings_messenger_notifications">Сповіщення месенджера</string>
     <string name="screen_ant_settings_retry">Не вдалося відкрити налаштування. Спробуйте ще раз.</string>
+    <string name="screen_ant_licences_project">antintwrk — проєкт і права</string>
+    <string name="screen_ant_licences_operator">Оператор проєкту: %1$s</string>
+    <string name="screen_ant_licences_author">Автор проєкту: %1$s</string>
+    <string name="screen_ant_licences_backend_title">Серверна та вебчастина</string>
+    <string name="screen_ant_licences_backend">Незалежно розроблені оригінальні серверна частина соцмережі та віддалений вебпродукт є пропрієтарними. Усі права їхніх відповідних правовласників збережені. Ці умови не обмежують прав на Android-клієнт, наданих AGPL.</string>
+    <string name="screen_ant_licences_client_title">Android-клієнт і відкриті компоненти</string>
+    <string name="screen_ant_licences_client">Android-клієнт, включно з нашою нативною інтеграцією соцмережі, поширюється за AGPL-3.0-only. Авторські права на наші оригінальні доопрацювання: Maxim Novichkov. Початкові повідомлення та ліцензії залежностей збережені нижче.</string>
 </resources>
