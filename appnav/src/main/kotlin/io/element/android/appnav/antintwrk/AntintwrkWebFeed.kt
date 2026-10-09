@@ -23,8 +23,11 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -107,6 +110,7 @@ class AntintwrkWebFeedController {
     var ownProfileIdentity: String? = null
     private val editorStates = mutableMapOf<AntintwrkSection, Boolean>()
     private val editorDialogs = mutableMapOf<AntintwrkSection, Boolean>()
+    internal var imeVisible = false
     internal var editorDialog = false
     internal var composing by mutableStateOf(false)
     internal fun updateEditor(active: Boolean, dialog: Boolean = false) {
@@ -304,6 +308,7 @@ class AntintwrkWebFeedController {
     }
     fun destroy() {
         composing = false
+        imeVisible = false
         editorDialog = false
         editorStates.clear()
         editorDialogs.clear()
@@ -347,11 +352,16 @@ internal fun rememberAntintwrkWebFeedController(): AntintwrkWebFeedController {
     return controller
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnabled: Boolean, onAuthRequired: () -> Unit = {}) {
     val policy = remember { AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN) }
     val language = LocalConfiguration.current.locales[0].language
+    controller.imeVisible = WindowInsets.isImeVisible
+    LaunchedEffect(controller.imeVisible, controller.section) {
+        controller.view?.let { AntintwrkWebIme.update(it, controller, policy, install = true) }
+    }
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     fun openExternal(input: String) {
@@ -398,6 +408,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         controller.fullscreen == null && controller.fileCallback == null && controller.prompt == null && controller.document == null
                     }
                     onRefresh = controller::retry
+                    onViewportChanged = { AntintwrkWebIme.update(this, controller, policy) }
                     controller.registerPage(tab, this, startUrl)
                     setBackgroundColor(Color(0xFF101214).toArgb())
                     settings.apply {
@@ -589,6 +600,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                                 controller.loading = false
                                 url?.let { controller.visited(it, policy) }
                                 controller.finishMessengerProfileNavigation(view)
+                                AntintwrkWebIme.update(view, controller, policy, install = true)
                             }
                         }
                         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {

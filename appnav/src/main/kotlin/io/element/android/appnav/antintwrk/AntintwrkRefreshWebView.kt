@@ -8,6 +8,11 @@ import kotlin.math.abs
 
 /** One deliberate downward drag at the top refreshes a GET; editors and nested scrollers keep their gestures. */
 internal class AntintwrkRefreshWebView(context: Context) : WebView(context) {
+    var onViewportChanged: () -> Unit = {}
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (oldh > 0 && h != oldh) post { onViewportChanged() }
+    }
     var canRefresh: () -> Boolean = { false }
     var onRefresh: () -> Unit = {}
     private var gesture = 0L

@@ -275,3 +275,8 @@ Before reporting a transient navigation read failure, retry up to five total att
 ## 9 October 2026: retained tab roots and preload
 
 Native bottom-tab selection restores its root when a retained route differs. Profile/Communities preload once after first successful Feed visual readiness; hidden callbacks cannot alter the visible page. Local Chats navigation accepts outgoing DESTROYED targets and retries bounded preparation timeouts without key resets/API mutations. 119 appnav antintwrk tests, appnav/home ktlint and signed gplayDebug build pass. Full evidence: ../docs/tabs-preload-2026-10-09.md in the mobile documentation checkout. No push.
+
+
+## 9 October 2026: keyboard-safe social editing
+
+Active exact-origin social documents receive an app-local IME/viewport correction: reveal compact editors or follow the focus caret in long content, without reloading or changing draft/selection. Hidden pages cannot trigger corrections. 121 antintwrk appnav tests and 8 Node viewport tests pass; ktlint/build/signature/install pass. Emulator remained in floating Gboard mode; real-phone docked-keyboard acceptance is recorded as pending in the shared keyboard-editor-2026-10-09.md report. No push.
