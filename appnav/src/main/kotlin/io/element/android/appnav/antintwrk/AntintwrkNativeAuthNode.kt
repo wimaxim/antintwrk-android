@@ -186,8 +186,8 @@ internal fun AntintwrkNativeAppView(
                 val sequence = navigationSequence
                 val epoch = navigationEpoch.current
                 try {
-                    withTimeout(30_000) { currentOpenChats?.invoke() }
-                    if (sequence == navigationSequence) {
+                    antintwrkPrepareChats({ navigationEpoch.accepts(epoch, foreground) }) { currentOpenChats?.invoke() }
+                    if (sequence == navigationSequence && navigationEpoch.accepts(epoch, foreground)) {
                         chatsRequested = false
                         shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
                     }

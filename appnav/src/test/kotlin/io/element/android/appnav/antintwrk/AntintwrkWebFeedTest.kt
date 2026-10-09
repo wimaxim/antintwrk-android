@@ -23,13 +23,13 @@ import org.junit.Test
 
 class AntintwrkWebFeedTest : RobolectricTest() {
     @Test
-    fun `reselecting active tab returns to its root while other tabs retain their route`() {
+    fun `selecting any tab returns to its root even after navigating to people`() {
         val controller = AntintwrkWebFeedController()
         val people = policy.route("en", "people")
         controller.navigate(people)
         controller.selectSection(AntintwrkSection.Communities, policy.root("en", AntintwrkSection.Communities))
         controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
-        assertThat(controller.currentUrl).isEqualTo(people)
+        assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
         controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
         assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
         assertThat(controller.section).isEqualTo(AntintwrkSection.Feed)
@@ -43,15 +43,78 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         controller.currentUrl = policy.feed("en")
         controller.loading = false
         every { feed.loadUrl(any()) } answers { assertThat(controller.loading).isTrue() }
-        controller.navigate(policy.route("en", "discover"))
+        controller.navigate(policy.feed("en"))
         verify(exactly = 1) { feed.loadUrl(any()) }
-        controller.loading = false
+        controller.pageFinished(feed, policy.feed("en"))
         controller.selectSection(AntintwrkSection.Communities, policy.root("en", AntintwrkSection.Communities))
         controller.view = mockk(relaxed = true)
         controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
         assertThat(controller.view).isSameInstanceAs(feed)
         assertThat(controller.loading).isFalse()
         verify(exactly = 1) { feed.loadUrl(any()) }
+    }
+
+    @Test
+    fun `community root replaces people on return but root pages are reused`() {
+        val controller = AntintwrkWebFeedController()
+        val root = policy.root("en", AntintwrkSection.Communities)
+        controller.selectSection(AntintwrkSection.Communities, root)
+        val page = mockk<WebView>(relaxed = true)
+        controller.registerPage(AntintwrkSection.Communities, page, root)
+        controller.pageFinished(page, root)
+        controller.navigate(policy.route("en", "people"))
+        controller.selectSection(AntintwrkSection.Profile, policy.root("en", AntintwrkSection.Profile))
+        controller.selectSection(AntintwrkSection.Communities, root)
+        assertThat(controller.currentUrl).isEqualTo(root)
+        assertThat(controller.view).isSameInstanceAs(page)
+        verify(exactly = 1) { page.loadUrl(root) }
+        controller.pageFinished(page, root)
+        controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
+        controller.selectSection(AntintwrkSection.Communities, root)
+        verify(exactly = 1) { page.loadUrl(root) }
+        assertThat(controller.loading).isFalse()
+    }
+
+    @Test
+    fun `prewarm requires successful initial feed and resets with account pages`() {
+        val controller = AntintwrkWebFeedController()
+        val feed = mockk<WebView>(relaxed = true)
+        val url = policy.feed("en")
+        controller.registerPage(AntintwrkSection.Feed, feed, url)
+        assertThat(controller.prewarmStarted).isFalse()
+        controller.pageFailed(feed)
+        controller.feedReady(feed, url)
+        assertThat(controller.prewarmStarted).isFalse()
+        controller.pageStarted(feed, url)
+        controller.pageFinished(feed, url)
+        controller.feedReady(feed, url)
+        assertThat(controller.prewarmStarted).isTrue()
+        controller.destroy()
+        controller.feedReady(feed, url)
+        assertThat(controller.prewarmStarted).isFalse()
+    }
+
+    @Test
+    fun `hidden load and failure never change feed and remain available on selection`() {
+        val controller = AntintwrkWebFeedController()
+        val feed = mockk<WebView>(relaxed = true)
+        val hidden = mockk<WebView>(relaxed = true)
+        val root = policy.root("en", AntintwrkSection.Communities)
+        controller.registerPage(AntintwrkSection.Feed, feed, policy.feed("en"))
+        controller.pageFinished(feed, policy.feed("en"))
+        controller.registerPage(AntintwrkSection.Communities, hidden, root)
+        controller.pageStarted(hidden, root)
+        controller.pageFailed(hidden)
+        controller.pageFinished(hidden, root)
+        assertThat(controller.view).isSameInstanceAs(feed)
+        assertThat(controller.section).isEqualTo(AntintwrkSection.Feed)
+        assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
+        assertThat(controller.failed).isFalse()
+        assertThat(controller.loading).isFalse()
+        controller.selectSection(AntintwrkSection.Communities, root)
+        assertThat(controller.failed).isTrue()
+        assertThat(controller.view).isSameInstanceAs(hidden)
+        verify(exactly = 0) { feed.loadUrl(any()) }
     }
 
     @Test
@@ -260,6 +323,34 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         runOnIdle { visible.value = true }
         runOnIdle { assertThat(controller.view).isSameInstanceAs(original) }
     }
+    @Test
+    fun `successful first feed mounts hidden roots without replacing the visible webview`() = runAndroidComposeUiTest {
+        lateinit var controller: AntintwrkWebFeedController
+        setSafeContent {
+            ElementTheme {
+                controller = rememberAntintwrkWebFeedController()
+                controller.ownProfileIdentity = "tester"
+                AntintwrkWebFeed(controller, backEnabled = true)
+            }
+        }
+        lateinit var feed: WebView
+        runOnIdle {
+            feed = controller.view!!
+            assertThat(controller.page(AntintwrkSection.Communities)).isNull()
+            assertThat(controller.page(AntintwrkSection.Profile)).isNull()
+            controller.pageFinished(feed, policy.feed("en"))
+            controller.feedReady(feed, policy.feed("en"))
+        }
+        runOnIdle {
+            assertThat(controller.view).isSameInstanceAs(feed)
+            assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
+            assertThat(controller.pageUrl(AntintwrkSection.Communities)).isEqualTo(policy.root("en", AntintwrkSection.Communities))
+            assertThat(controller.pageUrl(AntintwrkSection.Profile)).isEqualTo(policy.root("en", AntintwrkSection.Profile, "tester"))
+            assertThat(controller.page(AntintwrkSection.Profile)).isNotNull()
+            assertThat(controller.page(AntintwrkSection.Communities)!!.visibility).isEqualTo(android.view.View.INVISIBLE)
+        }
+    }
+
     @Test
     fun `native tabs keep separate webviews and web cross-section back restores the original page`() = runAndroidComposeUiTest {
         lateinit var controller: AntintwrkWebFeedController

@@ -106,7 +106,10 @@ class HomeFlowNode(
         backstack.elements.value.filter { it.key.navTarget != NavTarget.Root }.forEach {
             backstack.accept(com.bumble.appyx.navmodel.backstack.operation.Remove(it.key))
         }
-        backstack.elements.first { elements -> elements.all { it.key.navTarget == NavTarget.Root } }
+        backstack.elements.first { elements ->
+            elements.any { it.key.navTarget == NavTarget.Root && it.targetState == BackStack.State.ACTIVE } &&
+                elements.all { it.key.navTarget == NavTarget.Root || it.targetState == BackStack.State.DESTROYED }
+        }
         stateFlow.value.eventSink(HomeEvent.OpenAllChats)
         stateFlow.first { state ->
             state.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats &&

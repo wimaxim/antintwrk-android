@@ -649,7 +649,10 @@ class LoggedInFlowNode(
         }
         val home = waitForChildAttached<Node, NavTarget> { it is NavTarget.Home }
         (home as HomeEntryPoint.AppNavigation).openChats()
-        backstack.elements.first { elements -> elements.all { it.key.navTarget == NavTarget.Home } }
+        backstack.elements.first { elements ->
+            elements.any { it.key.navTarget == NavTarget.Home && it.targetState == ACTIVE } &&
+                elements.all { it.key.navTarget == NavTarget.Home || it.targetState == BackStack.State.DESTROYED }
+        }
     }
 
     fun openAppLogout() {

@@ -270,3 +270,8 @@ A failed Messenger/recipient/external-link navigation must not display a global 
 ## Silent retry before navigation errors — 9 October 2026
 
 Before reporting a transient navigation read failure, retry up to five total attempts with 1/2/4/8-second delays, then show the nonblocking localized error. Preserve the page, scroll and input; do not reload the entire social document. This applies only to the non-mutating messenger-recipient lookup and /go,/goto redirect resolution. Never replay message sends, room creation, auth mutations or forms. AUTH_REQUIRED/CONTACT_UNAVAILABLE, rate limits, TLS trust errors, malformed responses and cancellation are not retried. Stop/new intent invalidates retries. Recipient lookup has an 8-second per-call timeout; background counts/sync retain their existing policy. Android implemented; iOS must apply the same safe-read-only rule when developed. See navigation-retry-2026-10-09.md.
+
+
+## 9 October 2026: retained tab roots and preload
+
+Native bottom-tab selection restores its root when a retained route differs. Profile/Communities preload once after first successful Feed visual readiness; hidden callbacks cannot alter the visible page. Local Chats navigation accepts outgoing DESTROYED targets and retries bounded preparation timeouts without key resets/API mutations. 119 appnav antintwrk tests, appnav/home ktlint and signed gplayDebug build pass. Full evidence: ../docs/tabs-preload-2026-10-09.md in the mobile documentation checkout. No push.
