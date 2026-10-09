@@ -52,6 +52,10 @@ import io.element.android.appnav.BuildConfig as AppNavBuildConfig
 private val loggerTag = LoggerTag("MainActivity")
 
 class MainActivity : NodeActivity() {
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(if (AppNavBuildConfig.ANTINTWRK_NATIVE_AUTH) io.element.android.appnav.antintwrk.AntintwrkAppLocale.wrap(newBase) else newBase)
+    }
+
     private lateinit var mainNode: MainNode
     private lateinit var appBindings: AppBindings
 

@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">Cette inscription Google a expiré. Revenez en arrière et choisissez à nouveau votre compte Google.</string>
     <string name="screen_ant_auth_password_requirements">Utilisez 8 à 128 caractères avec une majuscule, une minuscule, un chiffre et un symbole.</string>
     <string name="screen_ant_auth_request_error">La demande a échoué. Vérifiez vos informations et votre connexion, puis réessayez.</string>
-    <string name="screen_ant_menu_settings">Paramètres du compte</string>
+    <string name="screen_ant_menu_settings">Paramètres</string>
     <string name="screen_ant_push_title">Notifications du réseau social</string>
     <string name="screen_ant_push_new">Nouvelles notifications</string>
     <string name="screen_ant_push_device">Sur cet appareil</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">Votre historique est restauré via votre compte du réseau social. Les clés sont gérées automatiquement.</string>
     <string name="screen_ant_recovery_ready">La restauration est prête. Votre historique chiffré est sauvegardé.</string>
     <string name="screen_ant_recovery_retry">Impossible de vérifier la restauration. Vos discussions restent disponibles. Vérifiez votre connexion et réessayez.</string>
+    <string name="screen_ant_settings_language">Langue</string>
+    <string name="screen_ant_settings_system_language">Langue de l’appareil</string>
+    <string name="screen_ant_settings_account">Compte</string>
+    <string name="screen_ant_settings_profile">Profil et sécurité</string>
+    <string name="screen_ant_settings_participation">Participation</string>
+    <string name="screen_ant_settings_help">Aide et informations</string>
+    <string name="screen_ant_social_unavailable">Le réseau social est temporairement indisponible. Nous réessaierons automatiquement. Vous pouvez utiliser la messagerie.</string>
+    <string name="screen_ant_messenger_unavailable">La messagerie est temporairement indisponible. Nous réessaierons automatiquement. Vous pouvez utiliser le réseau social.</string>
+    <string name="screen_ant_offline">Pas de connexion Internet. Vérifiez le Wi-Fi ou les données mobiles et réessayez.</string>
 </resources>

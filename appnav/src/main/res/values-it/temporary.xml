@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">Questa registrazione Google è scaduta. Torna indietro e seleziona di nuovo il tuo account Google.</string>
     <string name="screen_ant_auth_password_requirements">Usa 8–128 caratteri con maiuscole, minuscole, un numero e un simbolo.</string>
     <string name="screen_ant_auth_request_error">Impossibile completare la richiesta. Controlla i dati e la connessione, poi riprova.</string>
-    <string name="screen_ant_menu_settings">Impostazioni account</string>
+    <string name="screen_ant_menu_settings">Impostazioni</string>
     <string name="screen_ant_push_title">Notifiche del social network</string>
     <string name="screen_ant_push_new">Nuove notifiche</string>
     <string name="screen_ant_push_device">Su questo dispositivo</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">La cronologia delle chat viene ripristinata tramite il tuo account del social network. Le chiavi sono gestite automaticamente.</string>
     <string name="screen_ant_recovery_ready">Il ripristino è pronto. La cronologia crittografata è stata salvata.</string>
     <string name="screen_ant_recovery_retry">Impossibile verificare il ripristino. Le chat restano disponibili. Controlla la connessione e riprova.</string>
+    <string name="screen_ant_settings_language">Lingua</string>
+    <string name="screen_ant_settings_system_language">Lingua del dispositivo</string>
+    <string name="screen_ant_settings_account">Account</string>
+    <string name="screen_ant_settings_profile">Profilo e sicurezza</string>
+    <string name="screen_ant_settings_participation">Partecipazione</string>
+    <string name="screen_ant_settings_help">Aiuto e informazioni</string>
+    <string name="screen_ant_social_unavailable">Il social network è temporaneamente non disponibile. Riproveremo automaticamente. Puoi usare il messenger.</string>
+    <string name="screen_ant_messenger_unavailable">Il messenger è temporaneamente non disponibile. Riproveremo automaticamente. Puoi usare il social network.</string>
+    <string name="screen_ant_offline">Nessuna connessione Internet. Controlla il Wi-Fi o i dati mobili e riprova.</string>
 </resources>

@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">Esta inscripción con Google ha caducado. Vuelve atrás y selecciona de nuevo tu cuenta de Google.</string>
     <string name="screen_ant_auth_password_requirements">Usa entre 8 y 128 caracteres con mayúsculas, minúsculas, un número y un símbolo.</string>
     <string name="screen_ant_auth_request_error">No se pudo completar la solicitud. Revisa los datos y la conexión e inténtalo de nuevo.</string>
-    <string name="screen_ant_menu_settings">Configuración de cuenta</string>
+    <string name="screen_ant_menu_settings">Configuración</string>
     <string name="screen_ant_push_title">Notificaciones de la red social</string>
     <string name="screen_ant_push_new">Nuevas notificaciones</string>
     <string name="screen_ant_push_device">En este dispositivo</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">El historial de chats se recupera mediante tu cuenta de la red social. La aplicación gestiona las claves automáticamente.</string>
     <string name="screen_ant_recovery_ready">La recuperación está lista. Se ha guardado una copia del historial cifrado.</string>
     <string name="screen_ant_recovery_retry">No se pudo comprobar la recuperación. Tus chats siguen disponibles. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="screen_ant_settings_language">Idioma</string>
+    <string name="screen_ant_settings_system_language">Usar el idioma del dispositivo</string>
+    <string name="screen_ant_settings_account">Cuenta</string>
+    <string name="screen_ant_settings_profile">Perfil y seguridad</string>
+    <string name="screen_ant_settings_participation">Participación</string>
+    <string name="screen_ant_settings_help">Ayuda e información</string>
+    <string name="screen_ant_social_unavailable">La red social no está disponible temporalmente. Reintentaremos automáticamente. Puedes seguir usando el mensajero.</string>
+    <string name="screen_ant_messenger_unavailable">El mensajero no está disponible temporalmente. Reintentaremos automáticamente. Puedes seguir usando la red social.</string>
+    <string name="screen_ant_offline">Sin conexión a internet. Comprueba el Wi-Fi o los datos móviles e inténtalo de nuevo.</string>
 </resources>

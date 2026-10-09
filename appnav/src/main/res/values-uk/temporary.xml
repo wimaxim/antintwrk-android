@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">Термін реєстрації через Google минув. Поверніться назад і знову виберіть обліковий запис Google.</string>
     <string name="screen_ant_auth_password_requirements">Використовуйте 8–128 символів: велику й малу літери, цифру та спеціальний символ.</string>
     <string name="screen_ant_auth_request_error">Не вдалося виконати запит. Перевірте дані й з’єднання та повторіть.</string>
-    <string name="screen_ant_menu_settings">Налаштування облікового запису</string>
+    <string name="screen_ant_menu_settings">Налаштування</string>
     <string name="screen_ant_push_title">Сповіщення соцмережі</string>
     <string name="screen_ant_push_new">Нові сповіщення</string>
     <string name="screen_ant_push_device">На цьому пристрої</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">Історія листування відновлюється через обліковий запис соцмережі. Застосунок керує ключами автоматично.</string>
     <string name="screen_ant_recovery_ready">Відновлення готове. Резервну копію зашифрованої історії збережено.</string>
     <string name="screen_ant_recovery_retry">Не вдалося перевірити відновлення. Листування залишається доступним. Перевірте з’єднання та повторіть спробу.</string>
+    <string name="screen_ant_settings_language">Мова</string>
+    <string name="screen_ant_settings_system_language">Мова пристрою</string>
+    <string name="screen_ant_settings_account">Обліковий запис</string>
+    <string name="screen_ant_settings_profile">Профіль і безпека</string>
+    <string name="screen_ant_settings_participation">Участь</string>
+    <string name="screen_ant_settings_help">Допомога та інформація</string>
+    <string name="screen_ant_social_unavailable">Соцмережа тимчасово недоступна. Підключення повториться автоматично. Ви можете користуватися месенджером.</string>
+    <string name="screen_ant_messenger_unavailable">Месенджер тимчасово недоступний. Підключення повториться автоматично. Ви можете користуватися соцмережею.</string>
+    <string name="screen_ant_offline">Немає інтернету. Перевірте Wi-Fi або мобільну мережу та спробуйте знову.</string>
 </resources>

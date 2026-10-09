@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">Срок регистрации через Google истёк. Вернитесь назад и снова выберите аккаунт Google.</string>
     <string name="screen_ant_auth_password_requirements">Используйте 8–128 символов: заглавную и строчную буквы, цифру и специальный символ.</string>
     <string name="screen_ant_auth_request_error">Не удалось выполнить запрос. Проверьте данные и подключение, затем повторите.</string>
-    <string name="screen_ant_menu_settings">Настройки аккаунта</string>
+    <string name="screen_ant_menu_settings">Настройки</string>
     <string name="screen_ant_push_title">Уведомления соцсети</string>
     <string name="screen_ant_push_new">Новые уведомления</string>
     <string name="screen_ant_push_device">На этом устройстве</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">История переписки восстанавливается через аккаунт соцсети. Приложение управляет ключами автоматически.</string>
     <string name="screen_ant_recovery_ready">Восстановление готово. Резервная копия зашифрованной истории сохранена.</string>
     <string name="screen_ant_recovery_retry">Не удалось проверить восстановление. Переписка остаётся доступна. Проверьте соединение и повторите попытку.</string>
+    <string name="screen_ant_settings_language">Язык</string>
+    <string name="screen_ant_settings_system_language">Язык устройства</string>
+    <string name="screen_ant_settings_account">Аккаунт</string>
+    <string name="screen_ant_settings_profile">Профиль и безопасность</string>
+    <string name="screen_ant_settings_participation">Участие</string>
+    <string name="screen_ant_settings_help">Помощь и информация</string>
+    <string name="screen_ant_social_unavailable">Соцсеть временно недоступна. Подключение повторится автоматически. Вы можете пользоваться мессенджером.</string>
+    <string name="screen_ant_messenger_unavailable">Мессенджер временно недоступен. Подключение повторится автоматически. Вы можете пользоваться соцсетью.</string>
+    <string name="screen_ant_offline">Нет подключения к интернету. Проверьте Wi-Fi или мобильную сеть и попробуйте снова.</string>
 </resources>

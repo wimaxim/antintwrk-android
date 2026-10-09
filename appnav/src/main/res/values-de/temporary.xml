@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">Diese Google-Registrierung ist abgelaufen. Gehe zurück und wähle dein Google-Konto erneut.</string>
     <string name="screen_ant_auth_password_requirements">Verwende 8–128 Zeichen mit Groß- und Kleinbuchstaben, einer Zahl und einem Sonderzeichen.</string>
     <string name="screen_ant_auth_request_error">Die Anfrage konnte nicht abgeschlossen werden. Prüfe deine Angaben und Verbindung und versuche es erneut.</string>
-    <string name="screen_ant_menu_settings">Kontoeinstellungen</string>
+    <string name="screen_ant_menu_settings">Einstellungen</string>
     <string name="screen_ant_push_title">Benachrichtigungen des sozialen Netzwerks</string>
     <string name="screen_ant_push_new">Neue Benachrichtigungen</string>
     <string name="screen_ant_push_device">Auf diesem Gerät</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">Ihr Chatverlauf wird über Ihr Konto im sozialen Netzwerk wiederhergestellt. Die App verwaltet die Schlüssel automatisch.</string>
     <string name="screen_ant_recovery_ready">Die Wiederherstellung ist bereit. Ihr verschlüsselter Verlauf ist gesichert.</string>
     <string name="screen_ant_recovery_retry">Die Wiederherstellung konnte nicht geprüft werden. Ihre Chats bleiben verfügbar. Prüfen Sie die Verbindung und versuchen Sie es erneut.</string>
+    <string name="screen_ant_settings_language">Sprache</string>
+    <string name="screen_ant_settings_system_language">Gerätesprache verwenden</string>
+    <string name="screen_ant_settings_account">Konto</string>
+    <string name="screen_ant_settings_profile">Profil und Sicherheit</string>
+    <string name="screen_ant_settings_participation">Mitwirken</string>
+    <string name="screen_ant_settings_help">Hilfe und Informationen</string>
+    <string name="screen_ant_social_unavailable">Das soziale Netzwerk ist vorübergehend nicht erreichbar. Wir versuchen es automatisch erneut. Du kannst den Messenger weiter nutzen.</string>
+    <string name="screen_ant_messenger_unavailable">Der Messenger ist vorübergehend nicht erreichbar. Wir versuchen es automatisch erneut. Du kannst das soziale Netzwerk weiter nutzen.</string>
+    <string name="screen_ant_offline">Keine Internetverbindung. Prüfe WLAN oder mobile Daten und versuche es erneut.</string>
 </resources>

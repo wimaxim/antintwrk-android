@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">انتهت صلاحية التسجيل عبر Google. عد إلى الخلف واختر حساب Google مجددًا.</string>
     <string name="screen_ant_auth_password_requirements">استخدم 8–128 رمزًا تتضمن حرفًا كبيرًا وحرفًا صغيرًا ورقمًا ورمزًا خاصًا.</string>
     <string name="screen_ant_auth_request_error">تعذر إكمال الطلب. تحقق من البيانات والاتصال ثم حاول مجددًا.</string>
-    <string name="screen_ant_menu_settings">إعدادات الحساب</string>
+    <string name="screen_ant_menu_settings">الإعدادات</string>
     <string name="screen_ant_push_title">إشعارات الشبكة الاجتماعية</string>
     <string name="screen_ant_push_new">إشعارات جديدة</string>
     <string name="screen_ant_push_device">على هذا الجهاز</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">تُستعاد محادثاتك عبر حسابك في الشبكة الاجتماعية. يدير التطبيق مفاتيح الاستعادة تلقائيًا.</string>
     <string name="screen_ant_recovery_ready">الاستعادة جاهزة. تم حفظ نسخة احتياطية من سجل محادثاتك المشفّر.</string>
     <string name="screen_ant_recovery_retry">تعذّر التحقق من الاستعادة. تظل محادثاتك متاحة. تحقق من الاتصال وحاول مجددًا.</string>
+    <string name="screen_ant_settings_language">اللغة</string>
+    <string name="screen_ant_settings_system_language">لغة الجهاز</string>
+    <string name="screen_ant_settings_account">الحساب</string>
+    <string name="screen_ant_settings_profile">الملف الشخصي والأمان</string>
+    <string name="screen_ant_settings_participation">المشاركة</string>
+    <string name="screen_ant_settings_help">المساعدة والمعلومات</string>
+    <string name="screen_ant_social_unavailable">الشبكة الاجتماعية غير متاحة مؤقتًا. سنعيد الاتصال تلقائيًا. يمكنك استخدام المراسلة.</string>
+    <string name="screen_ant_messenger_unavailable">المراسلة غير متاحة مؤقتًا. سنعيد الاتصال تلقائيًا. يمكنك استخدام الشبكة الاجتماعية.</string>
+    <string name="screen_ant_offline">لا يوجد اتصال بالإنترنت. تحقق من Wi-Fi أو بيانات الهاتف وحاول مجددًا.</string>
 </resources>

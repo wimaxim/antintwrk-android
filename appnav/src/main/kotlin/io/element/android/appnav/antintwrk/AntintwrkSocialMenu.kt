@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
-import io.element.android.appnav.BuildConfig
 import io.element.android.appnav.R
 import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.theme.components.Text
@@ -27,35 +26,10 @@ internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit, onSignOut: (() -> Un
             Icon(CompoundIcons.OverflowVertical(), stringResource(R.string.screen_ant_menu_more))
         }
         DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
-            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.screen_ant_push_title)) }, onClick = {
-                expanded = false
-                onRoute("native-push")
-            })
-            }
-            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.screen_ant_licences)) }, onClick = {
-                expanded = false
-                onRoute("native-licences")
-            })
-            }
-            if (onSignOut != null) {
-                DropdownMenuItem(text = { Text(stringResource(R.string.screen_ant_auth_logout)) }, onClick = {
-                    expanded = false
-                    onSignOut()
-                })
-            }
             listOf(
                 "hero-compose" to R.string.screen_ant_menu_compose,
-                "profile" to R.string.screen_ant_menu_settings,
                 "people" to R.string.screen_ant_menu_people,
-                "messages" to R.string.screen_ant_menu_messages,
-                "monetization" to R.string.screen_ant_menu_monetization,
-                "my-referrals" to R.string.screen_ant_menu_referrals,
-                "support" to R.string.screen_ant_menu_support,
-                "about" to R.string.screen_ant_menu_about,
-                "terms" to R.string.screen_ant_menu_terms,
-                "privacy" to R.string.screen_ant_menu_privacy,
+                "native-settings" to R.string.screen_ant_menu_settings,
             ).forEach { (route, label) ->
                 DropdownMenuItem(text = { Text(stringResource(label)) }, onClick = {
                     expanded = false

@@ -82,7 +82,7 @@
     <string name="screen_ant_auth_registration_expired">This Google registration has expired. Go back and select your Google account again.</string>
     <string name="screen_ant_auth_password_requirements">Use 8–128 characters with uppercase, lowercase, a number and a special character.</string>
     <string name="screen_ant_auth_request_error">Could not complete the request. Check your details and connection, then try again.</string>
-    <string name="screen_ant_menu_settings">Account settings</string>
+    <string name="screen_ant_menu_settings">Settings</string>
     <string name="screen_ant_push_title">Social notifications</string>
     <string name="screen_ant_push_new">New notifications</string>
     <string name="screen_ant_push_device">On this device</string>
@@ -110,4 +110,13 @@
     <string name="screen_ant_recovery_account">Your chat history is restored through your social account. Recovery keys are managed automatically.</string>
     <string name="screen_ant_recovery_ready">Recovery is ready. Your encrypted history is backed up.</string>
     <string name="screen_ant_recovery_retry">Recovery could not be checked. Your chats remain available. Check your connection and try again.</string>
+    <string name="screen_ant_settings_language">Language</string>
+    <string name="screen_ant_settings_system_language">Use device language</string>
+    <string name="screen_ant_settings_account">Account</string>
+    <string name="screen_ant_settings_profile">Profile and security</string>
+    <string name="screen_ant_settings_participation">Participation</string>
+    <string name="screen_ant_settings_help">Help and information</string>
+    <string name="screen_ant_social_unavailable">The social network is temporarily unavailable. We will retry automatically. You can continue using the messenger.</string>
+    <string name="screen_ant_messenger_unavailable">The messenger is temporarily unavailable. We will retry automatically. You can continue using the social network.</string>
+    <string name="screen_ant_offline">No internet connection. Check Wi-Fi or mobile data and try again.</string>
 </resources>
