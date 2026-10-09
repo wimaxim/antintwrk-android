@@ -9,10 +9,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
@@ -62,6 +65,7 @@ import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 import io.element.android.libraries.designsystem.utils.LocalEmbeddedConversationVisibility
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AntintwrkShellView(
     state: AntintwrkShellState,
@@ -82,6 +86,7 @@ fun AntintwrkShellView(
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
     socialContent: (@Composable (Modifier) -> Unit)? = null,
 ) = AntintwrkBrandTheme(systemBarsKey = state.mode) {
+    val keyboardVisible = WindowInsets.isImeVisible
     val conversationVisibility = rememberUpdatedState(state.mode == AntintwrkMode.Messenger && messengerInteractive)
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
@@ -155,7 +160,7 @@ fun AntintwrkShellView(
         },
         bottomBar = {
             if (state.mode == AntintwrkMode.Social && (socialContent == null || webFeed) && webController?.fullscreen == null &&
-                webController?.composing != true) {
+                !keyboardVisible) {
                 NavigationBar(containerColor = AntintwrkBackground) {
                     AntintwrkSection.entries.forEach { section ->
                         NavigationBarItem(
