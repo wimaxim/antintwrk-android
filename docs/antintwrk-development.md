@@ -265,3 +265,8 @@ RU nginx now uses a bounded 10 GB public asset disk cache plus client headers: ?
 ## Resume navigation errors — 9 October 2026
 
 A failed Messenger/recipient/external-link navigation must not display a global blocking dialog over a working social page. Show a localized, dismissible, short-lived snackbar instead; Retry is available only for an active explicit recipient request. Stop/account changes/new navigation invalidate old error completions, cancel the in-flight user navigation and clear its busy/error UI. Background sync, counters, recovery and admitted session checks remain unchanged. Do not reload social pages on resume. Preserve an explicit queued recipient request for controlled foreground completion; compare-and-set consumption must not clear a newer route. Android implemented; iOS must follow this contract when developed. See resume-errors-2026-10-09.md for actual verification and limitations.
+
+
+## Silent retry before navigation errors — 9 October 2026
+
+Before reporting a transient navigation read failure, retry up to five total attempts with 1/2/4/8-second delays, then show the nonblocking localized error. Preserve the page, scroll and input; do not reload the entire social document. This applies only to the non-mutating messenger-recipient lookup and /go,/goto redirect resolution. Never replay message sends, room creation, auth mutations or forms. AUTH_REQUIRED/CONTACT_UNAVAILABLE, rate limits, TLS trust errors, malformed responses and cancellation are not retried. Stop/new intent invalidates retries. Recipient lookup has an 8-second per-call timeout; background counts/sync retain their existing policy. Android implemented; iOS must apply the same safe-read-only rule when developed. See navigation-retry-2026-10-09.md.

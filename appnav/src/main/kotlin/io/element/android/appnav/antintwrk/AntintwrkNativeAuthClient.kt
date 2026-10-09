@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 internal enum class AntintwrkAuthStage { LOGIN, DEVICE, TOTP, SETUP_REQUIRED, AUTHENTICATED }
 internal data class AntintwrkSocialStatus(val notifications: Int, val profileIdentity: String?, val avatar: String? = null, val name: String? = null)
 internal class AntintwrkRegistrationRequired(val ticket: String, val email: String, val firstName: String, val surname: String) : Exception()
-internal class AntintwrkRequestError(val code: String) : Exception()
+internal class AntintwrkRequestError(val code: String, val httpStatus: Int? = null) : Exception()
 internal class AntintwrkAccountError(val messageForUser: String) : Exception()
 internal data class AntintwrkAuthSession(val stage: AntintwrkAuthStage, val csrf: String, val profileIdentity: String? = null, val matrixUserId: String? = null)
 
@@ -39,7 +39,9 @@ internal class AntintwrkNativeAuthClient(
         val request = Request.Builder().url("$origin/antintwrk_mobile.php")
             .header("Origin", origin).header("X-Antintwrk-Client", "native").header("User-Agent", USER_AGENT)
             .header("Cookie", cookieSnapshot ?: cookies.getCookie(origin).orEmpty()).post(body).build()
-        http.newCall(request).execute().use { response ->
+        http.newCall(request).apply {
+            if (action == "messenger-recipient") timeout().timeout(8, TimeUnit.SECONDS)
+        }.execute().use { response ->
             if (cookieSnapshot == null) {
                 response.headers.values("Set-Cookie").forEach { cookies.setCookie(origin, it) }
                 cookies.flush()
@@ -55,7 +57,7 @@ internal class AntintwrkNativeAuthClient(
             source.request(65537)
             require(source.buffer.size <= 65536) { "Request failed" }
             val result = source.buffer.readUtf8()
-            if (!response.isSuccessful) throw AntintwrkRequestError(runCatching { JSONObject(result).optString("error") }.getOrDefault(""))
+            if (!response.isSuccessful) throw AntintwrkRequestError(runCatching { JSONObject(result).optString("error") }.getOrDefault(""), response.code)
             result
         }
     }

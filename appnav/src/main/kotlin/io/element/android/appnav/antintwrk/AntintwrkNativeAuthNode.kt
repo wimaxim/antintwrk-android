@@ -226,7 +226,9 @@ internal fun AntintwrkNativeAppView(
                     directBusy = true
                     directFailed = false
                     try {
-                        val response = client.messengerRecipient(target, current.csrf)
+                        val response = antintwrkRetryNavigationRead({ navigationEpoch.accepts(epoch, foreground) }) {
+                            client.messengerRecipient(target, current.csrf)
+                        }
                         require(response.getString("actorUserId") == current.matrixUserId)
                         if (sequence == navigationSequence && session?.matrixUserId == current.matrixUserId) {
                             AntintwrkMessengerRoutes.open(response.getString("actorUserId"), response.getString("recipientUserId"))
@@ -684,7 +686,9 @@ internal fun AntintwrkNativeAppView(
                     navigationSnackbar.currentSnackbarData?.dismiss()
                     scope.launch {
                         try {
-                            val resolved = antintwrkExternalRedirect(canonical, policy)
+                            val resolved = antintwrkRetryNavigationRead({ navigationEpoch.accepts(epoch, foreground) }) {
+                                antintwrkExternalRedirect(canonical, policy)
+                            }
                             if (navigationEpoch.accepts(epoch, foreground)) externalUriHandler.openUri(resolved)
                         } catch (cancelled: CancellationException) {
                             throw cancelled

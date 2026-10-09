@@ -22,6 +22,7 @@ internal suspend fun antintwrkExternalRedirect(url: String, policy: AntintwrkWeb
             .header("User-Agent", AntintwrkNativeAuthClient.USER_AGENT)
             .header("Cookie", CookieManager.getInstance().getCookie(current).orEmpty()).get().build()
         current = http.newCall(request).execute().use { response ->
+            if (response.code in setOf(408, 500, 502, 503, 504)) throw AntintwrkRequestError("UNAVAILABLE", response.code)
             require(response.code in setOf(301, 302, 303, 307, 308))
             val target = response.header("Location") ?: error("Missing destination")
             response.request.url.resolve(target)?.toString() ?: error("Invalid destination")
