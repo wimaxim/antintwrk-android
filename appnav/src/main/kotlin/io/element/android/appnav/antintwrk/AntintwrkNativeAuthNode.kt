@@ -5,9 +5,14 @@ package io.element.android.appnav.antintwrk
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -19,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -36,8 +42,6 @@ import io.element.android.appnav.BuildConfig
 import io.element.android.appnav.R
 import io.element.android.features.userprofile.api.AntintwrkProfileNavigation
 import io.element.android.libraries.architecture.bindings
-import io.element.android.libraries.designsystem.theme.components.Text
-import io.element.android.libraries.designsystem.theme.components.TextButton
 import io.element.android.libraries.designsystem.utils.LocalEmbeddedLinkHandler
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -162,8 +166,12 @@ internal fun AntintwrkNativeAppView(
         val chatsRequestState: androidx.compose.runtime.MutableState<Boolean> = retainedSurface?.chatsRequested ?: remember { mutableStateOf(false) }
         var chatsRequested by chatsRequestState
         var navigationSequence by remember { mutableLongStateOf(0L) }
+        val navigationEpoch = remember { AntintwrkNavigationEpoch() }
+        val navigationSnackbar = remember { SnackbarHostState() }
         fun selectMode(mode: AntintwrkMode) {
             navigationSequence++
+            navigationEpoch.advance()
+            navigationSnackbar.currentSnackbarData?.dismiss()
             directJob?.cancel()
             directBusy = false
             directFailed = false
@@ -173,9 +181,10 @@ internal fun AntintwrkNativeAppView(
         }
         val currentOpenChats by androidx.compose.runtime.rememberUpdatedState(onOpenChats)
         val navigationActor = session?.matrixUserId ?: accountPreferences.getString("social-actor", null)
-        LaunchedEffect(chatsRequested, matrixUserId, navigationActor) {
+        LaunchedEffect(chatsRequested, matrixUserId, navigationActor, navigationSequence) {
             if (chatsRequested && matrixUserId != null && matrixUserId == navigationActor && currentOpenChats != null) {
                 val sequence = navigationSequence
+                val epoch = navigationEpoch.current
                 try {
                     withTimeout(30_000) { currentOpenChats?.invoke() }
                     if (sequence == navigationSequence) {
@@ -184,11 +193,15 @@ internal fun AntintwrkNativeAppView(
                     }
                 } catch (cancelled: CancellationException) {
                     if (cancelled !is TimeoutCancellationException) throw cancelled
-                    chatsRequested = false
-                    directFailed = true
+                    if (navigationEpoch.accepts(epoch, foreground)) {
+                        chatsRequested = false
+                        directFailed = true
+                    }
                 } catch (_: Exception) {
-                    chatsRequested = false
-                    directFailed = true
+                    if (navigationEpoch.accepts(epoch, foreground)) {
+                        chatsRequested = false
+                        directFailed = true
+                    }
                 }
             }
         }
@@ -205,6 +218,8 @@ internal fun AntintwrkNativeAppView(
                 } else {
                     chatsRequested = false
                     val sequence = ++navigationSequence
+                    val epoch = navigationEpoch.advance()
+                    navigationSnackbar.currentSnackbarData?.dismiss()
                     directBusy = true
                     scope.launch {
                     directJob = currentCoroutineContext()[Job]
@@ -220,32 +235,33 @@ internal fun AntintwrkNativeAppView(
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (_: Exception) {
-                        directFailed = true
+                        if (navigationEpoch.accepts(epoch, foreground)) directFailed = true
                     } finally {
-                        directBusy = false
+                        if (navigationEpoch.current == epoch) directBusy = false
                     }
                 }
                 }
             }
         }
-        LaunchedEffect(messageRequest, matrixUserId, session?.matrixUserId, shellState.mode, directAttempt) {
+        LaunchedEffect(messageRequest, matrixUserId, session?.matrixUserId, shellState.mode, directAttempt, foreground) {
             val request = messageRequest
-            if (request != null && request.actor == session?.matrixUserId) {
+            if (foreground && request != null && request.actor == session?.matrixUserId) {
                 if (shellState.mode != AntintwrkMode.Messenger) return@LaunchedEffect
                 if (matrixUserId == request.actor && onOpenMessage != null && !directFailed && !directBusy) {
+                    val epoch = navigationEpoch.advance()
                     directJob = currentCoroutineContext()[Job]
                     directBusy = true
                     try {
                         withTimeout(30_000) { onOpenMessage(request.recipient) }
                         AntintwrkMessengerRoutes.consume(request)
                     } catch (_: TimeoutCancellationException) {
-                        directFailed = true
+                        if (navigationEpoch.accepts(epoch, foreground)) directFailed = true
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (_: Exception) {
-                        directFailed = true
+                        if (navigationEpoch.accepts(epoch, foreground)) directFailed = true
                     } finally {
-                        directBusy = false
+                        if (navigationEpoch.current == epoch) directBusy = false
                     }
                 }
             }
@@ -272,6 +288,10 @@ internal fun AntintwrkNativeAppView(
                     if (previousActor != null && previousActor != session?.matrixUserId) {
                         chatsRequested = false
                         navigationSequence++
+                        navigationEpoch.advance()
+                        navigationSnackbar.currentSnackbarData?.dismiss()
+                        directFailed = false
+                        externalLinkFailed = false
                         directJob?.cancel()
                         webController.destroy()
                         webController.currentUrl = null
@@ -408,7 +428,17 @@ internal fun AntintwrkNativeAppView(
                 scope.launch { runRequest(revalidate = true) { client.session() } }
             }
         }
-        LifecycleEventEffect(Lifecycle.Event.ON_STOP) { foreground = false }
+        LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
+            foreground = false
+            navigationEpoch.advance()
+            navigationSequence++
+            chatsRequested = false
+            directJob?.cancel()
+            directBusy = false
+            directFailed = false
+            externalLinkFailed = false
+            navigationSnackbar.currentSnackbarData?.dismiss()
+        }
         LaunchedEffect(session?.stage, busy) {
             if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy && pushStore.enabled && pushRegistrar.available) {
                 pushRegistrar.register()
@@ -648,13 +678,18 @@ internal fun AntintwrkNativeAppView(
                 val canonical = policy.canonical(url)
                 val embedded = policy.embedded(canonical)
                 if (policy.sameOrigin(canonical) && policy.outbound(canonical)) {
+                    val epoch = navigationEpoch.advance()
+                    directFailed = false
+                    externalLinkFailed = false
+                    navigationSnackbar.currentSnackbarData?.dismiss()
                     scope.launch {
                         try {
-                            externalUriHandler.openUri(antintwrkExternalRedirect(canonical, policy))
+                            val resolved = antintwrkExternalRedirect(canonical, policy)
+                            if (navigationEpoch.accepts(epoch, foreground)) externalUriHandler.openUri(resolved)
                         } catch (cancelled: CancellationException) {
                             throw cancelled
                         } catch (_: Exception) {
-                            externalLinkFailed = true
+                            if (navigationEpoch.accepts(epoch, foreground)) externalLinkFailed = true
                         }
                     }
                     true
@@ -836,28 +871,36 @@ internal fun AntintwrkNativeAppView(
             AntintwrkLoadingView()
         }
         }
-        if (directFailed || externalLinkFailed) {
-            Dialog(onDismissRequest = {
-                directFailed = false
-                externalLinkFailed = false
-                AntintwrkMessengerRoutes.clear()
-            }) {
-            AntintwrkBrandTheme {
-                Column(Modifier.padding(24.dp)) {
-                    Text(stringResource(R.string.screen_ant_auth_request_error))
-                    if (messageRequest != null) {
-                        TextButton(stringResource(R.string.screen_ant_web_retry), {
-                        directFailed = false
+        val navigationError = stringResource(io.element.android.libraries.ui.strings.R.string.screen_ant_account_messages_retry)
+        val externalError = stringResource(R.string.screen_ant_auth_request_error)
+        val retryLabel = stringResource(R.string.screen_ant_web_retry)
+        LaunchedEffect(directFailed, externalLinkFailed, foreground) {
+            if (foreground && (directFailed || externalLinkFailed)) {
+                val pending = messageRequest
+                val epoch = navigationEpoch.current
+                val result = navigationSnackbar.showSnackbar(
+                    message = if (directFailed) navigationError else externalError,
+                    actionLabel = if (directFailed && pending != null) retryLabel else null,
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short
+                )
+                if (navigationEpoch.accepts(epoch, foreground)) {
+                    directFailed = false
+                    externalLinkFailed = false
+                    if (result == SnackbarResult.ActionPerformed && pending != null) {
                         directAttempt++
-                    })
+                    } else if (pending != null) {
+                        AntintwrkMessengerRoutes.consume(pending)
                     }
-                    TextButton(stringResource(R.string.screen_antintwrk_back), {
-                        directFailed = false
-                        externalLinkFailed = false
-                        AntintwrkMessengerRoutes.clear()
-                    })
                 }
             }
         }
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+            AntintwrkBrandTheme {
+                SnackbarHost(
+                    navigationSnackbar,
+                    Modifier.imePadding().navigationBarsPadding().padding(start = 12.dp, end = 12.dp, bottom = 80.dp)
+                )
+            }
         }
     }
