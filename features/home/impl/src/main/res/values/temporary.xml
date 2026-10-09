@@ -18,4 +18,5 @@
     <string name="screen_ant_backup_check_title">Chat history backup</string>
     <string name="screen_ant_backup_check_message">The backup is not confirmed yet. The app manages recovery through your social account. Check the backup status without entering a recovery key.</string>
     <string name="screen_ant_backup_check_action">Check backup</string>
+    <string name="screen_ant_chat_requests">Chat requests (%1$d)</string>
 </resources>

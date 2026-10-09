@@ -33,6 +33,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +46,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -56,12 +60,14 @@ import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
+import io.element.android.libraries.designsystem.utils.LocalEmbeddedConversationVisibility
 
 @Composable
 fun AntintwrkShellView(
     state: AntintwrkShellState,
     modifier: Modifier = Modifier,
     webFeed: Boolean = false,
+    messengerUnread: Long = 0,
     socialUnavailable: Boolean = false,
     onRetrySocial: () -> Unit = {},
     onAuthRequired: () -> Unit = {},
@@ -73,6 +79,7 @@ fun AntintwrkShellView(
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
     socialContent: (@Composable (Modifier) -> Unit)? = null,
 ) = AntintwrkBrandTheme(systemBarsKey = state.mode) {
+    val conversationVisibility = rememberUpdatedState(state.mode == AntintwrkMode.Messenger)
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
     val language = LocalConfiguration.current.locales[0].language
@@ -102,6 +109,7 @@ fun AntintwrkShellView(
             if (webController?.fullscreen == null) {
                 ShellHeader(
                     state,
+                    messengerUnread = messengerUnread,
                     onSearch = {
                 if (webController != null) {
                     webController.navigate(policy.route(language, "discover"))
@@ -201,7 +209,9 @@ fun AntintwrkShellView(
             Box(Modifier.fillMaxSize()) {
             if (messengerContent != null) {
                 Box(if (state.mode == AntintwrkMode.Messenger) Modifier.fillMaxSize() else Modifier.size(1.dp).alpha(0f).clearAndSetSemantics {}) {
-                    messengerContent(Modifier.fillMaxSize())
+                    CompositionLocalProvider(LocalEmbeddedConversationVisibility provides conversationVisibility) {
+                        messengerContent(Modifier.fillMaxSize())
+                    }
                 }
             }
             if (state.mode == AntintwrkMode.Messenger) {
@@ -236,6 +246,7 @@ fun AntintwrkShellView(
 @Composable
 private fun ShellHeader(
     state: AntintwrkShellState,
+    messengerUnread: Long,
     onSearch: () -> Unit,
     onNotifications: () -> Unit,
     onRoute: ((String) -> Unit)?,
@@ -247,7 +258,7 @@ private fun ShellHeader(
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ShellModeTabs(state, Modifier.weight(1f))
+            ShellModeTabs(state, messengerUnread, Modifier.weight(1f))
             if (state.mode == AntintwrkMode.Messenger && onOpenSettings != null) {
                 IconButton(onClick = onOpenSettings) {
                     Icon(CompoundIcons.Settings(), stringResource(R.string.screen_ant_menu_settings))
@@ -265,7 +276,8 @@ private fun ShellHeader(
 }
 
 @Composable
-private fun ShellModeTabs(state: AntintwrkShellState, modifier: Modifier) {
+private fun ShellModeTabs(state: AntintwrkShellState, messengerUnread: Long, modifier: Modifier) {
+    val unreadDescription = stringResource(R.string.a11y_ant_unread_messages, messengerUnread)
     TabRow(
         selectedTabIndex = state.mode.ordinal,
         modifier = modifier.clip(RoundedCornerShape(8.dp)),
@@ -280,11 +292,21 @@ private fun ShellModeTabs(state: AntintwrkShellState, modifier: Modifier) {
                 selectedContentColor = ElementTheme.materialColors.primary,
                 unselectedContentColor = ElementTheme.colors.textSecondary,
             ) {
-                Text(
-                    stringResource(if (mode == AntintwrkMode.Social) R.string.screen_ant_shell_social else R.string.screen_ant_shell_messenger),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
-                    style = ElementTheme.typography.fontBodySmRegular,
-                )
+                Row(
+                    Modifier.padding(horizontal = 8.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        stringResource(if (mode == AntintwrkMode.Social) R.string.screen_ant_shell_social else R.string.screen_ant_shell_messenger),
+                        style = ElementTheme.typography.fontBodySmRegular,
+                    )
+                    if (mode == AntintwrkMode.Messenger && messengerUnread > 0) {
+                        Badge(modifier = Modifier.semantics {
+                            contentDescription = unreadDescription
+                        }) { Text(if (messengerUnread > 99) "99+" else messengerUnread.toString()) }
+                    }
+                }
             }
         }
     }

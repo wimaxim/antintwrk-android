@@ -45,6 +45,8 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
@@ -58,6 +60,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext, private val onSwitchAc
 internal fun AntintwrkNativeAppView(
     modifier: Modifier = Modifier,
     matrixUserId: String? = null,
+    messengerRooms: io.element.android.libraries.matrix.api.roomlist.RoomList? = null,
     onRequestSignOut: (() -> Unit)? = null,
     onPrepareRecovery: (suspend () -> Boolean)? = null,
     recoveryStates: kotlinx.coroutines.flow.StateFlow<io.element.android.libraries.matrix.api.encryption.RecoveryState>? = null,
@@ -66,6 +69,12 @@ internal fun AntintwrkNativeAppView(
     onOpenMessage: (suspend (String) -> Unit)? = null,
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
 ) {
+        val unreadFlow = remember(messengerRooms) {
+            messengerRooms?.summaries?.let { rooms ->
+                rooms.map { antintwrkUnreadMessages(it) }.distinctUntilChanged()
+            } ?: kotlinx.coroutines.flow.flowOf(0L)
+        }
+        val unreadMessages by androidx.compose.runtime.key(matrixUserId) { unreadFlow.collectAsState(initial = 0L) }
         val client = remember { AntintwrkNativeAuthClient() }
         val context = LocalAntintwrkActivity.current ?: LocalContext.current
         val credentials = remember { AntintwrkNativeCredentials(context) }
@@ -626,6 +635,7 @@ internal fun AntintwrkNativeAppView(
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
             AntintwrkShellView(
                 shellState,
+                messengerUnread = if (matrixUserId == session?.matrixUserId) unreadMessages else 0L,
                 socialUnavailable = socialUnavailable,
                 onRetrySocial = {
                     healthAttempt++

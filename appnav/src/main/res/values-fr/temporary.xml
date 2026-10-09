@@ -119,4 +119,5 @@
     <string name="screen_ant_social_unavailable">Le réseau social est temporairement indisponible. Nous réessaierons automatiquement. Vous pouvez utiliser la messagerie.</string>
     <string name="screen_ant_messenger_unavailable">La messagerie est temporairement indisponible. Nous réessaierons automatiquement. Vous pouvez utiliser le réseau social.</string>
     <string name="screen_ant_offline">Pas de connexion Internet. Vérifiez le Wi-Fi ou les données mobiles et réessayez.</string>
+    <string name="a11y_ant_unread_messages">%1$d messages non lus</string>
 </resources>

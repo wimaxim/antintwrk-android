@@ -119,4 +119,5 @@
     <string name="screen_ant_social_unavailable">Das soziale Netzwerk ist vorübergehend nicht erreichbar. Wir versuchen es automatisch erneut. Du kannst den Messenger weiter nutzen.</string>
     <string name="screen_ant_messenger_unavailable">Der Messenger ist vorübergehend nicht erreichbar. Wir versuchen es automatisch erneut. Du kannst das soziale Netzwerk weiter nutzen.</string>
     <string name="screen_ant_offline">Keine Internetverbindung. Prüfe WLAN oder mobile Daten und versuche es erneut.</string>
+    <string name="a11y_ant_unread_messages">%1$d ungelesene Nachrichten</string>
 </resources>

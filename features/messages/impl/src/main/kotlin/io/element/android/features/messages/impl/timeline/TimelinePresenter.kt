@@ -46,6 +46,7 @@ import io.element.android.features.poll.api.actions.SendPollResponseAction
 import io.element.android.features.roomcall.api.RoomCallState
 import io.element.android.libraries.architecture.Presenter
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
+import io.element.android.libraries.designsystem.utils.LocalEmbeddedConversationVisibility
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
@@ -133,6 +134,7 @@ class TimelinePresenter(
         }
 
         val localScope = rememberCoroutineScope()
+        val conversationVisible by LocalEmbeddedConversationVisibility.current
 
         val timelineMode = remember { timelineController.mainTimelineMode() }
 
@@ -186,6 +188,7 @@ class TimelinePresenter(
                     }
                 }
                 is TimelineEvent.OnScrollFinished -> {
+                    if (!conversationVisible) return
                     if (isLive) {
                         if (event.firstIndex == 0) {
                             newEventState.value = NewEventState.None
@@ -193,6 +196,7 @@ class TimelinePresenter(
                         Timber.tag(tag).d("## sendReadReceiptIfNeeded firstVisibleIndex: ${event.firstIndex}")
                         sessionCoroutineScope.launch {
                             val sendPublicReadReceipts = sessionPreferencesStore.isSendPublicReadReceiptsEnabled().first()
+                            if (!conversationVisible) return@launch
                             sendReadReceiptIfNeeded(
                                 firstVisibleIndex = event.firstIndex,
                                 timelineItems = timelineItems,

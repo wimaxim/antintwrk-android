@@ -195,6 +195,43 @@ class TimelinePresenterTest {
     }
 
     @Test
+    fun `hidden embedded conversation cannot send read receipts and resumes when shown`() = runTest(StandardTestDispatcher()) {
+        val markAsRead = lambdaRecorder<ReceiptType, Result<Unit>> { Result.success(Unit) }
+        val receipt = lambdaRecorder<EventId, ReceiptType, Result<Unit>> { _, _ -> Result.success(Unit) }
+        val timeline = FakeTimeline(
+            timelineItems = flowOf(listOf(MatrixTimelineItem.Event(A_UNIQUE_ID, anEventTimelineItem()))),
+            markAsReadResult = markAsRead,
+            sendReadReceiptLambda = receipt,
+        )
+        val presenter = createTimelinePresenter(timeline = timeline, room = FakeJoinedRoom(liveTimeline = timeline))
+        val visible = androidx.compose.runtime.mutableStateOf(false)
+        val embedded = object : io.element.android.libraries.architecture.Presenter<TimelineState> {
+            @androidx.compose.runtime.Composable
+            override fun present(): TimelineState {
+                var result: TimelineState? = null
+                androidx.compose.runtime.CompositionLocalProvider(
+                    io.element.android.libraries.designsystem.utils.LocalEmbeddedConversationVisibility provides visible
+                ) { result = presenter.present() }
+                return requireNotNull(result)
+            }
+        }
+        embedded.test {
+            val state = awaitFirstItem()
+            state.eventSink(TimelineEvent.OnScrollFinished(0))
+            runCurrent()
+            assert(markAsRead).isNeverCalled()
+            assert(receipt).isNeverCalled()
+            visible.value = true
+            runCurrent()
+            // Even a retained callback must observe the current host visibility.
+            state.eventSink(TimelineEvent.OnScrollFinished(0))
+            runCurrent()
+            assert(markAsRead).isCalledOnce()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `present - on scroll finished send read receipt if an event is before the index`() = runTest {
         val sendReadReceiptsLambda = lambdaRecorder { _: EventId, _: ReceiptType ->
             Result.success(Unit)

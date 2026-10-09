@@ -119,4 +119,5 @@
     <string name="screen_ant_social_unavailable">Соцсеть временно недоступна. Подключение повторится автоматически. Вы можете пользоваться мессенджером.</string>
     <string name="screen_ant_messenger_unavailable">Мессенджер временно недоступен. Подключение повторится автоматически. Вы можете пользоваться соцсетью.</string>
     <string name="screen_ant_offline">Нет подключения к интернету. Проверьте Wi-Fi или мобильную сеть и попробуйте снова.</string>
+    <string name="a11y_ant_unread_messages">Непрочитанных сообщений: %1$d</string>
 </resources>

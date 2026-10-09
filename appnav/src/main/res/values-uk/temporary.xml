@@ -119,4 +119,5 @@
     <string name="screen_ant_social_unavailable">Соцмережа тимчасово недоступна. Підключення повториться автоматично. Ви можете користуватися месенджером.</string>
     <string name="screen_ant_messenger_unavailable">Месенджер тимчасово недоступний. Підключення повториться автоматично. Ви можете користуватися соцмережею.</string>
     <string name="screen_ant_offline">Немає інтернету. Перевірте Wi-Fi або мобільну мережу та спробуйте знову.</string>
+    <string name="a11y_ant_unread_messages">Непрочитаних повідомлень: %1$d</string>
 </resources>

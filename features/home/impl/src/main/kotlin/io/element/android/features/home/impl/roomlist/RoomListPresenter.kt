@@ -222,6 +222,17 @@ class RoomListPresenter(
         val roomSummaries by produceState(initialValue = AsyncData.Loading()) {
             roomListDataSource.roomSummariesFlow.collect { value = AsyncData.Success(it) }
         }
+        val invitationCount = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            remember(client) {
+                client.roomListService.allRooms.summaries.map { rooms ->
+                    rooms.distinctBy { it.roomId }.count {
+                        it.info.currentUserMembership == io.element.android.libraries.matrix.api.room.CurrentUserMembership.INVITED
+                    }
+                }.distinctUntilChanged()
+            }.collectAsState(0).value
+        } else {
+            0
+        }
         val loadingState by roomListDataSource.loadingState.collectAsState()
         val showEmpty by remember {
             derivedStateOf {
@@ -251,6 +262,7 @@ class RoomListPresenter(
                     batteryOptimizationState = batteryOptimizationPresenter.present(),
                     summaries = roomSummaries.dataOrNull().orEmpty().toImmutableList(),
                     seenRoomInvites = seenRoomInvites.toImmutableSet(),
+                    invitationCount = invitationCount,
                 )
             }
         }

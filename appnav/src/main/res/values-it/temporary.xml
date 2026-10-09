@@ -119,4 +119,5 @@
     <string name="screen_ant_social_unavailable">Il social network è temporaneamente non disponibile. Riproveremo automaticamente. Puoi usare il messenger.</string>
     <string name="screen_ant_messenger_unavailable">Il messenger è temporaneamente non disponibile. Riproveremo automaticamente. Puoi usare il social network.</string>
     <string name="screen_ant_offline">Nessuna connessione Internet. Controlla il Wi-Fi o i dati mobili e riprova.</string>
+    <string name="a11y_ant_unread_messages">%1$d messaggi non letti</string>
 </resources>

@@ -100,6 +100,7 @@ import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.Text
+import io.element.android.libraries.designsystem.utils.LocalEmbeddedConversationVisibility
 import io.element.android.libraries.designsystem.utils.animateScrollToItemCenter
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -147,7 +148,10 @@ fun TimelineView(
         state.eventSink(TimelineEvent.ClearFocusRequestState)
     }
 
+    val conversationVisible = LocalEmbeddedConversationVisibility.current.value
+
     fun onScrollFinishAt(firstVisibleIndex: Int) {
+        if (!conversationVisible) return
         state.eventSink(TimelineEvent.OnScrollFinished(firstVisibleIndex))
     }
 
@@ -350,6 +354,7 @@ private fun BoxScope.TimelineScrollHelper(
     onMarkAllAsRead: () -> Unit,
     onFocusOnEvent: (EventId) -> Unit,
 ) {
+    val conversationVisible = LocalEmbeddedConversationVisibility.current.value
     val coroutineScope = rememberCoroutineScope()
     val isScrollFinished by remember { derivedStateOf { !lazyListState.isScrollInProgress } }
     val canAutoScroll by remember {
@@ -424,8 +429,8 @@ private fun BoxScope.TimelineScrollHelper(
         }
     }
 
-    LaunchedEffect(canAutoScroll, newEventState) {
-        val shouldScrollToBottom = isScrollFinished && when (newEventState) {
+    LaunchedEffect(canAutoScroll, newEventState, conversationVisible) {
+        val shouldScrollToBottom = conversationVisible && isScrollFinished && when (newEventState) {
             is NewEventState.FromOther -> canAutoScroll
             NewEventState.FromMe -> true
             NewEventState.None -> false
@@ -436,8 +441,8 @@ private fun BoxScope.TimelineScrollHelper(
     }
 
     val latestOnScrollFinishAt by rememberUpdatedState(onScrollFinishAt)
-    LaunchedEffect(isScrollFinished, hasAnyEvent) {
-        if (isScrollFinished && hasAnyEvent) {
+    LaunchedEffect(isScrollFinished, hasAnyEvent, conversationVisible) {
+        if (conversationVisible && isScrollFinished && hasAnyEvent) {
             // Notify the parent composable about the first visible item index when scrolling finishes
             latestOnScrollFinishAt(lazyListState.firstVisibleItemIndex)
         }

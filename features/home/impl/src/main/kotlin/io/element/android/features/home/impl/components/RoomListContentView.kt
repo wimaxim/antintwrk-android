@@ -274,6 +274,18 @@ private fun RoomsViewList(
             items = state.summaries,
             contentType = { _, room -> room.contentType() },
         ) { index, room ->
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
+                room.displayType == RoomSummaryDisplayType.INVITE &&
+                index == state.summaries.indexOfFirst { it.displayType == RoomSummaryDisplayType.INVITE }) {
+                Text(
+                    stringResource(R.string.screen_ant_chat_requests, maxOf(state.invitationCount, state.summaries.count {
+                        it.displayType ==
+                        RoomSummaryDisplayType.INVITE
+                    })),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    style = ElementTheme.typography.fontBodyLgMedium,
+                )
+            }
             RoomSummaryRow(
                 room = room,
                 hideInviteAvatars = hideInvitesAvatars,

@@ -3,4 +3,5 @@
     <string name="screen_ant_backup_check_title">Резервна копія листування</string>
     <string name="screen_ant_backup_check_message">Резервну копію ще не підтверджено. Застосунок керує відновленням через обліковий запис соцмережі. Перевірте статус без введення ключа відновлення.</string>
     <string name="screen_ant_backup_check_action">Перевірити</string>
+    <string name="screen_ant_chat_requests">Запити на листування (%1$d)</string>
 </resources>

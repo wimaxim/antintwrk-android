@@ -151,6 +151,7 @@ class LoggedInAppScopeFlowNode(
             AntintwrkNativeAppView(
                 modifier,
                 matrixUserId = inputs.matrixClient.sessionId.value,
+                messengerRooms = inputs.matrixClient.roomListService.allRooms,
                 onRequestSignOut = ::requestManagedSignOut,
                 onPrepareRecovery = { accountRecovery.prepare() && attachSession().completeAppRecovery() },
                 recoveryStates = inputs.matrixClient.encryptionService.recoveryStateStateFlow,

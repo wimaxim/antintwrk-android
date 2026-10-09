@@ -627,8 +627,7 @@ class RoomListPresenterTest {
         )
         presenter.test {
             assertThat(announcementService.announcementsToShowFlow().first()).isEmpty()
-            skipItems(1)
-            val state = awaitItem()
+            val state = consumeItemsUntilPredicate { it.contentState is RoomListContentState.Rooms }.last()
             assertThat(state.contentAsRooms().showNewNotificationSoundBanner).isFalse()
             announcementService.emitAnnouncementsToShow(listOf(Announcement.NewNotificationSound))
             assertThat(awaitItem().contentAsRooms().showNewNotificationSoundBanner).isTrue()

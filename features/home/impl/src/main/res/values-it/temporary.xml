@@ -3,4 +3,5 @@
     <string name="screen_ant_backup_check_title">Backup delle chat</string>
     <string name="screen_ant_backup_check_message">Il backup non è ancora confermato. Il ripristino è gestito tramite il tuo account del social network. Verifica lo stato senza inserire una chiave di ripristino.</string>
     <string name="screen_ant_backup_check_action">Verifica backup</string>
+    <string name="screen_ant_chat_requests">Richieste di chat (%1$d)</string>
 </resources>
