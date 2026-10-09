@@ -299,7 +299,7 @@ class RustMatrixAuthenticationService(
                 pendingOAuthAuthorizationData?.close()
                 pendingOAuthAuthorizationData = null
                 // Ensure that the user is not already logged in with the same account
-                ensureNotAlreadyLoggedIn(client)
+                ensureNotAlreadyLoggedIn(client, expectedUserId)
                 tryToImportSecretForElementClassicSession(client)
                 val sessionData = client.session().toSessionData(
                     isTokenValid = true,
@@ -307,7 +307,7 @@ class RustMatrixAuthenticationService(
                     passphrase = pendingKey.formattedAsString(),
                     sessionPaths = currentSessionPaths,
                 )
-                finalizeClientCreation(sessionData)
+                finalizeClientCreation(sessionData, replaceInvalidAccount = expectedUserId != null)
             }.mapFailure { failure ->
                 Timber.e(failure, "Failed to login with OAuth")
                 failure.mapAuthenticationException()
@@ -316,10 +316,10 @@ class RustMatrixAuthenticationService(
     }
 
     @Throws(AuthenticationException.AccountAlreadyLoggedIn::class)
-    private suspend fun ensureNotAlreadyLoggedIn(client: Client) {
+    private suspend fun ensureNotAlreadyLoggedIn(client: Client, expectedUserId: String? = null) {
         val newUserId = client.userId()
         val accountAlreadyLoggedIn = sessionStore.getAllSessions().any {
-            it.userId == newUserId
+            it.userId == newUserId && !(expectedUserId == newUserId && !it.isTokenValid)
         }
         if (accountAlreadyLoggedIn) {
             // Sign out the client, ignoring any error
@@ -381,7 +381,7 @@ class RustMatrixAuthenticationService(
             }
         }
 
-    private suspend fun finalizeClientCreation(sessionData: SessionData): SessionId {
+    private suspend fun finalizeClientCreation(sessionData: SessionData, replaceInvalidAccount: Boolean = false): SessionId {
         // Close the client which was used to perform the login before creating the final client.
         // Both use the same session paths, so their SQLite stores must never be opened at the same time.
         clear()
@@ -396,7 +396,13 @@ class RustMatrixAuthenticationService(
         matrixClient.waitForKnownVerificationState()
 
         newMatrixClientObservers.forEach { it.invoke(matrixClient) }
-        sessionStore.addSession(sessionData)
+        if (replaceInvalidAccount && sessionStore.getSession(sessionData.userId)?.isTokenValid == false) {
+            // Replace only this authenticated actor's expired metadata. Keep the old encrypted store on disk.
+            sessionStore.updateData(sessionData)
+            sessionStore.setLatestSession(sessionData.userId)
+        } else {
+            sessionStore.addSession(sessionData)
+        }
 
         // The session paths now hold the data of the account which has just been logged in, so forget
         // them: they must not be deleted by the rotateSessionPath() of the next login attempt.

@@ -93,6 +93,50 @@ class RustMatrixAuthenticationServiceTest {
     }
 
     @Test
+    fun `account-bound OAuth renews only expired matching metadata and keeps other accounts`() = runTest {
+        val store = InMemorySessionStore(updateUserProfileResult = { _, _, _ -> }, setLatestSessionResult = {})
+        fun service() = createRustMatrixAuthenticationService(
+            sessionStore = store,
+            clientBuilderProvider = FakeSequentialClientBuilderProvider(
+                { FakeFfiClient(homeserverLoginDetailsResult = { FakeFfiHomeserverLoginDetails() }, oauthCallbackResult = {}) },
+                { FakeFfiClient(withUtdHook = {}) },
+            ),
+        )
+        val first = service()
+        first.setHomeserver("matrix.org").getOrThrow()
+        first.loginWithOAuthForAccount("app://callback?code=synthetic", A_USER_ID).getOrThrow()
+        val old = requireNotNull(store.getSession(A_USER_ID.value))
+        val other = old.copy(userId = "@second:matrix.org")
+        store.addSession(other)
+        store.updateData(old.copy(isTokenValid = false))
+        val second = service()
+        second.setHomeserver("matrix.org").getOrThrow()
+        second.loginWithOAuthForAccount("app://callback?code=synthetic2", A_USER_ID).getOrThrow()
+        assertThat(store.getSession(A_USER_ID.value)?.isTokenValid).isTrue()
+        assertThat(store.getSession(other.userId)).isEqualTo(other)
+        assertThat(store.numberOfSessions()).isEqualTo(2)
+    }
+
+    @Test
+    fun `account-bound OAuth never replaces an already valid session`() = runTest {
+        val store = InMemorySessionStore(updateUserProfileResult = { _, _, _ -> })
+        val sut = createRustMatrixAuthenticationService(
+            sessionStore = store,
+            clientBuilderProvider = FakeSequentialClientBuilderProvider(
+                { FakeFfiClient(homeserverLoginDetailsResult = { FakeFfiHomeserverLoginDetails() }, oauthCallbackResult = {}, logoutResult = {}) },
+                { FakeFfiClient(withUtdHook = {}) },
+                { FakeFfiClient(homeserverLoginDetailsResult = { FakeFfiHomeserverLoginDetails() }, oauthCallbackResult = {}, logoutResult = {}) },
+            ),
+        )
+        sut.setHomeserver("matrix.org").getOrThrow()
+        sut.loginWithOAuthForAccount("app://callback?code=synthetic", A_USER_ID).getOrThrow()
+        val old = store.getSession(A_USER_ID.value)
+        sut.setHomeserver("matrix.org").getOrThrow()
+        assertThat(sut.loginWithOAuthForAccount("app://callback?code=synthetic2", A_USER_ID).isFailure).isTrue()
+        assertThat(store.getSession(A_USER_ID.value)).isEqualTo(old)
+    }
+
+    @Test
     fun `setHomeserver is successful`() = runTest {
         val sut = createRustMatrixAuthenticationService(
             clientBuilderProvider = FakeClientBuilderProvider(

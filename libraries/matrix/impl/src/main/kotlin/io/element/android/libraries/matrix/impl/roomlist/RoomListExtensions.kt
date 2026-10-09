@@ -58,6 +58,7 @@ internal fun RoomListInterface.entriesFlow(
     pageSize: Int,
     initialFilterKind: RoomListEntriesDynamicFilterKind,
     onControllerCreated: (RoomListDynamicEntriesController) -> Unit,
+    onControllerDisposed: (RoomListDynamicEntriesController) -> Unit = { it.destroy() },
 ): Flow<List<RoomListEntriesUpdate>> =
     callbackFlow {
         val listener = object : RoomListEntriesListener {
@@ -74,7 +75,7 @@ internal fun RoomListInterface.entriesFlow(
         onControllerCreated(controller)
         awaitClose {
             result.entriesStream().cancelAndDestroy()
-            controller.destroy()
+            onControllerDisposed(controller)
             result.destroy()
         }
     }.catch {

@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import org.matrix.rustcomponents.sdk.RoomListDynamicEntriesController
 import org.matrix.rustcomponents.sdk.RoomListLoadingState
 import org.matrix.rustcomponents.sdk.RoomListService
 import kotlin.coroutines.CoroutineContext
@@ -49,7 +48,7 @@ internal class RoomListFactory(
         val summariesFlow = MutableSharedFlow<List<RoomSummary>>(replay = 1, extraBufferCapacity = 1)
         val processor = RoomSummaryListProcessor(summariesFlow, innerRoomListService, coroutineContext, roomSummaryFactory, analyticsService)
         var innerRoomList: InnerRoomList? = null
-        var dynamicController: RoomListDynamicEntriesController? = null
+        val dynamicController = RoomListController()
 
         val firstRoomsTransaction = analyticsService.startTransaction("Load first set of rooms", "innerRoomList.entriesFlow")
 
@@ -59,9 +58,8 @@ internal class RoomListFactory(
                 innerRoomList.entriesFlow(
                     pageSize = pageSize,
                     initialFilterKind = RoomListFilterMapper.toRustFilter(initialFilter),
-                    onControllerCreated = { controller ->
-                        dynamicController = controller
-                    }
+                    onControllerCreated = dynamicController::attach,
+                    onControllerDisposed = dynamicController::release,
                 ).onEach { update ->
                     if (!firstRoomsTransaction.isFinished()) {
                         analyticsService.finishLongRunningTransaction(AnalyticsLongRunningTransaction.FirstRoomsDisplayed)
@@ -85,7 +83,7 @@ internal class RoomListFactory(
             loadingState = loadingStateFlow,
             processor = processor,
             pageSize = pageSize,
-            dynamicController = { dynamicController }
+            dynamicController = dynamicController
         )
     }
 }
