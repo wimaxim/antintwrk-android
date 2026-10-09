@@ -9,6 +9,7 @@ package io.element.android.appnav
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.Transition
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -47,10 +48,10 @@ fun rememberLoggedInFlowTransitionHandler(
     backstack: BackStack<LoggedInFlowNode.NavTarget>,
 ): ModifierTransitionHandler<LoggedInFlowNode.NavTarget, BackStack.State> {
     val slider = rememberBackstackSlider<LoggedInFlowNode.NavTarget>(
-        transitionSpec = { spring(stiffness = Spring.StiffnessMediumLow) },
+        transitionSpec = { if (BuildConfig.ANTINTWRK_NATIVE_AUTH) snap() else spring(stiffness = Spring.StiffnessMediumLow) },
     )
     val fader = rememberBackstackFader<LoggedInFlowNode.NavTarget>(
-        transitionSpec = { spring(stiffness = Spring.StiffnessMediumLow) },
+        transitionSpec = { if (BuildConfig.ANTINTWRK_NATIVE_AUTH) snap() else spring(stiffness = Spring.StiffnessMediumLow) },
     )
     return remember(backstack, slider, fader) {
         LoggedInFlowTransitionHandler(backstack, slider, fader)

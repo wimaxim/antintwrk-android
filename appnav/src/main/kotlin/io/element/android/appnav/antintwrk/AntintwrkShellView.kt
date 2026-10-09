@@ -67,6 +67,9 @@ fun AntintwrkShellView(
     state: AntintwrkShellState,
     modifier: Modifier = Modifier,
     webFeed: Boolean = false,
+    onSelectMode: ((AntintwrkMode) -> Unit)? = null,
+    navigationLoading: Boolean = false,
+    messengerInteractive: Boolean = true,
     messengerUnread: Long = 0,
     socialUnavailable: Boolean = false,
     onRetrySocial: () -> Unit = {},
@@ -79,7 +82,7 @@ fun AntintwrkShellView(
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
     socialContent: (@Composable (Modifier) -> Unit)? = null,
 ) = AntintwrkBrandTheme(systemBarsKey = state.mode) {
-    val conversationVisibility = rememberUpdatedState(state.mode == AntintwrkMode.Messenger)
+    val conversationVisibility = rememberUpdatedState(state.mode == AntintwrkMode.Messenger && messengerInteractive)
     val emit = state.eventSink
     val holder = rememberSaveableStateHolder()
     val language = LocalConfiguration.current.locales[0].language
@@ -107,8 +110,10 @@ fun AntintwrkShellView(
         containerColor = AntintwrkBackground,
         topBar = {
             if (webController?.fullscreen == null) {
+                Column {
                 ShellHeader(
                     state,
+                    onSelectMode = onSelectMode,
                     messengerUnread = messengerUnread,
                     onSearch = {
                 if (webController != null) {
@@ -144,6 +149,8 @@ fun AntintwrkShellView(
                     onSignOut = onSignOut,
                     onOpenSettings = onOpenSettings
                 )
+                if (navigationLoading) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+                }
             }
         },
         bottomBar = {
@@ -208,7 +215,12 @@ fun AntintwrkShellView(
             }
             Box(Modifier.fillMaxSize()) {
             if (messengerContent != null) {
-                Box(if (state.mode == AntintwrkMode.Messenger) Modifier.fillMaxSize() else Modifier.size(1.dp).alpha(0f).clearAndSetSemantics {}) {
+                Box(if (state.mode == AntintwrkMode.Messenger &&
+                    messengerInteractive) {
+                        Modifier.fillMaxSize()
+                    } else {
+                        Modifier.size(1.dp).alpha(0f).clearAndSetSemantics {}
+                    }) {
                     CompositionLocalProvider(LocalEmbeddedConversationVisibility provides conversationVisibility) {
                         messengerContent(Modifier.fillMaxSize())
                     }
@@ -252,13 +264,14 @@ private fun ShellHeader(
     onRoute: ((String) -> Unit)?,
     notifications: Int,
     socialReady: Boolean,
+    onSelectMode: ((AntintwrkMode) -> Unit)?,
     onSignOut: (() -> Unit)?,
     onOpenSettings: (() -> Unit)?,
 ) {
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            ShellModeTabs(state, messengerUnread, Modifier.weight(1f))
+            ShellModeTabs(state, messengerUnread, Modifier.weight(1f), onSelectMode)
             if (state.mode == AntintwrkMode.Messenger && onOpenSettings != null) {
                 IconButton(onClick = onOpenSettings) {
                     Icon(CompoundIcons.Settings(), stringResource(R.string.screen_ant_menu_settings))
@@ -276,7 +289,7 @@ private fun ShellHeader(
 }
 
 @Composable
-private fun ShellModeTabs(state: AntintwrkShellState, messengerUnread: Long, modifier: Modifier) {
+private fun ShellModeTabs(state: AntintwrkShellState, messengerUnread: Long, modifier: Modifier, onSelectMode: ((AntintwrkMode) -> Unit)?) {
     val unreadDescription = stringResource(R.string.a11y_ant_unread_messages, messengerUnread)
     TabRow(
         selectedTabIndex = state.mode.ordinal,
@@ -288,7 +301,7 @@ private fun ShellModeTabs(state: AntintwrkShellState, messengerUnread: Long, mod
         AntintwrkMode.entries.forEach { mode ->
             Tab(
                 selected = state.mode == mode,
-                onClick = { state.eventSink(AntintwrkShellEvent.Mode(mode)) },
+                onClick = { if (onSelectMode != null) onSelectMode(mode) else state.eventSink(AntintwrkShellEvent.Mode(mode)) },
                 selectedContentColor = ElementTheme.materialColors.primary,
                 unselectedContentColor = ElementTheme.colors.textSecondary,
             ) {

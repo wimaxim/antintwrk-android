@@ -53,6 +53,7 @@ import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.deeplink.api.usecase.InviteFriendsUseCase
 import io.element.android.libraries.designsystem.components.ProgressDialog
 import io.element.android.libraries.designsystem.utils.DelayedVisibility
+import io.element.android.libraries.designsystem.utils.LocalEmbeddedConversationVisibility
 import io.element.android.libraries.di.SessionScope
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
 import io.element.android.libraries.matrix.api.MatrixClient
@@ -63,6 +64,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
@@ -96,9 +98,24 @@ class HomeFlowNode(
     ),
     buildContext = buildContext,
     plugins = plugins
-) {
+), HomeEntryPoint.AppNavigation {
     private val callback: HomeEntryPoint.Callback = callback()
     private val stateFlow = launchMolecule { presenter.present() }
+
+    override suspend fun openChats() {
+        backstack.elements.value.filter { it.key.navTarget != NavTarget.Root }.forEach {
+            backstack.accept(com.bumble.appyx.navmodel.backstack.operation.Remove(it.key))
+        }
+        backstack.elements.first { elements -> elements.all { it.key.navTarget == NavTarget.Root } }
+        stateFlow.value.eventSink(HomeEvent.OpenAllChats)
+        stateFlow.first { state ->
+            state.currentHomeNavigationBarItem == HomeNavigationBarItem.Chats &&
+                !state.roomListState.filtersState.hasAnyFilterSelected &&
+                state.roomListState.spaceFiltersState !is io.element.android.features.home.impl.spacefilters.SpaceFiltersState.Selected &&
+                state.roomListState.spaceFiltersState !is io.element.android.features.home.impl.spacefilters.SpaceFiltersState.Selecting &&
+                !state.roomListState.searchState.isSearchActive && !state.roomListState.globalSearchState.isSearchActive
+        }
+    }
 
     override fun onBuilt() {
         super.onBuilt()
@@ -168,6 +185,7 @@ class HomeFlowNode(
         return node(buildContext) { modifier ->
             val state by stateFlow.collectAsState()
             val activity = requireNotNull(LocalActivity.current)
+            val embeddedVisibility = LocalEmbeddedConversationVisibility.current
 
             val loadingJoinedRoomJob = remember { mutableStateOf<AsyncData<Job>>(AsyncData.Uninitialized) }
             if (loadingJoinedRoomJob.value.isLoading()) {
@@ -196,17 +214,19 @@ class HomeFlowNode(
                         matrixClient.getJoinedRoom(roomId)
                     }.fold(
                         onSuccess = { joinedRoom ->
-                            if (isActive) {
+                            if (isActive && embeddedVisibility.value) {
                                 callback.navigateToRoom(roomId = roomId, eventId = eventId, joinedRoom = joinedRoom)
                                 loadingJoinedRoomJob.value = AsyncData.Success(coroutineContext.job)
                                 // Wait a bit before resetting the state to avoid allowing to open several rooms
                                 delay(200.milliseconds)
                                 loadingJoinedRoomJob.value = AsyncData.Uninitialized
+                            } else {
+                                loadingJoinedRoomJob.value = AsyncData.Uninitialized
                             }
                         },
                         onFailure = {
                             // If the operation wasn't cancelled, navigate without the room, using the room id
-                            if (it !is CancellationException) {
+                            if (it !is CancellationException && embeddedVisibility.value) {
                                 callback.navigateToRoom(roomId = roomId, eventId = null, joinedRoom = null)
                             }
                             loadingJoinedRoomJob.value = AsyncData.Failure(error = it, prevData = coroutineContext.job)

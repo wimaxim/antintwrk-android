@@ -642,6 +642,16 @@ class LoggedInFlowNode(
         ftueService.acknowledgeVerifiedSession()
     }
 
+    suspend fun openAppChats() {
+        waitForNavTargetAttached { it is NavTarget.Home }
+        backstack.elements.value.filter { it.key.navTarget != NavTarget.Home }.forEach {
+            backstack.accept(com.bumble.appyx.navmodel.backstack.operation.Remove(it.key))
+        }
+        val home = waitForChildAttached<Node, NavTarget> { it is NavTarget.Home }
+        (home as HomeEntryPoint.AppNavigation).openChats()
+        backstack.elements.first { elements -> elements.all { it.key.navTarget == NavTarget.Home } }
+    }
+
     fun openAppLogout() {
         backstack.push(NavTarget.Settings(PreferencesEntryPoint.InitialTarget.Logout))
     }

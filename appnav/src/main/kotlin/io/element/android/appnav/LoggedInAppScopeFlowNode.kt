@@ -50,6 +50,7 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
 
@@ -157,9 +158,11 @@ class LoggedInAppScopeFlowNode(
                 recoveryStates = inputs.matrixClient.encryptionService.recoveryStateStateFlow,
                 onRecoveredSignOut = { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = false) },
                 onSwitchMatrixAccount = { callback.navigateToSocialAccount(it) },
+                onOpenChats = { attachSession().openAppChats() },
                 onOpenMessage = { recipient ->
                     val user = UserId(recipient)
                     val room = directRoomResolver.resolve(user)
+                    kotlinx.coroutines.currentCoroutineContext().ensureActive()
                     attachSession().attachRoom(room.toRoomIdOrAlias())
                 },
                 messengerContent = { contentModifier -> Children(navModel = navModel, modifier = contentModifier) }

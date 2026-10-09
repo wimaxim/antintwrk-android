@@ -137,7 +137,12 @@ class AntintwrkWebFeedController {
         if (destination == section) {
             val previousUrl = currentUrl
             select(destination, root)
-            if (previousUrl != root) view?.loadUrl(root) else view?.scrollTo(0, 0)
+            if (previousUrl != root) {
+                loading = true
+                view?.loadUrl(root)
+            } else {
+                view?.scrollTo(0, 0)
+            }
         } else {
             select(destination, urls[destination] ?: root)
         }
@@ -163,6 +168,8 @@ class AntintwrkWebFeedController {
         }
         currentUrl = url
         urls[section] = url
+        loading = true
+        failed = false
         view?.loadUrl(url)
     }
     internal fun interceptMessenger(url: String): Boolean {
@@ -197,6 +204,7 @@ class AntintwrkWebFeedController {
             messengerProfilePendingFinish = false
             onReturnToMessenger?.invoke()
         } else if (view?.canGoBack() == true) {
+            loading = true
             view?.goBack()
         } else if (crossSectionHistory.isNotEmpty()) {
             val previous = crossSectionHistory.removeLast()
@@ -204,9 +212,12 @@ class AntintwrkWebFeedController {
         }
     }
     fun retry() {
+        if (composing || fullscreen != null) return
+        val target = currentUrl?.let(policy::embedded) ?: return
         failed = false
         loading = true
-        view?.reload()
+        // Explicit refresh revalidates the document without replaying a form POST.
+        view?.loadUrl(target, mapOf("Cache-Control" to "no-cache"))
     }
 
     /** Recovery uses GET and never replays a form POST or a payment submission. */
@@ -317,7 +328,12 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
             AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { context ->
-                (controller.view ?: WebView(context).apply {
+                (controller.view ?: AntintwrkRefreshWebView(context).apply {
+                    canRefresh = {
+                        controller.view === this && !controller.loading && !controller.composing &&
+                        controller.fullscreen == null && controller.fileCallback == null && controller.prompt == null && controller.document == null
+                    }
+                    onRefresh = controller::retry
                     controller.view = this
                     setBackgroundColor(Color(0xFF101214).toArgb())
                     settings.apply {
@@ -325,6 +341,8 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         javaScriptEnabled = true
                         // Honor the responsive page viewport, as a mobile browser does.
                         domStorageEnabled = true
+                        // Keep HTTP validation/cache headers authoritative; never serve stale private HTML.
+                        cacheMode = WebSettings.LOAD_DEFAULT
                         useWideViewPort = true
                         // Match the site/PWA CSS baseline rather than WebView font inflation.
                         loadWithOverviewMode = true
@@ -433,6 +451,8 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             if (target != null) {
                                 if (target == url &&
                                     (controller.nativeSection(target) == null || controller.nativeSection(target) == controller.section)) {
+                                        controller.loading = true
+                                        controller.failed = false
                                         return false
                                     }
                                 controller.navigate(target)
@@ -496,6 +516,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                     setDownloadListener { url, _, _, _, _ ->
                         if (policy.external(url) || policy.outbound(url)) controller.onExternalLink(url)
                     }
+                    controller.currentUrl = startUrl
                     loadUrl(startUrl)
                 }).also { view ->
                     (view.parent as? ViewGroup)?.removeView(view)

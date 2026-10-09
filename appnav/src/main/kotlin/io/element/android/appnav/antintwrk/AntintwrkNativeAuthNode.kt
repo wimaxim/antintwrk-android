@@ -66,6 +66,7 @@ internal fun AntintwrkNativeAppView(
     recoveryStates: kotlinx.coroutines.flow.StateFlow<io.element.android.libraries.matrix.api.encryption.RecoveryState>? = null,
     onRecoveredSignOut: (suspend () -> Unit)? = null,
     onSwitchMatrixAccount: ((String) -> Unit)? = null,
+    onOpenChats: (suspend () -> Unit)? = null,
     onOpenMessage: (suspend (String) -> Unit)? = null,
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
 ) {
@@ -157,6 +158,40 @@ internal fun AntintwrkNativeAppView(
         var busy by busyState
         var failed by remember { mutableStateOf(false) }
         var sessionVerificationFailed by remember { mutableStateOf(false) }
+        var backgroundValidationPending by remember { mutableStateOf(false) }
+        val chatsRequestState: androidx.compose.runtime.MutableState<Boolean> = retainedSurface?.chatsRequested ?: remember { mutableStateOf(false) }
+        var chatsRequested by chatsRequestState
+        var navigationSequence by remember { mutableLongStateOf(0L) }
+        fun selectMode(mode: AntintwrkMode) {
+            navigationSequence++
+            directJob?.cancel()
+            directBusy = false
+            directFailed = false
+            AntintwrkMessengerRoutes.clear()
+            chatsRequested = mode == AntintwrkMode.Messenger
+            if (mode == AntintwrkMode.Social) shellState.eventSink(AntintwrkShellEvent.Mode(mode))
+        }
+        val currentOpenChats by androidx.compose.runtime.rememberUpdatedState(onOpenChats)
+        val navigationActor = session?.matrixUserId ?: accountPreferences.getString("social-actor", null)
+        LaunchedEffect(chatsRequested, matrixUserId, navigationActor) {
+            if (chatsRequested && matrixUserId != null && matrixUserId == navigationActor && currentOpenChats != null) {
+                val sequence = navigationSequence
+                try {
+                    withTimeout(30_000) { currentOpenChats?.invoke() }
+                    if (sequence == navigationSequence) {
+                        chatsRequested = false
+                        shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
+                    }
+                } catch (cancelled: CancellationException) {
+                    if (cancelled !is TimeoutCancellationException) throw cancelled
+                    chatsRequested = false
+                    directFailed = true
+                } catch (_: Exception) {
+                    chatsRequested = false
+                    directFailed = true
+                }
+            }
+        }
         var googleRegistration by remember { mutableStateOf("") }
         var serverMessage by remember { mutableStateOf("") }
         var code by remember { mutableStateOf("") }
@@ -166,8 +201,10 @@ internal fun AntintwrkNativeAppView(
             val current = session?.takeIf { it.stage == AntintwrkAuthStage.AUTHENTICATED }
             if (current != null && !directBusy) {
                 if (target == null) {
-                    shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
+                    selectMode(AntintwrkMode.Messenger)
                 } else {
+                    chatsRequested = false
+                    val sequence = ++navigationSequence
                     directBusy = true
                     scope.launch {
                     directJob = currentCoroutineContext()[Job]
@@ -176,7 +213,7 @@ internal fun AntintwrkNativeAppView(
                     try {
                         val response = client.messengerRecipient(target, current.csrf)
                         require(response.getString("actorUserId") == current.matrixUserId)
-                        if (session?.matrixUserId == current.matrixUserId) {
+                        if (sequence == navigationSequence && session?.matrixUserId == current.matrixUserId) {
                             AntintwrkMessengerRoutes.open(response.getString("actorUserId"), response.getString("recipientUserId"))
                             shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
                         }
@@ -214,7 +251,9 @@ internal fun AntintwrkNativeAppView(
             }
         }
         suspend fun runRequest(revalidate: Boolean = false, request: suspend () -> AntintwrkAuthSession) {
-            // A messenger-node handoff must not replace an already admitted social page.
+            // A transient background check must not destroy an already admitted page.
+            var retainAdmission = antintwrkRetainAdmission(revalidate, session?.stage == AntintwrkAuthStage.AUTHENTICATED)
+            backgroundValidationPending = false
             busy = !revalidate || session?.stage != AntintwrkAuthStage.AUTHENTICATED
             sessionVerificationFailed = false
             failed = false
@@ -231,6 +270,9 @@ internal fun AntintwrkNativeAppView(
                         }
                     }
                     if (previousActor != null && previousActor != session?.matrixUserId) {
+                        chatsRequested = false
+                        navigationSequence++
+                        directJob?.cancel()
                         webController.destroy()
                         webController.currentUrl = null
                         shellState.eventSink(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
@@ -256,6 +298,7 @@ internal fun AntintwrkNativeAppView(
                 state.eventSink(AntintwrkWelcomeEvent.FirstName(required.firstName))
                 state.eventSink(AntintwrkWelcomeEvent.Surname(required.surname))
             } catch (error: AntintwrkRequestError) {
+                retainAdmission = retainAdmission && antintwrkRetainAdmission(revalidate, true, error.code)
                 serverMessage = when (error.code) {
                     "PROFILE" -> profileError
                     "REGISTRATION_EXPIRED" -> expiredError
@@ -265,6 +308,7 @@ internal fun AntintwrkNativeAppView(
                 }
                 failed = true
             } catch (error: AntintwrkAccountError) {
+                retainAdmission = false
                 serverMessage = error.messageForUser
                 failed = true
             } catch (_: GetCredentialCancellationException) {
@@ -274,22 +318,23 @@ internal fun AntintwrkNativeAppView(
             } catch (_: Exception) {
                 failed = true
                 // An uncertain request never admits a user to the shell.
-                if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
+                if (!retainAdmission && session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
                     session = null
                     webController.destroy()
                 }
             } finally {
-                if (failed && session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
+                if (failed && !retainAdmission && session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
                     session = null
                     webController.destroy()
                 }
-                sessionVerificationFailed = revalidate && failed
+                backgroundValidationPending = revalidate && failed && retainAdmission
+                sessionVerificationFailed = revalidate && failed && !retainAdmission
                 busy = false
                 code = ""
             }
         }
-        LaunchedEffect(sessionVerificationFailed, foreground) {
-            while (sessionVerificationFailed && foreground && !accountPreferences.getBoolean("logged-out", false)) {
+        LaunchedEffect(sessionVerificationFailed, backgroundValidationPending, foreground) {
+            while ((sessionVerificationFailed || backgroundValidationPending) && foreground && !accountPreferences.getBoolean("logged-out", false)) {
                 delay(15_000)
                 runRequest(revalidate = true) { client.session() }
             }
@@ -635,6 +680,9 @@ internal fun AntintwrkNativeAppView(
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
             AntintwrkShellView(
                 shellState,
+                onSelectMode = ::selectMode,
+                navigationLoading = chatsRequested,
+                messengerInteractive = !directBusy && messageRequest == null,
                 messengerUnread = if (matrixUserId == session?.matrixUserId) unreadMessages else 0L,
                 socialUnavailable = socialUnavailable,
                 onRetrySocial = {
@@ -768,6 +816,9 @@ internal fun AntintwrkNativeAppView(
             AntintwrkShellView(
                 shellState,
                 modifier,
+                onSelectMode = ::selectMode,
+                navigationLoading = chatsRequested,
+                messengerInteractive = !directBusy && messageRequest == null,
                 onOpenSettings = { settingsOpen = true },
                 socialContent = { SocialAdmission(it) },
                 messengerContent = { RenderMessenger(it) }

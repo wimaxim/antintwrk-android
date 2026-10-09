@@ -145,6 +145,42 @@ class HomePresenterTest {
             assertThat(finalState.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Spaces)
         }
     }
+    @Test
+    fun `embedded return opens chats and clears all list and search contexts`() = runTest {
+        val events = mutableListOf<Any>()
+        val presenter = createHomePresenter(
+            roomListPresenter = {
+                val original = aRoomListState()
+                original.copy(
+                    filtersState = original.filtersState.copy(eventSink = { events.add(it) }),
+                    spaceFiltersState = io.element.android.features.home.impl.spacefilters.SpaceFiltersState.Selecting(
+                        kotlinx.collections.immutable.persistentListOf(),
+                        androidx.compose.foundation.text.input.TextFieldState(),
+                        eventSink = { events.add(it) },
+                    ),
+                    searchState = original.searchState.copy(isSearchActive = true, eventSink = { events.add(it) }),
+                    globalSearchState = original.globalSearchState.copy(isSearchActive = true, eventSink = { events.add(it) }),
+                )
+            },
+            sessionStore = InMemorySessionStore(updateUserProfileResult = { _, _, _ -> }),
+        )
+        presenter.test {
+            var state = awaitItem()
+            state.eventSink(HomeEvent.SelectHomeNavigationBarItem(HomeNavigationBarItem.Spaces))
+            state = awaitItem()
+            assertThat(state.currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Spaces)
+            state.eventSink(HomeEvent.OpenAllChats)
+            assertThat(awaitItem().currentHomeNavigationBarItem).isEqualTo(HomeNavigationBarItem.Chats)
+            assertThat(events).containsExactly(
+                io.element.android.features.home.impl.filters.RoomListFiltersEvent.ClearSelectedFilters,
+                io.element.android.features.home.impl.spacefilters.SpaceFiltersEvent.Selecting.Cancel,
+                io.element.android.features.home.impl.search.GlobalSearchEvent.ClearQuery,
+                io.element.android.features.home.impl.search.GlobalSearchEvent.ToggleSearchVisibility,
+                io.element.android.features.home.impl.search.RoomListSearchEvent.ClearQuery,
+                io.element.android.features.home.impl.search.RoomListSearchEvent.ToggleSearchVisibility,
+            )
+        }
+    }
 }
 
 internal fun createHomePresenter(
@@ -153,6 +189,7 @@ internal fun createHomePresenter(
     snackbarDispatcher: SnackbarDispatcher = SnackbarDispatcher(),
     rageshakeFeatureAvailability: RageshakeFeatureAvailability = RageshakeFeatureAvailability { flowOf(false) },
     indicatorService: IndicatorService = FakeIndicatorService(),
+    roomListPresenter: Presenter<io.element.android.features.home.impl.roomlist.RoomListState> = { aRoomListState() },
     homeSpacesPresenter: Presenter<HomeSpacesState> = Presenter { aHomeSpacesState() },
     sessionStore: SessionStore = InMemorySessionStore(),
 ) = HomePresenter(
@@ -160,7 +197,7 @@ internal fun createHomePresenter(
     syncService = syncService,
     snackbarDispatcher = snackbarDispatcher,
     indicatorService = indicatorService,
-    roomListPresenter = { aRoomListState() },
+    roomListPresenter = roomListPresenter,
     homeSpacesPresenter = homeSpacesPresenter,
     logoutPresenter = { aDirectLogoutState() },
     rageshakeFeatureAvailability = rageshakeFeatureAvailability,

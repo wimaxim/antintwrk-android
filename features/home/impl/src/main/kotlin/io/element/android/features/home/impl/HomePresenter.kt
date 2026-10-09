@@ -79,6 +79,25 @@ class HomePresenter(
 
         fun handleEvent(event: HomeEvent) {
             when (event) {
+                HomeEvent.OpenAllChats -> {
+                    currentHomeNavigationBarItemOrdinal = HomeNavigationBarItem.Chats.ordinal
+                    roomListState.filtersState.eventSink(io.element.android.features.home.impl.filters.RoomListFiltersEvent.ClearSelectedFilters)
+                    when (val space = roomListState.spaceFiltersState) {
+                        is io.element.android.features.home.impl.spacefilters.SpaceFiltersState.Selected ->
+                            space.eventSink(io.element.android.features.home.impl.spacefilters.SpaceFiltersEvent.Selected.ClearSelection)
+                        is io.element.android.features.home.impl.spacefilters.SpaceFiltersState.Selecting ->
+                            space.eventSink(io.element.android.features.home.impl.spacefilters.SpaceFiltersEvent.Selecting.Cancel)
+                        else -> Unit
+                    }
+                    roomListState.globalSearchState.eventSink(io.element.android.features.home.impl.search.GlobalSearchEvent.ClearQuery)
+                    if (roomListState.globalSearchState.isSearchActive) {
+                        roomListState.globalSearchState.eventSink(io.element.android.features.home.impl.search.GlobalSearchEvent.ToggleSearchVisibility)
+                    }
+                    roomListState.searchState.eventSink(io.element.android.features.home.impl.search.RoomListSearchEvent.ClearQuery)
+                    if (roomListState.searchState.isSearchActive) {
+                        roomListState.searchState.eventSink(io.element.android.features.home.impl.search.RoomListSearchEvent.ToggleSearchVisibility)
+                    }
+                }
                 is HomeEvent.SelectHomeNavigationBarItem -> {
                     currentHomeNavigationBarItemOrdinal = event.item.ordinal
                 }

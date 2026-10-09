@@ -5,6 +5,7 @@
 
 package io.element.android.appnav.antintwrk
 
+import android.webkit.WebView
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
@@ -15,6 +16,9 @@ import com.google.common.truth.Truth.assertThat
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.tests.testutils.robolectric.RobolectricTest
 import io.element.android.tests.testutils.setSafeContent
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import org.junit.Test
 
 class AntintwrkWebFeedTest : RobolectricTest() {
@@ -29,6 +33,57 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
         assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
         assertThat(controller.section).isEqualTo(AntintwrkSection.Feed)
+    }
+
+    @Test
+    fun `native navigation starts loading before the network and retained tabs do not reload`() {
+        val controller = AntintwrkWebFeedController()
+        val feed = mockk<WebView>(relaxed = true)
+        controller.view = feed
+        controller.currentUrl = policy.feed("en")
+        controller.loading = false
+        every { feed.loadUrl(any()) } answers { assertThat(controller.loading).isTrue() }
+        controller.navigate(policy.route("en", "discover"))
+        verify(exactly = 1) { feed.loadUrl(any()) }
+        controller.loading = false
+        controller.selectSection(AntintwrkSection.Communities, policy.root("en", AntintwrkSection.Communities))
+        controller.view = mockk(relaxed = true)
+        controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
+        assertThat(controller.view).isSameInstanceAs(feed)
+        assertThat(controller.loading).isFalse()
+        verify(exactly = 1) { feed.loadUrl(any()) }
+    }
+
+    @Test
+    fun `manual refresh starts the loader and uses GET rather than replaying POST`() {
+        val controller = AntintwrkWebFeedController()
+        val page = mockk<WebView>(relaxed = true)
+        controller.view = page
+        controller.currentUrl = policy.feed("en")
+        controller.loading = false
+        every { page.loadUrl(any(), any()) } answers { assertThat(controller.loading).isTrue() }
+        controller.retry()
+        verify { page.loadUrl(policy.feed("en"), mapOf("Cache-Control" to "no-cache")) }
+        verify(exactly = 0) { page.reload() }
+    }
+
+    @Test
+    fun `background failure retains only existing admission and explicit denial revokes it`() {
+        assertThat(antintwrkRetainAdmission(true, true, "UNAVAILABLE")).isTrue()
+        assertThat(antintwrkRetainAdmission(true, true, "RATE_LIMITED")).isTrue()
+        assertThat(antintwrkRetainAdmission(true, false)).isFalse()
+        assertThat(antintwrkRetainAdmission(false, true)).isFalse()
+        for (code in listOf("AUTH_REQUIRED", "SESSION_EXPIRED", "FORBIDDEN", "ACCOUNT_UNAVAILABLE", "UNKNOWN")) {
+            assertThat(antintwrkRetainAdmission(true, true, code)).isFalse()
+        }
+    }
+
+    @Test
+    fun `pull refresh ignores horizontal upward and short gestures`() {
+        assertThat(antintwrkRefreshDrag(0f, 120f, 96f)).isTrue()
+        assertThat(antintwrkRefreshDrag(130f, 120f, 96f)).isFalse()
+        assertThat(antintwrkRefreshDrag(0f, -120f, 96f)).isFalse()
+        assertThat(antintwrkRefreshDrag(0f, 30f, 96f)).isFalse()
     }
 
     private val policy = AntintwrkWebPolicy("https://antimsg.com")

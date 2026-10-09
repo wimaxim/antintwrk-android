@@ -8,12 +8,14 @@ import androidx.compose.runtime.staticCompositionLocalOf
 internal class AntintwrkSocialSurface(initialBusy: Boolean = true) {
     val admission = mutableStateOf<AntintwrkAuthSession?>(null)
     val busy = mutableStateOf(initialBusy)
+    val chatsRequested = mutableStateOf(false)
     val web = AntintwrkWebFeedController()
     val shell = mutableStateOf(AntintwrkShellState())
 
     fun clear() {
         admission.value = null
         busy.value = false
+        chatsRequested.value = false
         web.destroy()
         shell.value = AntintwrkShellState()
     }

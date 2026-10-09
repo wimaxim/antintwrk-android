@@ -23,6 +23,11 @@ interface HomeEntryPoint : FeatureEntryPoint {
         callback: Callback,
     ): Node
 
+    /** Embedded host can return to all chats without replacing the Matrix session. */
+    interface AppNavigation {
+        suspend fun openChats()
+    }
+
     interface Callback : Plugin {
         fun navigateToRoom(roomId: RoomId, eventId: EventId?, joinedRoom: JoinedRoom?)
         fun navigateToCreateRoom()
