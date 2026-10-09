@@ -378,8 +378,8 @@ class NotificationSettingsPresenter(
         defaultLabel: String,
     ): String = when (sound) {
         NotificationSound.SystemDefault -> defaultLabel
-        NotificationSound.ElementDefault -> stringProvider.getString(R.string.screen_notification_settings_sound_element_default)
-        NotificationSound.ElementFade -> stringProvider.getString(R.string.screen_notification_settings_sound_element_fade)
+        NotificationSound.ElementDefault -> stringProvider.getString(managedNotificationSoundLabel(fade = false))
+        NotificationSound.ElementFade -> stringProvider.getString(managedNotificationSoundLabel(fade = true))
         NotificationSound.Silent -> stringProvider.getString(R.string.screen_notification_settings_sound_silent)
         is NotificationSound.Custom -> {
             val nonBlankPersisted = persistedTitle?.takeUnless { it.isBlank() }

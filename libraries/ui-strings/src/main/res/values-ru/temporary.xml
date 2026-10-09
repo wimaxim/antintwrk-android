@@ -3,4 +3,8 @@
   <string name="screen_ant_account_messages_preparing">Подготавливаем переписку…</string>
   <string name="screen_ant_account_messages_retry">Не удалось подготовить переписку. Проверьте соединение и повторите попытку.</string>
     <string name="screen_ant_contact_denied">Сейчас вы не можете написать этому пользователю. Его настройки приватности могут разрешать сообщения только друзьям. Проверьте профиль в соцсети.</string>
+    <string name="common_app_settings">Настройки приложения</string>
+    <string name="common_media_upload_quality">Качество отправляемых медиа</string>
+    <string name="common_location_sharing">Передача геолокации</string>
+    <string name="common_moderation_and_safety">Безопасность переписки</string>
 </resources>

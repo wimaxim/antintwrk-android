@@ -120,4 +120,6 @@
     <string name="screen_ant_messenger_unavailable">The messenger is temporarily unavailable. We will retry automatically. You can continue using the social network.</string>
     <string name="screen_ant_offline">No internet connection. Check Wi-Fi or mobile data and try again.</string>
     <string name="a11y_ant_unread_messages">%1$d unread messages</string>
+    <string name="screen_ant_settings_messenger_notifications">Messenger notifications</string>
+    <string name="screen_ant_settings_retry">Unable to open settings. Please try again.</string>
 </resources>

@@ -120,4 +120,6 @@
     <string name="screen_ant_messenger_unavailable">Месенджер тимчасово недоступний. Підключення повториться автоматично. Ви можете користуватися соцмережею.</string>
     <string name="screen_ant_offline">Немає інтернету. Перевірте Wi-Fi або мобільну мережу та спробуйте знову.</string>
     <string name="a11y_ant_unread_messages">Непрочитаних повідомлень: %1$d</string>
+    <string name="screen_ant_settings_messenger_notifications">Сповіщення месенджера</string>
+    <string name="screen_ant_settings_retry">Не вдалося відкрити налаштування. Спробуйте ще раз.</string>
 </resources>

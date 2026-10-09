@@ -26,6 +26,7 @@ internal object AntintwrkAccountSignOut {
         push.clear()
         AntintwrkSocialPushRoutes.consume()
         AntintwrkMessengerRoutes.clear()
+        AntintwrkAppNavigation.clear()
         scope.launch {
             if (preferences.getBoolean("logged-out", false) && preferences.getString("social-actor", null) == null) {
                 runCatching { AntintwrkNativeCredentials(context).clear() }

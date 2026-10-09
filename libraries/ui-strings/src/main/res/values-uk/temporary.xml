@@ -3,4 +3,8 @@
   <string name="screen_ant_account_messages_preparing">Готуємо листування…</string>
   <string name="screen_ant_account_messages_retry">Не вдалося підготувати листування. Перевірте з’єднання та спробуйте ще раз.</string>
     <string name="screen_ant_contact_denied">Зараз ви не можете написати цьому користувачеві. Налаштування приватності можуть дозволяти повідомлення лише друзям. Перевірте профіль у соцмережі.</string>
+    <string name="common_app_settings">Налаштування застосунку</string>
+    <string name="common_media_upload_quality">Якість надісланих медіа</string>
+    <string name="common_location_sharing">Передавання геолокації</string>
+    <string name="common_moderation_and_safety">Безпека листування</string>
 </resources>

@@ -2,4 +2,8 @@
 <resources>
     <string name="screen_ant_account_profile">Perfil en la red social</string>
     <string name="screen_ant_account_sign_out">Cerrar sesión</string>
+    <string name="screen_ant_sound_standard">Estándar</string>
+    <string name="screen_ant_sound_fade">Suave</string>
+    <string name="screen_moderation_and_safety_share_presence_heading">Presencia en el chat</string>
+    <string name="screen_moderation_and_safety_invites_heading">Solicitudes de conversación</string>
 </resources>

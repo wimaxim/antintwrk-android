@@ -3,4 +3,8 @@
   <string name="screen_ant_account_messages_preparing">Preparando tus conversaciones…</string>
   <string name="screen_ant_account_messages_retry">No se pudieron preparar tus conversaciones. Comprueba la conexión e inténtalo de nuevo.</string>
     <string name="screen_ant_contact_denied">Ahora no puedes enviar mensajes a este perfil. Su privacidad puede permitir mensajes solo de amigos. Revisa el perfil en la red social.</string>
+    <string name="common_app_settings">Ajustes de la aplicación</string>
+    <string name="common_media_upload_quality">Calidad de los archivos enviados</string>
+    <string name="common_location_sharing">Compartir ubicación</string>
+    <string name="common_moderation_and_safety">Moderación y seguridad</string>
 </resources>

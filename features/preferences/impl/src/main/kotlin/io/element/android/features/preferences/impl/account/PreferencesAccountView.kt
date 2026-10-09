@@ -39,22 +39,26 @@ fun PreferencesAccountView(
     onSignOutClick: () -> Unit,
     onDeactivateClick: () -> Unit,
     modifier: Modifier = Modifier,
+    managed: Boolean = MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH,
 ) {
     Column(modifier = modifier) {
         // 'Account settings' section
         ManageAccountSection(
             state = state,
+            managed = managed,
             onManageAccountClick = onManageAccountClick,
             onLinkNewDeviceClick = onLinkNewDeviceClick,
         )
         OtherSettingsSection(
             state = state,
+            managed = managed,
             onOpenNotificationSettings = onOpenNotificationSettings,
             onSecureBackupClick = onSecureBackupClick,
         )
         // General section
         GeneralSection(
             state = state,
+            managed = managed,
             onModerationAndSafetyClick = onModerationAndSafetyClick,
             onOpenRageShake = onOpenRageShake,
             onSignOutClick = onSignOutClick,
@@ -66,6 +70,7 @@ fun PreferencesAccountView(
 @Composable
 private fun ManageAccountSection(
     state: PreferencesAccountState,
+    managed: Boolean,
     onManageAccountClick: (url: String) -> Unit,
     onLinkNewDeviceClick: () -> Unit,
 ) {
@@ -76,7 +81,7 @@ private fun ManageAccountSection(
         state.accountManagementUrl?.let { url ->
             ListItem(
                 content = {
-                    val label = if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    val label = if (managed) {
                         R.string.screen_ant_account_profile
                     } else {
                         CommonStrings.action_manage_account_and_devices
@@ -84,7 +89,7 @@ private fun ManageAccountSection(
                     Text(stringResource(label))
                 },
                 leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.UserProfile())),
-                trailingContent = if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) null else ListItemContent.Icon(IconSource.Vector(CompoundIcons.PopOut())),
+                trailingContent = if (managed) null else ListItemContent.Icon(IconSource.Vector(CompoundIcons.PopOut())),
                 onClick = { onManageAccountClick(url) },
             )
         }
@@ -101,6 +106,7 @@ private fun ManageAccountSection(
 @Composable
 private fun ColumnScope.OtherSettingsSection(
     state: PreferencesAccountState,
+    managed: Boolean,
     onOpenNotificationSettings: () -> Unit,
     onSecureBackupClick: () -> Unit,
 ) {
@@ -109,7 +115,7 @@ private fun ColumnScope.OtherSettingsSection(
         leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Notifications())),
         onClick = onOpenNotificationSettings,
     )
-    if (state.showSecureBackup) {
+    if (!managed && state.showSecureBackup) {
         ListItem(
             content = { Text(stringResource(id = CommonStrings.common_encryption)) },
             leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Key())),
@@ -122,6 +128,7 @@ private fun ColumnScope.OtherSettingsSection(
 @Composable
 private fun ColumnScope.GeneralSection(
     state: PreferencesAccountState,
+    managed: Boolean,
     onModerationAndSafetyClick: () -> Unit,
     onOpenRageShake: () -> Unit,
     onSignOutClick: () -> Unit,
@@ -141,18 +148,20 @@ private fun ColumnScope.GeneralSection(
             onClick = onOpenRageShake,
         )
     }
+    if (!managed) {
     HorizontalDivider()
     ListItem(
         content = {
             Text(
-            stringResource(id = if (MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH) R.string.screen_ant_account_sign_out else CommonStrings.action_signout)
+            stringResource(id = if (managed) R.string.screen_ant_account_sign_out else CommonStrings.action_signout)
         )
         },
         leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Close())),
         style = ListItemStyle.Destructive,
         onClick = onSignOutClick,
     )
-    if (state.canDeactivateAccount) {
+    }
+    if (!managed && state.canDeactivateAccount) {
         ListItem(
             content = { Text(stringResource(id = CommonStrings.action_delete_account)) },
             leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Delete())),

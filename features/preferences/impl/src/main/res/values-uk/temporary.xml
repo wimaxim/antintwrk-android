@@ -2,4 +2,8 @@
 <resources>
     <string name="screen_ant_account_profile">Профіль у соцмережі</string>
     <string name="screen_ant_account_sign_out">Вийти</string>
+    <string name="screen_ant_sound_standard">Стандартний</string>
+    <string name="screen_ant_sound_fade">М’який</string>
+    <string name="screen_moderation_and_safety_share_presence_heading">Присутність у чаті</string>
+    <string name="screen_moderation_and_safety_invites_heading">Запити на листування</string>
 </resources>

@@ -130,11 +130,21 @@ class LoggedInAppScopeFlowNode(
         val callback = object : LoggedInFlowNode.Callback {
             override fun requestManagedSignOut(): Boolean {
                 if (!BuildConfig.ANTINTWRK_NATIVE_AUTH) return false
-                this@LoggedInAppScopeFlowNode.requestManagedSignOut()
+                io.element.android.appnav.antintwrk.AntintwrkAppNavigation.open(
+                    inputs.matrixClient.sessionId.value,
+                    io.element.android.appnav.antintwrk.AntintwrkAppDestination.SignOut
+                )
                 return true
             }
             override fun navigateToBugReport() {
-                callback.navigateToBugReport()
+                if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    io.element.android.appnav.antintwrk.AntintwrkAppNavigation.open(
+                        inputs.matrixClient.sessionId.value,
+                        io.element.android.appnav.antintwrk.AntintwrkAppDestination.Support
+                    )
+                } else {
+                    callback.navigateToBugReport()
+                }
             }
 
             override fun navigateToAddAccount() {
@@ -159,6 +169,7 @@ class LoggedInAppScopeFlowNode(
                 onRecoveredSignOut = { inputs.matrixClient.logout(userInitiated = true, ignoreSdkError = false) },
                 onSwitchMatrixAccount = { callback.navigateToSocialAccount(it) },
                 onOpenChats = { attachSession().openAppChats() },
+                onOpenAppPreference = { target -> attachSession().openAppPreference(target) },
                 onOpenMessage = { recipient ->
                     val user = UserId(recipient)
                     val room = directRoomResolver.resolve(user)

@@ -47,5 +47,9 @@ internal fun PreferencesEntryPoint.InitialTarget.toNavTarget() = when (this) {
     is PreferencesEntryPoint.InitialTarget.Root -> PreferencesFlowNode.NavTarget.Root
     is PreferencesEntryPoint.InitialTarget.NotificationSettings -> PreferencesFlowNode.NavTarget.NotificationSettings
     PreferencesEntryPoint.InitialTarget.NotificationTroubleshoot -> PreferencesFlowNode.NavTarget.TroubleshootNotifications
+    PreferencesEntryPoint.InitialTarget.MediaSettings -> PreferencesFlowNode.NavTarget.MediaSettings
+    PreferencesEntryPoint.InitialTarget.LockScreenSettings -> PreferencesFlowNode.NavTarget.LockScreenSettings
+    PreferencesEntryPoint.InitialTarget.LocationSettings -> PreferencesFlowNode.NavTarget.LocationSettings
+    PreferencesEntryPoint.InitialTarget.ModerationAndSafety -> PreferencesFlowNode.NavTarget.ModerationAndSafety
     PreferencesEntryPoint.InitialTarget.DeveloperSettings -> PreferencesFlowNode.NavTarget.DeveloperSettings
 }

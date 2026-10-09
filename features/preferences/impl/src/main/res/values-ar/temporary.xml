@@ -2,4 +2,8 @@
 <resources>
     <string name="screen_ant_account_profile">الملف الشخصي في الشبكة الاجتماعية</string>
     <string name="screen_ant_account_sign_out">تسجيل الخروج</string>
+    <string name="screen_ant_sound_standard">قياسي</string>
+    <string name="screen_ant_sound_fade">هادئ</string>
+    <string name="screen_moderation_and_safety_share_presence_heading">الحضور في الدردشة</string>
+    <string name="screen_moderation_and_safety_invites_heading">طلبات المراسلة</string>
 </resources>

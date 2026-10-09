@@ -2,4 +2,8 @@
 <resources>
     <string name="screen_ant_account_profile">Profil du réseau social</string>
     <string name="screen_ant_account_sign_out">Se déconnecter</string>
+    <string name="screen_ant_sound_standard">Standard</string>
+    <string name="screen_ant_sound_fade">Doux</string>
+    <string name="screen_moderation_and_safety_share_presence_heading">Présence dans la conversation</string>
+    <string name="screen_moderation_and_safety_invites_heading">Demandes de conversation</string>
 </resources>

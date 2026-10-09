@@ -74,6 +74,10 @@ class DefaultPreferencesEntryPointTest {
 
     @Test
     fun `test initial target to nav target mapping`() {
+        assertThat(PreferencesEntryPoint.InitialTarget.MediaSettings.toNavTarget()).isEqualTo(PreferencesFlowNode.NavTarget.MediaSettings)
+        assertThat(PreferencesEntryPoint.InitialTarget.LockScreenSettings.toNavTarget()).isEqualTo(PreferencesFlowNode.NavTarget.LockScreenSettings)
+        assertThat(PreferencesEntryPoint.InitialTarget.LocationSettings.toNavTarget()).isEqualTo(PreferencesFlowNode.NavTarget.LocationSettings)
+        assertThat(PreferencesEntryPoint.InitialTarget.ModerationAndSafety.toNavTarget()).isEqualTo(PreferencesFlowNode.NavTarget.ModerationAndSafety)
         assertThat(PreferencesEntryPoint.InitialTarget.Root.toNavTarget())
             .isEqualTo(PreferencesFlowNode.NavTarget.Root)
         assertThat(PreferencesEntryPoint.InitialTarget.NotificationSettings.toNavTarget())

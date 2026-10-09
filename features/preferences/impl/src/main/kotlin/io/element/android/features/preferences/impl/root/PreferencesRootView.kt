@@ -72,6 +72,7 @@ import io.element.android.libraries.testtags.TestTags
 import io.element.android.libraries.testtags.testTag
 import io.element.android.libraries.ui.strings.CommonStrings
 import kotlinx.collections.immutable.toImmutableList
+import io.element.android.libraries.matrix.api.BuildConfig as MatrixBuildConfig
 
 @Composable
 fun PreferencesRootView(
@@ -96,6 +97,7 @@ fun PreferencesRootView(
     onSignOutClick: () -> Unit,
     onDeactivateClick: () -> Unit,
     modifier: Modifier = Modifier,
+    managed: Boolean = MatrixBuildConfig.ANTINTWRK_NATIVE_AUTH,
 ) {
     val snackbarHostState = rememberSnackbarHostState(snackbarMessage = state.snackbarMessage)
 
@@ -133,6 +135,7 @@ fun PreferencesRootView(
             // Account settings section
             PreferencesAccountView(
                 state = state.preferencesAccountState,
+                managed = managed,
                 onSecureBackupClick = onSecureBackupClick,
                 onManageAccountClick = onManageAccountClick,
                 onLinkNewDeviceClick = onLinkNewDeviceClick,
@@ -142,6 +145,7 @@ fun PreferencesRootView(
                 onSignOutClick = onSignOutClick,
                 onDeactivateClick = onDeactivateClick,
             )
+            if (!managed) {
             // 'App settings' section
             AppSettingsSection(
                 state = state,
@@ -166,6 +170,7 @@ fun PreferencesRootView(
                     null
                 }
             )
+            }
         }
         state.userStatusState?.let {
             UserStatusUpdateIndicator(it.updateStatusAction)

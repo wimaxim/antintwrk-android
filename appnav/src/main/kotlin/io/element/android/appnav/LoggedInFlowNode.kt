@@ -10,13 +10,19 @@ package io.element.android.appnav
 
 import android.os.Parcelable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.lifecycleScope
 import com.bumble.appyx.core.children.nodeOrNull
 import com.bumble.appyx.core.composable.PermanentChild
@@ -76,8 +82,11 @@ import io.element.android.features.userprofile.api.UserProfileEntryPoint
 import io.element.android.features.verifysession.api.IncomingVerificationEntryPoint
 import io.element.android.libraries.architecture.BackstackView
 import io.element.android.libraries.architecture.BaseFlowNode
+import io.element.android.libraries.architecture.OverlayView
 import io.element.android.libraries.architecture.callback
 import io.element.android.libraries.architecture.createNode
+import io.element.android.libraries.architecture.overlay.operation.hide
+import io.element.android.libraries.architecture.overlay.operation.show
 import io.element.android.libraries.architecture.waitForChildAttached
 import io.element.android.libraries.architecture.waitForNavTargetAttached
 import io.element.android.libraries.core.meta.BuildMeta
@@ -354,7 +363,14 @@ class LoggedInFlowNode(
                     }
 
                     override fun navigateToSettings() {
-                        backstack.push(NavTarget.Settings())
+                        if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                            io.element.android.appnav.antintwrk.AntintwrkAppNavigation.open(
+                                matrixClient.sessionId.value,
+                                io.element.android.appnav.antintwrk.AntintwrkAppDestination.Settings
+                            )
+                        } else {
+                            backstack.push(NavTarget.Settings())
+                        }
                     }
 
                     override fun navigateToCreateRoom() {
@@ -671,6 +687,17 @@ class LoggedInFlowNode(
         }
     }
 
+    fun openAppPreference(target: PreferencesEntryPoint.InitialTarget) {
+        require(target in setOf(
+            PreferencesEntryPoint.InitialTarget.MediaSettings,
+            PreferencesEntryPoint.InitialTarget.LockScreenSettings,
+            PreferencesEntryPoint.InitialTarget.LocationSettings,
+            PreferencesEntryPoint.InitialTarget.ModerationAndSafety,
+            PreferencesEntryPoint.InitialTarget.NotificationSettings,
+        ))
+        overlay.show(NavTarget.Settings(target))
+    }
+
     fun openAppLogout() {
         backstack.push(NavTarget.Settings(PreferencesEntryPoint.InitialTarget.Logout))
     }
@@ -758,6 +785,24 @@ class LoggedInFlowNode(
                     Box(modifier = contentModifier) {
                         val ftueState by ftueService.state.collectAsState()
                         BackstackView(transitionHandler = rememberLoggedInFlowTransitionHandler(backstack))
+                        val overlays by overlay.elements.collectAsState()
+                        var appPreferenceVisible by remember { mutableStateOf(false) }
+                        LaunchedEffect(overlays.isNotEmpty()) {
+                            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                                if (appPreferenceVisible && overlays.isEmpty()) {
+                                    io.element.android.appnav.antintwrk.AntintwrkAppNavigation.open(
+                                        matrixClient.sessionId.value,
+                                        io.element.android.appnav.antintwrk.AntintwrkAppDestination.Settings
+                                    )
+                                }
+                                appPreferenceVisible = overlays.isNotEmpty()
+                            }
+                        }
+                        if (BuildConfig.ANTINTWRK_NATIVE_AUTH && overlays.isNotEmpty()) {
+                            Dialog(onDismissRequest = { overlay.hide() }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+                                OverlayView(Modifier.fillMaxSize())
+                            }
+                        }
                         if (BuildConfig.ANTINTWRK_NATIVE_AUTH || ftueState is FtueState.Complete) {
                             PermanentChild(permanentNavModel = permanentNavModel, navTarget = NavTarget.LoggedInPermanent)
                         }

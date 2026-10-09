@@ -120,4 +120,6 @@
     <string name="screen_ant_messenger_unavailable">聊天服务暂时不可用。我们将自动重试。你可以继续使用社交网络。</string>
     <string name="screen_ant_offline">没有互联网连接。请检查 Wi-Fi 或移动数据，然后重试。</string>
     <string name="a11y_ant_unread_messages">%1$d 条未读消息</string>
+    <string name="screen_ant_settings_messenger_notifications">聊天通知</string>
+    <string name="screen_ant_settings_retry">无法打开设置。请重试。</string>
 </resources>

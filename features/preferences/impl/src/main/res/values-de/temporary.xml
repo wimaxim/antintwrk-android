@@ -2,4 +2,8 @@
 <resources>
     <string name="screen_ant_account_profile">Profil im sozialen Netzwerk</string>
     <string name="screen_ant_account_sign_out">Abmelden</string>
+    <string name="screen_ant_sound_standard">Standard</string>
+    <string name="screen_ant_sound_fade">Sanft</string>
+    <string name="screen_moderation_and_safety_share_presence_heading">Präsenz im Chat</string>
+    <string name="screen_moderation_and_safety_invites_heading">Chat-Anfragen</string>
 </resources>

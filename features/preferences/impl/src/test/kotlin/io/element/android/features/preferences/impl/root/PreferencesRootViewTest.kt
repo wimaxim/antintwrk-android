@@ -39,6 +39,23 @@ import org.junit.Test
 
 class PreferencesRootViewTest : RobolectricTest() {
     @Test
+    fun `managed root omits migrated and technical preferences and version unlock`() = runAndroidComposeUiTest {
+        setView(aPreferencesRootState(version = "MANAGED_VERSION", showDeveloperSettings = true), managed = true)
+        listOf(
+            CommonStrings.common_appearance,
+            CommonStrings.common_screen_lock,
+            CommonStrings.common_media_upload_quality,
+            CommonStrings.common_location_sharing,
+            CommonStrings.common_about,
+            R.string.screen_labs_title,
+            CommonStrings.common_developer_options
+        ).forEach {
+            onNodeWithText(activity!!.getString(it)).assertDoesNotExist()
+        }
+        onNodeWithText("MANAGED_VERSION").assertDoesNotExist()
+    }
+
+    @Test
     fun `clicking on back invokes back callback`() = runAndroidComposeUiTest {
         val eventsRecorder = EventsRecorder<PreferencesRootEvent>(expectEvents = false)
         ensureCalledOnce { callback ->
@@ -393,6 +410,7 @@ class PreferencesRootViewTest : RobolectricTest() {
 
 private fun AndroidComposeUiTest<ComponentActivity>.setView(
     state: PreferencesRootState,
+    managed: Boolean = false,
     onBackClick: () -> Unit = EnsureNeverCalled(),
     onAddAccountClick: () -> Unit = EnsureNeverCalled(),
     onOpenAnalytics: () -> Unit = EnsureNeverCalled(),
@@ -414,6 +432,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setView(
 ) {
     setContent {
         PreferencesRootView(
+            managed = managed,
             state = state,
             emojiPickerRenderer = NoOpEmojiPickerRenderer,
             onBackClick = onBackClick,

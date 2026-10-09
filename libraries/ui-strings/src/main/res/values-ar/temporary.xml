@@ -3,4 +3,8 @@
   <string name="screen_ant_account_messages_preparing">جارٍ تجهيز محادثاتك…</string>
   <string name="screen_ant_account_messages_retry">تعذر تجهيز محادثاتك. تحقق من الاتصال وحاول مرة أخرى.</string>
     <string name="screen_ant_contact_denied">لا يمكنك مراسلة هذا المستخدم الآن. قد تسمح إعدادات الخصوصية بالرسائل من الأصدقاء فقط. تحقق من الملف الشخصي في الشبكة الاجتماعية.</string>
+    <string name="common_app_settings">إعدادات التطبيق</string>
+    <string name="common_media_upload_quality">جودة الوسائط المرسلة</string>
+    <string name="common_location_sharing">مشاركة الموقع</string>
+    <string name="common_moderation_and_safety">الإشراف والسلامة</string>
 </resources>

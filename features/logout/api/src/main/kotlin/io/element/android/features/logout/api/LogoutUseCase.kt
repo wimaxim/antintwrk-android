@@ -14,7 +14,7 @@ package io.element.android.features.logout.api
 interface LogoutUseCase {
     /**
      * Log out the current user(s) and then perform any needed cleanup tasks.
-     * @param ignoreSdkError if true, the SDK error will be ignored and the user will be logged out anyway.
+     * @param ignoreSdkError upstream may force local cleanup; managed accounts always require successful revocation and host recovery preflight.
      */
     suspend fun logoutAll(ignoreSdkError: Boolean)
 }

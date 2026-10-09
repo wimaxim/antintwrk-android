@@ -120,4 +120,6 @@
     <string name="screen_ant_messenger_unavailable">المراسلة غير متاحة مؤقتًا. سنعيد الاتصال تلقائيًا. يمكنك استخدام الشبكة الاجتماعية.</string>
     <string name="screen_ant_offline">لا يوجد اتصال بالإنترنت. تحقق من Wi-Fi أو بيانات الهاتف وحاول مجددًا.</string>
     <string name="a11y_ant_unread_messages">%1$d رسائل غير مقروءة</string>
+    <string name="screen_ant_settings_messenger_notifications">إشعارات المراسلة</string>
+    <string name="screen_ant_settings_retry">تعذر فتح الإعدادات. يرجى المحاولة مرة أخرى.</string>
 </resources>

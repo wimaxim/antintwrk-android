@@ -2,4 +2,6 @@
 <resources>
     <string name="screen_ant_account_profile">Profile in the social network</string>
     <string name="screen_ant_account_sign_out">Sign out</string>
+    <string name="screen_ant_sound_standard">Standard</string>
+    <string name="screen_ant_sound_fade">Soft</string>
 </resources>

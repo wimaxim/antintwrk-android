@@ -29,6 +29,7 @@ import io.element.android.appnav.R
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
+import io.element.android.libraries.ui.strings.CommonStrings
 
 /** Shared setting for native resources and embedded social routes, including Android 24–32. */
 object AntintwrkAppLocale {
@@ -62,7 +63,13 @@ object AntintwrkAppLocale {
 }
 
 @Composable
-internal fun AntintwrkAppSettings(onDismiss: () -> Unit, onRoute: (String) -> Unit, onSignOut: () -> Unit) {
+internal fun AntintwrkAppSettings(
+    onDismiss: () -> Unit,
+    onRoute: (String) -> Unit,
+    onSignOut: () -> Unit,
+    messengerSettingsReady: Boolean = false,
+    failed: Boolean = false,
+) {
     val context = LocalAntintwrkActivity.current ?: LocalContext.current
     var choosingLanguage by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -82,24 +89,39 @@ internal fun AntintwrkAppSettings(onDismiss: () -> Unit, onRoute: (String) -> Un
                     }
                 } else {
                 Text(stringResource(R.string.screen_ant_menu_settings), style = ElementTheme.typography.fontHeadingLgRegular)
+                if (failed) Text(stringResource(R.string.screen_ant_settings_retry), color = ElementTheme.colors.textCriticalPrimary)
                 TextButton(stringResource(R.string.screen_ant_settings_language), { choosingLanguage = true })
                 SettingsGroup(R.string.screen_ant_settings_account, listOf(
                     "profile" to R.string.screen_ant_settings_profile,
                     "native-push" to R.string.screen_ant_push_title,
                 ), onRoute)
+                SettingsGroup(CommonStrings.common_app_settings, listOf(
+                    "native-media" to CommonStrings.common_media_upload_quality,
+                    "native-screen-lock" to CommonStrings.common_screen_lock,
+                    "native-location" to CommonStrings.common_location_sharing,
+                    "native-messenger-notifications" to R.string.screen_ant_settings_messenger_notifications,
+                    "native-moderation" to CommonStrings.common_moderation_and_safety,
+                ), onRoute, enabled = messengerSettingsReady)
+                if (!messengerSettingsReady) Text(stringResource(CommonStrings.common_loading), color = ElementTheme.colors.textSecondary)
                 SettingsGroup(R.string.screen_ant_settings_participation, listOf(
                     "monetization" to R.string.screen_ant_menu_monetization,
                     "my-referrals" to R.string.screen_ant_menu_referrals,
                 ), onRoute)
                 SettingsGroup(R.string.screen_ant_settings_help, listOf(
                     "support" to R.string.screen_ant_menu_support,
-                    "about" to R.string.screen_ant_menu_about,
                     "terms" to R.string.screen_ant_menu_terms,
                     "privacy" to R.string.screen_ant_menu_privacy,
                     "native-licences" to R.string.screen_ant_licences,
                 ), onRoute)
                 HorizontalDivider()
                 TextButton(stringResource(R.string.screen_ant_auth_logout), onSignOut)
+                val version = remember(context) { context.packageManager.getPackageInfo(context.packageName, 0) }
+                val code = if (Build.VERSION.SDK_INT >= 28) version.longVersionCode else version.versionCode.toLong()
+                Text(
+                    stringResource(CommonStrings.settings_version_number, version.versionName.orEmpty(), code.toString()),
+                    color = ElementTheme.colors.textSecondary,
+                    style = ElementTheme.typography.fontBodySmRegular
+                )
                 }
             }
         }
@@ -107,8 +129,8 @@ internal fun AntintwrkAppSettings(onDismiss: () -> Unit, onRoute: (String) -> Un
 }
 
 @Composable
-private fun SettingsGroup(title: Int, routes: List<Pair<String, Int>>, onRoute: (String) -> Unit) {
+private fun SettingsGroup(title: Int, routes: List<Pair<String, Int>>, onRoute: (String) -> Unit, enabled: Boolean = true) {
     HorizontalDivider(Modifier.padding(vertical = 12.dp))
     Text(stringResource(title), color = ElementTheme.colors.textSecondary, style = ElementTheme.typography.fontBodySmRegular)
-    routes.forEach { (route, label) -> TextButton(stringResource(label), { onRoute(route) }) }
+    routes.forEach { (route, label) -> TextButton(stringResource(label), { onRoute(route) }, enabled = enabled) }
 }

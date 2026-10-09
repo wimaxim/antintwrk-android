@@ -3,4 +3,8 @@
   <string name="screen_ant_account_messages_preparing">Preparazione delle conversazioni…</string>
   <string name="screen_ant_account_messages_retry">Impossibile preparare le conversazioni. Controlla la connessione e riprova.</string>
     <string name="screen_ant_contact_denied">Al momento non puoi scrivere a questo profilo. Le impostazioni di privacy potrebbero consentire messaggi solo agli amici. Controlla il profilo nel social network.</string>
+    <string name="common_app_settings">Impostazioni dell’app</string>
+    <string name="common_media_upload_quality">Qualità dei media inviati</string>
+    <string name="common_location_sharing">Condivisione della posizione</string>
+    <string name="common_moderation_and_safety">Moderazione e sicurezza</string>
 </resources>

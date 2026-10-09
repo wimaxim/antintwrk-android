@@ -71,6 +71,7 @@ internal fun AntintwrkNativeAppView(
     onRecoveredSignOut: (suspend () -> Unit)? = null,
     onSwitchMatrixAccount: ((String) -> Unit)? = null,
     onOpenChats: (suspend () -> Unit)? = null,
+    onOpenAppPreference: (suspend (io.element.android.features.preferences.api.PreferencesEntryPoint.InitialTarget) -> Unit)? = null,
     onOpenMessage: (suspend (String) -> Unit)? = null,
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
 ) {
@@ -135,7 +136,8 @@ internal fun AntintwrkNativeAppView(
         var messengerBusy by remember(actor) { mutableStateOf(false) }
         var messengerFailed by remember(actor) { mutableStateOf(false) }
         var messengerAttempt by remember(actor) { mutableLongStateOf(0L) }
-        var settingsOpen by remember { mutableStateOf(false) }
+        var settingsOpen by remember(actor) { mutableStateOf(false) }
+        var settingsFailed by remember(actor) { mutableStateOf(false) }
         var socialUnavailable by remember { mutableStateOf(false) }
         var matrixUnavailable by remember { mutableStateOf(false) }
         var healthAttempt by remember { mutableLongStateOf(0L) }
@@ -597,6 +599,7 @@ internal fun AntintwrkNativeAppView(
                 scope.launch { runRequest(revalidate = true) { client.session() } }
             }
         )
+        val signOutRetry = stringResource(R.string.screen_ant_recovery_retry)
         fun signOut() {
                 if (matrixUserId != null && matrixUserId == (session?.matrixUserId ?: accountPreferences.getString("social-actor", null)) &&
                     onRequestSignOut != null) {
@@ -620,9 +623,29 @@ internal fun AntintwrkNativeAppView(
                     }
                 } else {
                 val current = session ?: return
+                scope.launch {
+                try {
+                    val stored = withTimeout(10_000) { current.matrixUserId?.let { messengerBindings.sessionStore().getSession(it) } }
+                    if (stored?.isTokenValid == true) {
+                        // Bind the matching SDK session before logout; never leave its live token behind.
+                        val switchAccount = requireNotNull(onSwitchMatrixAccount)
+                        AntintwrkAppNavigation.open(stored.userId, AntintwrkAppDestination.SignOut)
+                        switchAccount(stored.userId)
+                        return@launch
+                    }
+                } catch (timeout: kotlinx.coroutines.TimeoutCancellationException) {
+                    navigationSnackbar.showSnackbar(signOutRetry, withDismissAction = true)
+                    return@launch
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    navigationSnackbar.showSnackbar(signOutRetry, withDismissAction = true)
+                    return@launch
+                }
                 val pushFid = pushStore.fid
                 val cookieSnapshot = client.clearLocalSession()
                 AntintwrkMessengerRoutes.clear()
+                AntintwrkAppNavigation.clear()
                 accountPreferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", current.matrixUserId).commit()
                 AntintwrkSocialPushRoutes.consume()
                 AntintwrkSocialProfileRoutes.consume()
@@ -651,10 +674,33 @@ internal fun AntintwrkNativeAppView(
                 }
                 }
                 }
+                }
+        }
+        val appRequest by AntintwrkAppNavigation.requests.collectAsState()
+        LaunchedEffect(appRequest, session?.stage, actor, matrixUserId) {
+            val request = appRequest ?: return@LaunchedEffect
+            if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) return@LaunchedEffect
+            if (request.actor != actor) {
+                AntintwrkAppNavigation.consume(request)
+                return@LaunchedEffect
+            }
+            if (request.destination == AntintwrkAppDestination.SignOut && matrixUserId != actor) return@LaunchedEffect
+            AntintwrkAppNavigation.consume(request)
+            when (request.destination) {
+                AntintwrkAppDestination.Settings -> settingsOpen = true
+                AntintwrkAppDestination.Support -> {
+                    settingsOpen = false
+                    shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
+                    webController.navigate(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "support"))
+                }
+                AntintwrkAppDestination.SignOut -> signOut()
+            }
         }
         if (settingsOpen) {
             AntintwrkAppSettings(
                 onDismiss = { settingsOpen = false },
+                messengerSettingsReady = matrixUserId == actor && onOpenAppPreference != null,
+                failed = settingsFailed,
                 onSignOut = {
                     settingsOpen = false
                     signOut()
@@ -664,6 +710,23 @@ internal fun AntintwrkNativeAppView(
                     when (path) {
                         "native-push" -> pushOpen = true
                         "native-licences" -> licencesOpen = true
+                        "native-media", "native-screen-lock", "native-location", "native-messenger-notifications", "native-moderation" -> {
+                            val target = requireNotNull(antintwrkAppPreference(path))
+                            settingsFailed = false
+                            scope.launch {
+                                try {
+                                    withTimeout(6_000) { requireNotNull(onOpenAppPreference).invoke(target) }
+                                } catch (_: kotlinx.coroutines.TimeoutCancellationException) {
+                                    settingsFailed = true
+                                    settingsOpen = true
+                                } catch (cancelled: CancellationException) {
+                                    throw cancelled
+                                } catch (_: Exception) {
+                                    settingsFailed = true
+                                    settingsOpen = true
+                                }
+                            }
+                        }
                         else -> {
                             shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
                             webController.navigate(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, path))

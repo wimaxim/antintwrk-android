@@ -11,6 +11,8 @@ package io.element.android.features.logout.impl
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import io.element.android.features.logout.api.LogoutUseCase
+import io.element.android.features.logout.api.ManagedLogoutGuard
+import io.element.android.libraries.matrix.api.BuildConfig
 import io.element.android.libraries.matrix.api.MatrixClientProvider
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.sessionstorage.api.SessionStore
@@ -20,19 +22,23 @@ import timber.log.Timber
 class DefaultLogoutUseCase(
     private val sessionStore: SessionStore,
     private val matrixClientProvider: MatrixClientProvider,
+    private val managedLogoutGuard: ManagedLogoutGuard,
 ) : LogoutUseCase {
     override suspend fun logoutAll(ignoreSdkError: Boolean) {
-        sessionStore.getAllSessions()
-            .map { sessionData ->
-                SessionId(sessionData.userId)
-            }
-            .forEach { sessionId ->
+        val sessions = sessionStore.getAllSessions().map { SessionId(it.userId) }
+        val managed = BuildConfig.ANTINTWRK_NATIVE_AUTH
+        if (managed) {
+            // Preflight every account before revoking any of them.
+            sessions.forEach { require(managedLogoutGuard.prepare(it.value)) { "Account recovery is not ready" } }
+        }
+        sessions.forEach { sessionId ->
                 Timber.d("Logging out sessionId: $sessionId")
                 matrixClientProvider.getOrRestore(sessionId).fold(
                     onSuccess = { client ->
-                        client.logout(userInitiated = true, ignoreSdkError = ignoreSdkError)
+                        client.logout(userInitiated = true, ignoreSdkError = ignoreSdkError && !managed)
                     },
                     onFailure = { error ->
+                        if (managed) throw error
                         Timber.e(error, "Failed to get or restore MatrixClient for sessionId: $sessionId")
                     }
                 )

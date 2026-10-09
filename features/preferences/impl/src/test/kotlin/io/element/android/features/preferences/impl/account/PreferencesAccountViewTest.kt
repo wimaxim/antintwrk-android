@@ -29,6 +29,14 @@ import org.junit.Test
 
 class PreferencesAccountViewTest : RobolectricTest() {
     @Test
+    fun `managed account has no encryption or separate logout or deactivation`() = runAndroidComposeUiTest {
+        setView(aPreferencesAccountState(showSecureBackup = true, canDeactivateAccount = true), managed = true)
+        listOf(CommonStrings.common_encryption, CommonStrings.action_signout, CommonStrings.action_delete_account).forEach {
+            onNodeWithText(activity!!.getString(it)).assertDoesNotExist()
+        }
+    }
+
+    @Test
     fun `click on Manage account invokes the expected callback`() = runAndroidComposeUiTest {
         ensureCalledOnceWithParam("aUrl") { callback ->
             setView(
@@ -154,6 +162,7 @@ class PreferencesAccountViewTest : RobolectricTest() {
 
 private fun AndroidComposeUiTest<ComponentActivity>.setView(
     state: PreferencesAccountState,
+    managed: Boolean = false,
     onSecureBackupClick: () -> Unit = EnsureNeverCalled(),
     onManageAccountClick: (url: String) -> Unit = EnsureNeverCalledWithParam(),
     onLinkNewDeviceClick: () -> Unit = EnsureNeverCalled(),
@@ -165,6 +174,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setView(
 ) {
     setContent {
         PreferencesAccountView(
+            managed = managed,
             state = state,
             onSecureBackupClick = onSecureBackupClick,
             onManageAccountClick = onManageAccountClick,

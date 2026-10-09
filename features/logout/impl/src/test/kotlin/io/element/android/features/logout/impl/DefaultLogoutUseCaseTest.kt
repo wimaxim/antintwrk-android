@@ -10,6 +10,9 @@
 
 package io.element.android.features.logout.impl
 
+import com.google.common.truth.Truth.assertThat
+import io.element.android.features.logout.api.ManagedLogoutGuard
+import io.element.android.libraries.matrix.api.BuildConfig
 import io.element.android.libraries.matrix.test.A_USER_ID
 import io.element.android.libraries.matrix.test.A_USER_ID_2
 import io.element.android.libraries.matrix.test.FakeMatrixClient
@@ -20,6 +23,7 @@ import io.element.android.tests.testutils.lambda.lambdaRecorder
 import io.element.android.tests.testutils.lambda.value
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 class DefaultLogoutUseCaseTest {
@@ -30,6 +34,7 @@ class DefaultLogoutUseCaseTest {
             logoutLambda = logoutLambda1
         }
         val sut = DefaultLogoutUseCase(
+            managedLogoutGuard = ManagedLogoutGuard { true },
             sessionStore = InMemorySessionStore(
                 initialList = listOf(
                     aSessionData(sessionId = A_USER_ID.value),
@@ -45,7 +50,7 @@ class DefaultLogoutUseCaseTest {
             ),
         )
         sut.logoutAll(ignoreSdkError = true)
-        logoutLambda1.assertions().isCalledOnce().with(value(true), value(true))
+        logoutLambda1.assertions().isCalledOnce().with(value(!BuildConfig.ANTINTWRK_NATIVE_AUTH), value(true))
     }
 
     @Test
@@ -59,6 +64,7 @@ class DefaultLogoutUseCaseTest {
             logoutLambda = logoutLambda2
         }
         val sut = DefaultLogoutUseCase(
+            managedLogoutGuard = ManagedLogoutGuard { true },
             sessionStore = InMemorySessionStore(
                 initialList = listOf(
                     aSessionData(sessionId = A_USER_ID.value),
@@ -76,13 +82,14 @@ class DefaultLogoutUseCaseTest {
             ),
         )
         sut.logoutAll(ignoreSdkError = true)
-        logoutLambda1.assertions().isCalledOnce().with(value(true), value(true))
-        logoutLambda2.assertions().isCalledOnce().with(value(true), value(true))
+        logoutLambda1.assertions().isCalledOnce().with(value(!BuildConfig.ANTINTWRK_NATIVE_AUTH), value(true))
+        logoutLambda2.assertions().isCalledOnce().with(value(!BuildConfig.ANTINTWRK_NATIVE_AUTH), value(true))
     }
 
     @Test
     fun `test logout session not found is ignored`() = runTest {
         val sut = DefaultLogoutUseCase(
+            managedLogoutGuard = ManagedLogoutGuard { true },
             sessionStore = InMemorySessionStore(
                 initialList = listOf(
                     aSessionData(sessionId = A_USER_ID.value),
@@ -97,13 +104,17 @@ class DefaultLogoutUseCaseTest {
                 }
             ),
         )
-        sut.logoutAll(ignoreSdkError = true)
-        // No error
+        if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            assertThat(runCatching { sut.logoutAll(ignoreSdkError = true) }.exceptionOrNull()).isInstanceOf(Exception::class.java)
+        } else {
+            sut.logoutAll(ignoreSdkError = true)
+        }
     }
 
     @Test
     fun `test logout no sessions`() = runTest {
         val sut = DefaultLogoutUseCase(
+            managedLogoutGuard = ManagedLogoutGuard { true },
             sessionStore = InMemorySessionStore(
                 initialList = emptyList()
             ),
@@ -117,5 +128,18 @@ class DefaultLogoutUseCaseTest {
         )
         sut.logoutAll(ignoreSdkError = true)
         // No error
+    }
+    @Test
+    fun `failed recovery of one account prevents revocation of every account`() = runTest {
+        assumeTrue(BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        var revocations = 0
+        val client = FakeMatrixClient(A_USER_ID).apply { logoutLambda = { _, _ -> revocations++ } }
+        val sut = DefaultLogoutUseCase(
+            sessionStore = InMemorySessionStore(initialList = listOf(aSessionData(sessionId = A_USER_ID.value), aSessionData(sessionId = A_USER_ID_2.value))),
+            matrixClientProvider = FakeMatrixClientProvider(getClient = { Result.success(client) }),
+            managedLogoutGuard = ManagedLogoutGuard { it == A_USER_ID.value },
+        )
+        assertThat(runCatching { sut.logoutAll(ignoreSdkError = true) }.exceptionOrNull()).isInstanceOf(IllegalArgumentException::class.java)
+        assertThat(revocations).isEqualTo(0)
     }
 }

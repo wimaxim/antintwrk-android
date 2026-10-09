@@ -2,4 +2,8 @@
 <resources>
     <string name="screen_ant_account_profile">社交网络个人资料</string>
     <string name="screen_ant_account_sign_out">退出登录</string>
+    <string name="screen_ant_sound_standard">标准</string>
+    <string name="screen_ant_sound_fade">柔和</string>
+    <string name="screen_moderation_and_safety_share_presence_heading">聊天状态</string>
+    <string name="screen_moderation_and_safety_invites_heading">聊天请求</string>
 </resources>

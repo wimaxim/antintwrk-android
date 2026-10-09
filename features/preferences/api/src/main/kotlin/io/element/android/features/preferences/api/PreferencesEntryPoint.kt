@@ -33,6 +33,15 @@ interface PreferencesEntryPoint : FeatureEntryPoint {
         data object NotificationTroubleshoot : InitialTarget
 
         @Parcelize
+        data object MediaSettings : InitialTarget
+        @Parcelize
+        data object LockScreenSettings : InitialTarget
+        @Parcelize
+        data object LocationSettings : InitialTarget
+        @Parcelize
+        data object ModerationAndSafety : InitialTarget
+
+        @Parcelize
         data object DeveloperSettings : InitialTarget
     }
 

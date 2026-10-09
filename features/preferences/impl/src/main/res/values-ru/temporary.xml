@@ -2,4 +2,8 @@
 <resources>
     <string name="screen_ant_account_profile">Профиль в соцсети</string>
     <string name="screen_ant_account_sign_out">Выйти</string>
+    <string name="screen_ant_sound_standard">Стандартный</string>
+    <string name="screen_ant_sound_fade">Мягкий</string>
+    <string name="screen_moderation_and_safety_share_presence_heading">Присутствие в чате</string>
+    <string name="screen_moderation_and_safety_invites_heading">Запросы на переписку</string>
 </resources>

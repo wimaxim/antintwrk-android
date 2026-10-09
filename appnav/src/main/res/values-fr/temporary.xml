@@ -120,4 +120,6 @@
     <string name="screen_ant_messenger_unavailable">La messagerie est temporairement indisponible. Nous réessaierons automatiquement. Vous pouvez utiliser le réseau social.</string>
     <string name="screen_ant_offline">Pas de connexion Internet. Vérifiez le Wi-Fi ou les données mobiles et réessayez.</string>
     <string name="a11y_ant_unread_messages">%1$d messages non lus</string>
+    <string name="screen_ant_settings_messenger_notifications">Notifications de la messagerie</string>
+    <string name="screen_ant_settings_retry">Impossible d’ouvrir les paramètres. Réessayez.</string>
 </resources>
