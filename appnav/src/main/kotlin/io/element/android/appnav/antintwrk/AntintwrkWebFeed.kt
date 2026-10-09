@@ -23,13 +23,12 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -37,22 +36,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
 import io.element.android.appnav.BuildConfig
 import io.element.android.appnav.R
-import io.element.android.libraries.designsystem.theme.components.Text
-import io.element.android.libraries.designsystem.theme.components.TextButton
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 
@@ -210,6 +207,16 @@ class AntintwrkWebFeedController {
         loading = true
         view?.reload()
     }
+
+    /** Recovery uses GET and never replays a form POST or a payment submission. */
+    internal fun recoverPage() {
+        val target = currentUrl?.let(policy::embedded) ?: return
+        if (!composing) {
+            failed = false
+            loading = true
+            view?.loadUrl(target)
+        }
+    }
     fun rendererGone(renderer: WebView) {
         val active = view === renderer
         if (active) {
@@ -291,6 +298,15 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
         }
     }
     val startUrl = controller.currentUrl?.let(policy::embedded) ?: policy.root(language, controller.section, controller.ownProfileIdentity)
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(controller.failed, controller.section) {
+        if (controller.failed) {
+            while (controller.failed) {
+                delay(15_000)
+                if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) controller.recoverPage()
+            }
+        }
+    }
     val authRequired by rememberUpdatedState(onAuthRequired)
     BackHandler(backEnabled && (controller.canGoBack || controller.atMessengerProfileRoot() || controller.composing)) { controller.back() }
     Box(Modifier.fillMaxSize()) {
@@ -503,10 +519,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
         AntintwrkWebDialogs(controller)
         if (controller.loading) LinearProgressIndicator(Modifier.fillMaxWidth())
         if (controller.failed) {
-            Column(Modifier.align(Alignment.Center).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(stringResource(R.string.screen_ant_web_error))
-                TextButton(stringResource(R.string.screen_ant_web_retry), controller::retry)
-            }
+            AntintwrkServiceUnavailable(message = R.string.screen_ant_social_unavailable, onRetry = controller::retry)
         }
     }
 }

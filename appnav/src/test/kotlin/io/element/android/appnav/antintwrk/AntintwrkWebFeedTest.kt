@@ -161,7 +161,7 @@ class AntintwrkWebFeedTest : RobolectricTest() {
             assertThat(controller.failed).isFalse()
             view.webViewClient.onReceivedHttpError(view, request(true), error)
         }
-        onNodeWithText("Could not load the feed. Check your connection and try again.").assertIsDisplayed()
+        onNodeWithText("The social network is temporarily unavailable. We will retry automatically. You can continue using the messenger.").assertIsDisplayed()
         onNodeWithText("Retry").performClick()
         runOnIdle { assertThat(controller.failed).isFalse() }
     }

@@ -63,6 +63,7 @@ class NotLoggedInFlowNode(
     interface Callback : Plugin {
         fun navigateToBugReport()
         fun onDone()
+        fun navigateToSocialAccount(userId: String) {}
     }
 
     private val callback: Callback = callback()
@@ -90,7 +91,7 @@ class NotLoggedInFlowNode(
         return when (navTarget) {
             NavTarget.Root -> {
                 if (BuildConfig.ANTINTWRK_ONBOARDING && inputs.loginParams == null) {
-                    if (BuildConfig.ANTINTWRK_NATIVE_AUTH) return AntintwrkNativeAuthNode(buildContext)
+                    if (BuildConfig.ANTINTWRK_NATIVE_AUTH) return AntintwrkNativeAuthNode(buildContext, callback::navigateToSocialAccount)
                     if (BuildConfig.DEBUG && BuildConfig.ANTINTWRK_SHELL_PREVIEW) return AntintwrkShellNode(buildContext)
                     return AntintwrkWelcomeNode(buildContext)
                 }

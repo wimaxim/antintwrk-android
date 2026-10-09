@@ -155,6 +155,7 @@ class RootFlowNode(
                 sessionStore.setLatestSession(userId)
                 switchToLoggedInFlow(SessionId(userId), 0)
             } else {
+                if (existing?.isTokenValid == true) sessionStore.updateData(existing.copy(isTokenValid = false))
                 // Keep the previous actor's encrypted store; login adds/selects this actor.
                 backstack.safeRoot(NavTarget.NotLoggedInFlow(null))
             }
@@ -364,6 +365,10 @@ class RootFlowNode(
             }
             is NavTarget.NotLoggedInFlow -> {
                 val callback = object : NotLoggedInFlowNode.Callback {
+                    override fun navigateToSocialAccount(userId: String) {
+                        switchToSocialMatrixAccount(userId)
+                    }
+
                     override fun navigateToBugReport() {
                         backstack.push(NavTarget.BugReport)
                     }

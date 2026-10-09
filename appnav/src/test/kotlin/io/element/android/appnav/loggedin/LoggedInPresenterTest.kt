@@ -349,6 +349,25 @@ class LoggedInPresenterTest {
     }
 
     @Test
+    fun `present - connectivity arriving after client destruction does not crash`() = runTest {
+        val fake = FakeMatrixClient(accountManagementUrlResult = { Result.success(null) })
+        var attempted = false
+        val closedClient = object : io.element.android.libraries.matrix.api.MatrixClient by fake {
+            override fun homeserverCapabilities(): io.element.android.libraries.matrix.api.HomeserverCapabilitiesProvider {
+                attempted = true
+                throw IllegalStateException("Client object has already been destroyed")
+            }
+        }
+        val networkMonitor = FakeNetworkMonitor()
+        createLoggedInPresenter(matrixClient = closedClient, networkMonitor = networkMonitor).test {
+            awaitItem()
+            networkMonitor.connectivity.value = NetworkStatus.Connected
+            advanceUntilIdle()
+            assertThat(attempted).isTrue()
+        }
+    }
+
+    @Test
     fun `present - refreshes homeserver capabilities when network is back`() = runTest {
         val refreshLambda = lambdaRecorder<Result<Unit>> { Result.success(Unit) }
         val matrixClient = FakeMatrixClient(

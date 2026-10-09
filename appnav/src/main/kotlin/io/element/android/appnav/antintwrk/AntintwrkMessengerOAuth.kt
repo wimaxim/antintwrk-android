@@ -4,22 +4,19 @@ package io.element.android.appnav.antintwrk
 import android.net.Uri
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
-import io.element.android.appnav.R
-import io.element.android.libraries.designsystem.theme.components.TextButton
 import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
 import io.element.android.libraries.matrix.api.auth.OAuthRedirectUrlProvider
 import kotlinx.coroutines.CancellationException
@@ -62,10 +59,8 @@ internal fun AntintwrkMessengerOAuth(
         view.destroy()
     }
     }
-    Dialog(onDismissRequest = onCancel, properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        Column(Modifier.fillMaxSize()) {
-            TextButton(stringResource(R.string.screen_antintwrk_back), onCancel)
-            AndroidView(modifier = Modifier.weight(1f), factory = {
+    androidx.compose.runtime.key(url, expectedUserId) {
+            AndroidView(modifier = Modifier.size(1.dp).alpha(0f).clearAndSetSemantics {}, factory = {
                 view.apply {
                     settings.javaScriptEnabled = true
                     settings.allowFileAccess = false
@@ -141,6 +136,22 @@ internal fun AntintwrkMessengerOAuth(
                     loadUrl(url)
                 }
             })
+    }
+}
+
+/** Expire only MAS cookies. Social cookies and every actor's encrypted store stay intact. */
+internal suspend fun clearAntintwrkOAuthCookies() {
+    val manager = android.webkit.CookieManager.getInstance()
+    val origin = "https://auth.antimsg.com"
+    val names = manager.getCookie(origin).orEmpty().split(';').map { it.substringBefore('=').trim() }.filter { it.isNotEmpty() }
+    for (name in names) {
+        for (domain in listOf("", "; Domain=auth.antimsg.com")) {
+            kotlinx.coroutines.suspendCancellableCoroutine<Unit> { continuation ->
+                manager.setCookie(origin, "$name=; Path=/; Max-Age=0; Secure; HttpOnly$domain") {
+                    if (continuation.isActive) continuation.resumeWith(Result.success(Unit))
+                }
+            }
         }
     }
+    manager.flush()
 }

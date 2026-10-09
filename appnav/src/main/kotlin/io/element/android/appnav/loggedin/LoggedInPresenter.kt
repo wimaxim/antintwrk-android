@@ -131,15 +131,20 @@ class LoggedInPresenter(
 
         LaunchedEffect(Unit) {
             // Keep automatic call status (m.call) in sync with homeserver support.
-            val enabled = matrixClient.isUserStatusSupported().getOrDefault(false)
-            matrixClient.enableAutomaticCallStatus(enabled)
+            runCatchingExceptions {
+                val enabled = matrixClient.isUserStatusSupported().getOrDefault(false)
+                matrixClient.enableAutomaticCallStatus(enabled)
+            }.onFailure { Timber.d(it, "Call status refresh ended with the session") }
         }
 
         val networkConnectivity by networkMonitor.connectivity.collectAsState()
         LaunchedEffect(networkConnectivity) {
             if (networkConnectivity == NetworkStatus.Connected) {
                 // Refresh homeserver capabilities when the network is back
-                matrixClient.homeserverCapabilities().refresh()
+                // Logout can destroy the native client before this composition is removed.
+                // A late connectivity event must never crash account switching.
+                runCatchingExceptions { matrixClient.homeserverCapabilities().refresh() }
+                    .onFailure { Timber.d(it, "Capabilities refresh ended with the session") }
             }
         }
 

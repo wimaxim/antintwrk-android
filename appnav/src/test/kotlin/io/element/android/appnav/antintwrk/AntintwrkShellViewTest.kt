@@ -32,6 +32,58 @@ import org.robolectric.annotation.Config
 
 class AntintwrkShellViewTest : RobolectricTest() {
     @Test
+    fun `compact menu opens shared settings instead of listing account actions`() = runAndroidComposeUiTest {
+        var route = ""
+        setSafeContent { ElementTheme { AntintwrkSocialMenu(onRoute = { route = it }) } }
+        onNodeWithContentDescription("More").performClick()
+        onNodeWithText("Settings").assertIsDisplayed().performClick()
+        runOnIdle { assertThat(route).isEqualTo("native-settings") }
+        onNodeWithText("Sign out").assertDoesNotExist()
+    }
+
+    @Test
+    @Config(qualifiers = "w411dp-h900dp")
+    fun `shared settings language chooser contains all social languages`() = runAndroidComposeUiTest {
+        setSafeContent { ElementTheme { AntintwrkAppSettings({}, {}, {}) } }
+        onNodeWithText("Language").performClick()
+        mainClock.advanceTimeBy(500)
+        waitForIdle()
+        onNodeWithText("Use device language", substring = true).assertExists()
+        onNodeWithText("Русский").assertExists()
+        onNodeWithText("Українська").assertExists()
+        onNodeWithText("English").assertExists()
+        runOnIdle { assertThat(AntintwrkAppLocale.languages.size).isEqualTo(9) }
+    }
+
+    @Test
+    fun `messenger initializes behind social and stays composed across mode changes`() = runAndroidComposeUiTest {
+        val presenter = AntintwrkShellPresenter()
+        var created = 0
+        var disposed = 0
+        setSafeContent {
+            ElementTheme {
+                AntintwrkShellView(presenter.present(), messengerContent = {
+                    androidx.compose.runtime.DisposableEffect(Unit) {
+                        created++
+                        onDispose { disposed++ }
+                    }
+                    io.element.android.libraries.designsystem.theme.components.Text("Prepared messenger")
+                })
+            }
+        }
+        runOnIdle { assertThat(created).isEqualTo(1) }
+        onNodeWithText("Prepared messenger").assertDoesNotExist()
+        onNode(hasText("Messenger") and hasClickAction()).performClick()
+        onNodeWithText("Prepared messenger").assertIsDisplayed()
+        onNode(hasText("Social") and hasClickAction()).performClick()
+        onNode(hasText("Messenger") and hasClickAction()).performClick()
+        runOnIdle {
+            assertThat(created).isEqualTo(1)
+            assertThat(disposed).isEqualTo(0)
+        }
+    }
+
+    @Test
     @Config(qualifiers = "w320dp-h480dp")
     fun `feed position survives switching to messenger and another social section`() = runAndroidComposeUiTest {
         val presenter = AntintwrkShellPresenter()

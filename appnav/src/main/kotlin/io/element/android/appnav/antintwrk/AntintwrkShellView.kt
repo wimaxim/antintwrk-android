@@ -36,12 +36,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
@@ -60,8 +62,11 @@ fun AntintwrkShellView(
     state: AntintwrkShellState,
     modifier: Modifier = Modifier,
     webFeed: Boolean = false,
+    socialUnavailable: Boolean = false,
+    onRetrySocial: () -> Unit = {},
     onAuthRequired: () -> Unit = {},
     onSignOut: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
     onPushSettings: (() -> Unit)? = null,
     onOpenLicences: (() -> Unit)? = null,
     retainedWebController: AntintwrkWebFeedController? = null,
@@ -95,21 +100,27 @@ fun AntintwrkShellView(
         containerColor = AntintwrkBackground,
         topBar = {
             if (webController?.fullscreen == null) {
-                ShellHeader(state, onSearch = {
+                ShellHeader(
+                    state,
+                    onSearch = {
                 if (webController != null) {
                     webController.navigate(policy.route(language, "discover"))
                 } else {
                     emit(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Search))
                 }
-            }, onNotifications = {
+            },
+                    onNotifications = {
                 if (webController != null) {
                     webController.navigate(policy.route(language, "notifications"))
                 } else {
                     emit(AntintwrkShellEvent.Overlay(AntintwrkOverlay.Notifications))
                 }
-            }, onRoute = if (webController != null) {
+            },
+                    onRoute = if (webController != null) {
                 { path ->
-                if (path == "native-push") {
+                if (path == "native-settings") {
+                    onOpenSettings?.invoke()
+                } else if (path == "native-push") {
                     onPushSettings?.invoke()
                 } else if (path == "native-licences") {
                     onOpenLicences?.invoke()
@@ -119,7 +130,12 @@ fun AntintwrkShellView(
             }
             } else {
                 null
-            }, notifications = webController?.notifications ?: 0, socialReady = socialContent == null || webFeed, onSignOut = onSignOut)
+            },
+                    notifications = webController?.notifications ?: 0,
+                    socialReady = socialContent == null || webFeed,
+                    onSignOut = onSignOut,
+                    onOpenSettings = onOpenSettings
+                )
             }
         },
         bottomBar = {
@@ -182,9 +198,16 @@ fun AntintwrkShellView(
                 style = ElementTheme.typography.fontBodyXsRegular,
             )
             }
+            Box(Modifier.fillMaxSize()) {
+            if (messengerContent != null) {
+                Box(if (state.mode == AntintwrkMode.Messenger) Modifier.fillMaxSize() else Modifier.size(1.dp).alpha(0f).clearAndSetSemantics {}) {
+                    messengerContent(Modifier.fillMaxSize())
+                }
+            }
             if (state.mode == AntintwrkMode.Messenger) {
-                messengerContent?.invoke(Modifier.fillMaxSize())
-                    ?: ShellEmpty(R.string.screen_ant_shell_messenger, R.string.screen_ant_shell_messenger_pending)
+                if (messengerContent == null) ShellEmpty(R.string.screen_ant_shell_messenger, R.string.screen_ant_shell_messenger_pending)
+            } else if (socialUnavailable) {
+                AntintwrkServiceUnavailable(message = R.string.screen_ant_social_unavailable, onRetry = onRetrySocial)
             } else if (socialContent != null) {
                 socialContent(Modifier.fillMaxSize())
             } else {
@@ -204,6 +227,7 @@ fun AntintwrkShellView(
                 }
                 }
             }
+            }
         }
     }
     if (state.overlay != AntintwrkOverlay.None) ShellDialog(state)
@@ -218,11 +242,17 @@ private fun ShellHeader(
     notifications: Int,
     socialReady: Boolean,
     onSignOut: (() -> Unit)?,
+    onOpenSettings: (() -> Unit)?,
 ) {
     val expanded = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     Column(Modifier.statusBarsPadding().padding(horizontal = 8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             ShellModeTabs(state, Modifier.weight(1f))
+            if (state.mode == AntintwrkMode.Messenger && onOpenSettings != null) {
+                IconButton(onClick = onOpenSettings) {
+                    Icon(CompoundIcons.Settings(), stringResource(R.string.screen_ant_menu_settings))
+                }
+            }
             if (!expanded && state.mode == AntintwrkMode.Social && socialReady) ShellSocialActions(onSearch, onNotifications, onRoute, notifications, onSignOut)
         }
         if (expanded && state.mode == AntintwrkMode.Social && socialReady) {
