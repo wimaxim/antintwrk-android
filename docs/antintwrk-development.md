@@ -280,3 +280,8 @@ Native bottom-tab selection restores its root when a retained route differs. Pro
 ## 9 October 2026: keyboard-safe social editing
 
 Active exact-origin social documents receive an app-local IME/viewport correction: reveal compact editors or follow the focus caret in long content, without reloading or changing draft/selection. Hidden pages cannot trigger corrections. 121 antintwrk appnav tests and 8 Node viewport tests pass; ktlint/build/signature/install pass. Emulator remained in floating Gboard mode; real-phone docked-keyboard acceptance is recorded as pending in the shared keyboard-editor-2026-10-09.md report. No push.
+
+
+## 9 October 2026: embedded Messenger entry
+
+Managed sessions create Home independently of stock FTUE completion and migrate saved FTUE/DESTROYED Home roots. Resolve the attached child by active NavKey, not the first matching target. Authentication/SDK verification/recovery/backup/logout checks are unchanged. Four BackStack regressions plus the full antintwrk appnav suite pass (125 cases); ktlint and signed build pass. Shared report: messenger-entry-2026-10-09.md. No push.

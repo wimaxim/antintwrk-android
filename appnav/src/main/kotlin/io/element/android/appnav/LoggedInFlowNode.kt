@@ -18,6 +18,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import com.bumble.appyx.core.children.nodeOrNull
 import com.bumble.appyx.core.composable.PermanentChild
 import com.bumble.appyx.core.lifecycle.subscribe
 import com.bumble.appyx.core.modality.BuildContext
@@ -41,6 +42,8 @@ import com.bumble.appyx.navmodel.backstack.operation.singleTop
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.annotations.ContributesNode
+import io.element.android.appnav.antintwrk.activeAntintwrkHomeKey
+import io.element.android.appnav.antintwrk.updateAntintwrkLoggedInRoot
 import io.element.android.appnav.loggedin.LoggedInNode
 import io.element.android.appnav.loggedin.MediaPreviewConfigMigration
 import io.element.android.appnav.loggedin.SendQueues
@@ -102,7 +105,11 @@ import io.element.android.services.analytics.api.AnalyticsLongRunningTransaction
 import io.element.android.services.analytics.api.AnalyticsService
 import io.element.android.services.analytics.api.watchers.AnalyticsRoomListStateWatcher
 import io.element.android.services.appnavstate.api.AppNavigationStateService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -162,7 +169,7 @@ class LoggedInFlowNode(
     private val customMapTilerConfigProvider: CustomMapTilerConfigProvider,
 ) : BaseFlowNode<LoggedInFlowNode.NavTarget>(
     backstack = BackStack(
-        initialElement = NavTarget.Placeholder,
+        initialElement = if (BuildConfig.ANTINTWRK_NATIVE_AUTH) NavTarget.Home else NavTarget.Placeholder,
         savedStateMap = buildContext.savedStateMap,
     ),
     permanentNavModel = PermanentNavModel(
@@ -240,11 +247,7 @@ class LoggedInFlowNode(
 
                 ftueService.state
                     .onEach { ftueState ->
-                        when (ftueState) {
-                            is FtueState.Unknown -> Unit // Nothing to do
-                            is FtueState.Incomplete -> backstack.safeRoot(NavTarget.Ftue)
-                            is FtueState.Complete -> backstack.safeRoot(NavTarget.Home)
-                        }
+                        updateAntintwrkLoggedInRoot(backstack, ftueState, BuildConfig.ANTINTWRK_NATIVE_AUTH)
                     }
                     .launchIn(lifecycleScope)
             },
@@ -643,15 +646,28 @@ class LoggedInFlowNode(
     }
 
     suspend fun openAppChats() {
-        waitForNavTargetAttached { it is NavTarget.Home }
-        backstack.elements.value.filter { it.key.navTarget != NavTarget.Home }.forEach {
-            backstack.accept(com.bumble.appyx.navmodel.backstack.operation.Remove(it.key))
-        }
-        val home = waitForChildAttached<Node, NavTarget> { it is NavTarget.Home }
-        (home as HomeEntryPoint.AppNavigation).openChats()
-        backstack.elements.first { elements ->
-            elements.any { it.key.navTarget == NavTarget.Home && it.targetState == ACTIVE } &&
-                elements.all { it.key.navTarget == NavTarget.Home || it.targetState == BackStack.State.DESTROYED }
+        var stage = "home_attachment"
+        try {
+            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) updateAntintwrkLoggedInRoot(backstack, ftueService.state.value, managed = true)
+            backstack.elements.value.filter { it.key.navTarget != NavTarget.Home }.forEach {
+                backstack.accept(com.bumble.appyx.navmodel.backstack.operation.Remove(it.key))
+            }
+            val home = combine(backstack.elements, children) { elements, attached ->
+                activeAntintwrkHomeKey(elements)?.let { key -> attached[key]?.nodeOrNull as? HomeEntryPoint.AppNavigation }
+            }.filterNotNull().first()
+            stage = "chat_list_reset"
+            home.openChats()
+            stage = "home_activation"
+            backstack.elements.first { elements ->
+                elements.any { it.key.navTarget == NavTarget.Home && it.targetState == ACTIVE } &&
+                    elements.all { it.key.navTarget == NavTarget.Home || it.targetState == BackStack.State.DESTROYED }
+            }
+        } catch (failure: Exception) {
+            // Fixed stage/type only; no message content, credentials or SDK exception text.
+            if (BuildConfig.ANTINTWRK_NATIVE_AUTH && (failure !is CancellationException || failure is TimeoutCancellationException)) {
+                Timber.w("Chats preparation failed at %s (%s)", stage, failure.javaClass.simpleName)
+            }
+            throw failure
         }
     }
 
@@ -742,7 +758,7 @@ class LoggedInFlowNode(
                     Box(modifier = contentModifier) {
                         val ftueState by ftueService.state.collectAsState()
                         BackstackView(transitionHandler = rememberLoggedInFlowTransitionHandler(backstack))
-                        if (ftueState is FtueState.Complete) {
+                        if (BuildConfig.ANTINTWRK_NATIVE_AUTH || ftueState is FtueState.Complete) {
                             PermanentChild(permanentNavModel = permanentNavModel, navTarget = NavTarget.LoggedInPermanent)
                         }
                     }
