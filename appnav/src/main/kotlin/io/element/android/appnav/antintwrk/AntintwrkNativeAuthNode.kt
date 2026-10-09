@@ -89,8 +89,9 @@ internal fun AntintwrkNativeAppView(
         val memberProfileRequest by AntintwrkProfileNavigation.requests.collectAsState()
         val presenter = remember { AntintwrkWelcomePresenter() }
         val shell = remember { AntintwrkShellPresenter() }
-        val shellState = shell.present()
-        val webController = rememberAntintwrkWebFeedController()
+        val retainedSurface = LocalAntintwrkSocialSurface.current
+        val shellState = retainedSurface?.let { it.shell.value.copy(eventSink = it::event) } ?: shell.present()
+        val webController = retainedSurface?.web ?: rememberAntintwrkWebFeedController()
         AntintwrkWebFilePicker(webController)
         val state = presenter.present()
         val scope = rememberCoroutineScope()
@@ -114,7 +115,7 @@ internal fun AntintwrkNativeAppView(
         val passwordError = stringResource(R.string.screen_ant_auth_password_requirements)
         val sessionExpiredError = stringResource(R.string.screen_ant_auth_session_expired)
         val rateLimitError = stringResource(R.string.screen_ant_auth_rate_limited)
-        var session by remember { mutableStateOf<AntintwrkAuthSession?>(null) }
+        var session by (retainedSurface?.admission ?: remember { mutableStateOf<AntintwrkAuthSession?>(null) })
         val actor = session?.matrixUserId
         var oauthUrl by remember(actor) { mutableStateOf<String?>(null) }
         var messengerBusy by remember(actor) { mutableStateOf(false) }
@@ -142,7 +143,9 @@ internal fun AntintwrkNativeAppView(
             }
         }
 
-        var busy by remember { mutableStateOf(!accountPreferences.getBoolean("logged-out", false)) }
+        val busyState: androidx.compose.runtime.MutableState<Boolean> = retainedSurface?.busy
+            ?: remember { mutableStateOf(!accountPreferences.getBoolean("logged-out", false)) }
+        var busy by busyState
         var failed by remember { mutableStateOf(false) }
         var sessionVerificationFailed by remember { mutableStateOf(false) }
         var googleRegistration by remember { mutableStateOf("") }
@@ -202,7 +205,8 @@ internal fun AntintwrkNativeAppView(
             }
         }
         suspend fun runRequest(revalidate: Boolean = false, request: suspend () -> AntintwrkAuthSession) {
-            busy = true
+            // A messenger-node handoff must not replace an already admitted social page.
+            busy = !revalidate || session?.stage != AntintwrkAuthStage.AUTHENTICATED
             sessionVerificationFailed = false
             failed = false
             serverMessage = ""

@@ -12,8 +12,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.Parcelable
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import com.bumble.appyx.core.modality.BuildContext
@@ -124,6 +127,11 @@ class RootFlowNode(
     private var pendingLoginParams: LoginParams? = null
     private var previousMatrixActor: String? = null
     private var previousMatrixValid = false
+    private val socialSurface by lazy {
+        io.element.android.appnav.antintwrk.AntintwrkSocialSurface(
+            initialBusy = !context.getSharedPreferences("antintwrk-account", Context.MODE_PRIVATE).getBoolean("logged-out", false)
+        )
+    }
 
     override fun onBuilt() {
         analyticsColdStartWatcher.start()
@@ -173,6 +181,7 @@ class RootFlowNode(
                     // Removing our session may activate a different stored Matrix account.
                     // Close its matching social admission even without a NotLoggedIn emission.
                     AntintwrkAccountSignOut.afterMatrixLogout(context, previousMatrixActor, true, appCoroutineScope)
+                    socialSurface.clear()
                     previousMatrixValid = false
                 }
                 when (navState.loggedInState) {
@@ -285,6 +294,7 @@ class RootFlowNode(
 
     @Composable
     override fun View(modifier: Modifier) {
+        DisposableEffect(socialSurface) { onDispose { socialSurface.web.destroy() } }
         val state = presenter.present()
         RootView(
             state = state,
@@ -295,7 +305,7 @@ class RootFlowNode(
                 transitionSpec = { spring(stiffness = Spring.StiffnessMediumLow) },
             )
             val backstackFader = rememberBackstackFader<NavTarget>(
-                transitionSpec = { spring(stiffness = Spring.StiffnessMediumLow) },
+                transitionSpec = { if (BuildConfig.ANTINTWRK_NATIVE_AUTH) snap() else spring(stiffness = Spring.StiffnessMediumLow) },
             )
             val transitionHandler = rememberDelegateTransitionHandler<NavTarget, BackStack.State> { navTarget ->
                 when (navTarget) {
@@ -305,7 +315,9 @@ class RootFlowNode(
                     else -> backstackSlider
                 }
             }
-            BackstackView(transitionHandler = transitionHandler)
+            CompositionLocalProvider(io.element.android.appnav.antintwrk.LocalAntintwrkSocialSurface provides socialSurface) {
+                BackstackView(transitionHandler = transitionHandler)
+            }
             announcementService.Render(Modifier)
         }
     }

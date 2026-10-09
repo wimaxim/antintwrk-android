@@ -34,7 +34,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -113,6 +112,8 @@ class AntintwrkWebFeedController {
     var refreshVersion by mutableStateOf(0)
     var currentUrl by mutableStateOf<String?>(null)
     var onSection: (AntintwrkSection) -> Unit = {}
+    internal var onAuthRequired: () -> Unit = {}
+    internal var onExternalLink: (String) -> Unit = {}
     var onMessenger: ((String?) -> Unit)? = null
     private val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
     fun closeFullscreen() {
@@ -307,7 +308,8 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
             }
         }
     }
-    val authRequired by rememberUpdatedState(onAuthRequired)
+    controller.onAuthRequired = onAuthRequired
+    controller.onExternalLink = ::openExternal
     BackHandler(backEnabled && (controller.canGoBack || controller.atMessengerProfileRoot() || controller.composing)) { controller.back() }
     Box(Modifier.fillMaxSize()) {
         key(controller.section) {
@@ -353,7 +355,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                                     if (target != null) {
                                         controller.navigate(target)
                                     } else if (policy.external(url) || policy.outbound(url)) {
-                                        openExternal(url)
+                                        controller.onExternalLink(url)
                                     }
                                     controller.popups.remove(popup)
                                     popup.destroy()
@@ -413,7 +415,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             return true
                         }
                     }
-                    AntintwrkNativeWebSignals.attach(this, controller, policy) { authRequired() }
+                    AntintwrkNativeWebSignals.attach(this, controller, policy) { controller.onAuthRequired() }
                     if (BuildConfig.ANTINTWRK_NATIVE_AUTH &&
                         runCatching { WebViewFeature.isFeatureSupported(WebViewFeature.WEB_AUTHENTICATION) }.getOrDefault(false)) {
                         WebSettingsCompat.setWebAuthenticationSupport(settings, WebSettingsCompat.WEB_AUTHENTICATION_SUPPORT_FOR_APP)
@@ -424,7 +426,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             val url = policy.canonical(request.url.toString())
                             if (controller.interceptMessenger(url)) return true
                             if (BuildConfig.ANTINTWRK_NATIVE_AUTH && policy.needsAuth(url)) {
-                                authRequired()
+                                controller.onAuthRequired()
                                 return true
                             }
                             val target = policy.embedded(url)
@@ -436,7 +438,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                                 controller.navigate(target)
                             } else if ((policy.external(url) || policy.outbound(url)) &&
                                 (request.hasGesture() || policy.outbound(url) || (request.isRedirect && policy.embedded(view.url.orEmpty()) != null))) {
-                                openExternal(url)
+                                controller.onExternalLink(url)
                             } else {
                                 controller.failed = true
                                 controller.loading = false
@@ -487,12 +489,12 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             if (request.isForMainFrame && controller.view === view) {
                                 controller.failed = true
                                 controller.loading = false
-                                if (response.statusCode == 401) authRequired()
+                                if (response.statusCode == 401) controller.onAuthRequired()
                             }
                         }
                     }
                     setDownloadListener { url, _, _, _, _ ->
-                        if (policy.external(url) || policy.outbound(url)) openExternal(url)
+                        if (policy.external(url) || policy.outbound(url)) controller.onExternalLink(url)
                     }
                     loadUrl(startUrl)
                 }).also { view ->

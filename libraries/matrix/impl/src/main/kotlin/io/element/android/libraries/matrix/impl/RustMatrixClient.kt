@@ -595,6 +595,9 @@ class RustMatrixClient(
     override suspend fun joinRoom(roomId: RoomId): Result<RoomInfo?> = withContext(sessionDispatcher) {
         runCatchingExceptions {
             innerClient.joinRoomById(roomId.value).destroy()
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                io.element.android.libraries.matrix.api.encryption.AntintwrkRecoveryStatus.retry(sessionId.value)
+            }
             try {
                 awaitRoom(roomId, 10.seconds, CurrentUserMembership.JOINED)
             } catch (e: Exception) {

@@ -31,6 +31,7 @@ import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.TimelineException
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
+import io.element.android.libraries.matrix.api.timeline.item.event.UnableToDecryptContent
 import io.element.android.libraries.matrix.impl.media.GalleryMediaUploadHandlerImpl
 import io.element.android.libraries.matrix.impl.media.MediaUploadHandlerImpl
 import io.element.android.libraries.matrix.impl.media.map
@@ -51,11 +52,14 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -144,8 +148,26 @@ class RustTimeline(
     )
 
     private val loggerTag = "Timeline($mode)"
+    private var recoveryRetryJob: Job? = null
 
     init {
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            recoveryRetryJob = coroutineScope.launch(dispatcher) {
+                _timelineItems.map { items ->
+                    items.filterIsInstance<MatrixTimelineItem.Event>().mapNotNull {
+                        ((it.event.content as? UnableToDecryptContent)?.data as? UnableToDecryptContent.Data.MegolmV1AesSha2)?.sessionId
+                    }.distinct().take(40)
+                }.distinctUntilChanged().collectLatest { sessions ->
+                    if (sessions.isNotEmpty()) {
+                        repeat(10) { attempt ->
+                            delay((5_000L * (attempt + 1)).coerceAtMost(60_000L))
+                            runCatchingExceptions { inner.retryDecryption(sessions) }
+                                .onFailure { Timber.d("Managed decryption retry deferred (%s)", it.javaClass.simpleName) }
+                        }
+                    }
+                }
+            }
+        }
         when (mode) {
             is Timeline.Mode.Live, is Timeline.Mode.FocusedOnEvent -> coroutineScope.fetchMembers()
             else -> Unit
@@ -274,6 +296,7 @@ class RustTimeline(
     }
 
     override fun close() {
+        recoveryRetryJob?.cancel()
         coroutineScope.cancel()
         inner.close()
     }
