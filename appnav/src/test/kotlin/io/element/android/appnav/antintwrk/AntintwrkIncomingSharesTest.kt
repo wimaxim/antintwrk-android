@@ -135,4 +135,13 @@ class AntintwrkIncomingSharesTest : RobolectricTest() {
         assertThat(controller.incomingResourceLease).isNull()
         page.destroy()
     }
+    @Test
+    fun `import failure keeps its explanation when the composer is open`() = runAndroidComposeUiTest {
+        val controller = AntintwrkWebFeedController().apply { composing = true }
+        AntintwrkIncomingShares.failedDelivery(AntintwrkIncomingShare("failed", "@u42:antintwrk.com", ""), draft = false)
+        setSafeContent { ElementTheme { AntintwrkIncomingShareView("@u42:antintwrk.com", controller, "en", {}) } }
+        onNodeWithText("Could not import this content.", substring = true).assertExists()
+        onNodeWithText("Create publication").assertDoesNotExist()
+        runOnIdle { AntintwrkIncomingShares.clear() }
+    }
 }

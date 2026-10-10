@@ -60,8 +60,9 @@ private fun AntintwrkIncomingShareDialog(
             Text(
                 when {
                 current.preparing -> stringResource(io.element.android.libraries.ui.strings.R.string.common_loading)
-                current.draftConflict || blocked -> stringResource(R.string.screen_ant_share_draft)
+                current.draftConflict -> stringResource(R.string.screen_ant_share_draft)
                 current.failed -> stringResource(R.string.screen_ant_share_failed)
+                blocked -> stringResource(R.string.screen_ant_share_draft)
                 else -> stringResource(
                     R.string.screen_ant_share_review,
                     profileName.takeIf { it.isNotBlank() } ?: stringResource(R.string.screen_ant_share_your_profile),
