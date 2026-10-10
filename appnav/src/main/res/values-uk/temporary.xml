@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">Завершіть або закрийте поточну чернетку перед імпортом. Вашу чернетку збережено.</string>
     <string name="screen_ant_share_failed">Не вдалося імпортувати вміст. Можна поділитися текстом, зображеннями JPEG, PNG, WebP або одним відео MP4, MOV, WebM. Перевірте доступ до файлів і вільне місце та спробуйте ще раз.</string>
     <string name="screen_ant_share_your_profile">Ваш профіль</string>
+    <string name="screen_ant_media_source">Додати медіа</string>
+    <string name="screen_ant_media_gallery">Вибрати з галереї</string>
+    <string name="screen_ant_media_photo">Зробити фото</string>
+    <string name="screen_ant_media_video">Записати відео</string>
+    <string name="screen_ant_camera_unavailable">Камера недоступна. Дозвольте доступ до камери або виберіть файл із галереї.</string>
 </resources>

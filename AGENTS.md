@@ -151,3 +151,7 @@ Before modifying the managed shell or messenger, read ../docs/mobile-adaptation-
 ## Public corresponding Android source — 10 October 2026
 
 The owner explicitly instructed making wimaxim/antintwrk-android public so the in-app Source Code link is accessible. Publish the corresponding current client source and standalone build instructions for this task. This scoped instruction overrides development-only private visibility for Android, and does not authorize any iOS/QSNEmain publication, history rewrite, or upstream push. Subsequent routine pushes still require the owner's explicit command. Do not commit private signing/service credentials or backend/backup material.
+
+## Shared media and invitations — 10 October 2026
+
+Each explicitly accepted system Share starts a fresh actor-bound UUID composer; do not reject it merely because an editor exists. Preserve ordinary feed/profile drafts and wait for an active file chooser/native prompt to finish. Never publish automatically. Capture results may only use the exact staged camera URI and matching actor/epoch/page; arbitrary private providers remain forbidden. DM Invite opens contact selection then a localized SMS draft for the human to send, with public antintwrk.com only. Group member invitation retains messenger search; Profile opens the social resolver. Keep technical room details hidden in managed debug builds too. Document every change in the shared Android/iOS adaptation index.

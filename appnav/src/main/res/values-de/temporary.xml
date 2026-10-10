@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">Beenden oder schließen Sie zuerst Ihren aktuellen Entwurf. Ihr Entwurf bleibt erhalten.</string>
     <string name="screen_ant_share_failed">Der Inhalt konnte nicht importiert werden. Teilen Sie Text, JPEG-, PNG-, WebP-Bilder oder ein MP4-, MOV-, WebM-Video. Prüfen Sie Dateizugriff und freien Speicher und versuchen Sie es erneut.</string>
     <string name="screen_ant_share_your_profile">Ihr Profil</string>
+    <string name="screen_ant_media_source">Medien hinzufügen</string>
+    <string name="screen_ant_media_gallery">Aus Galerie wählen</string>
+    <string name="screen_ant_media_photo">Foto aufnehmen</string>
+    <string name="screen_ant_media_video">Video aufnehmen</string>
+    <string name="screen_ant_camera_unavailable">Kamera nicht verfügbar. Erlaube den Kamerazugriff oder wähle eine Datei aus der Galerie.</string>
 </resources>

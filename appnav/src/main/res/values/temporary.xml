@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">Finish or close your current draft before sharing. Your draft has been preserved.</string>
     <string name="screen_ant_share_failed">Could not import this content. Share text, JPEG, PNG, WebP images or one MP4, MOV or WebM video. Check file access and available storage, then try again.</string>
     <string name="screen_ant_share_your_profile">Your profile</string>
+    <string name="screen_ant_media_source">Choose media</string>
+    <string name="screen_ant_media_gallery">Choose from gallery</string>
+    <string name="screen_ant_media_photo">Take photo</string>
+    <string name="screen_ant_media_video">Record video</string>
+    <string name="screen_ant_camera_unavailable">Camera unavailable. Allow camera access or choose from your gallery.</string>
 </resources>

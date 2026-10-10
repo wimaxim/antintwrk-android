@@ -125,6 +125,7 @@ fun RoomDetailsView(
     onReportRoomClick: () -> Unit,
     modifier: Modifier = Modifier,
     leaveRoomView: @Composable () -> Unit,
+    managedSocial: Boolean = io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH,
 ) {
     val snackbarHostState = rememberSnackbarHostState(snackbarMessage = state.snackbarMessage)
     Scaffold(
@@ -248,9 +249,9 @@ fun RoomDetailsView(
                     pinnedMessagesCount = state.pinnedMessagesCount,
                     onPinnedMessagesClick = onPinnedMessagesClick
                 )
-                PollsItem(
-                    openPollHistory = openPollHistory
-                )
+                if (!managedSocial) {
+                    PollsItem(openPollHistory = openPollHistory)
+                }
             }
             when (state.roomType) {
                 is RoomDetailsType.Room -> {
@@ -332,7 +333,7 @@ fun RoomDetailsView(
                 onReportRoomClick = onReportRoomClick,
                 onLeaveRoomClick = { state.eventSink(RoomDetailsEvent.LeaveRoom(needsConfirmation = true)) }
             )
-            if (state.showDebugInfo) {
+            if (state.showDebugInfo && !managedSocial) {
                 DebugInfoSection(
                     roomId = state.roomId,
                     roomVersion = state.roomVersion,

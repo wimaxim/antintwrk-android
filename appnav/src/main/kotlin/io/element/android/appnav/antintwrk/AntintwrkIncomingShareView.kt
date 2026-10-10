@@ -16,7 +16,7 @@ import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 
-/** Explicit confirmation identifies the receiving account and never discards an existing editor. */
+/** Each accepted system share opens a new composer; ordinary root drafts are independent. */
 @Composable
 internal fun AntintwrkIncomingShareView(
     actor: String?,
@@ -35,13 +35,14 @@ internal fun AntintwrkIncomingShareView(
     }
     val current = request ?: return
     if (actor == null || current.actor != null && current.actor != actor) return
-    AntintwrkIncomingShareDialog(current, controller.routingProtected, controller.profileName.orEmpty(), onCreate = {
+    if (controller.fileCallback != null || controller.prompt != null || controller.document != null || controller.fullscreen != null) return
+    AntintwrkIncomingShareDialog(current, false, controller.profileName.orEmpty(), onCreate = {
         controller.clearIncomingDelivery()
         controller.incomingDelivery = current.copy(actor = actor)
         controller.incomingImportBusy = true
         AntintwrkIncomingShares.consume(current)
         onSocial()
-        controller.navigate(AntintwrkWebPolicy(controller.origin).route(language, "hero-compose"), forceAdditional = true, allowRouting = false)
+        controller.navigate(AntintwrkWebPolicy(controller.origin).route(language, "hero-compose") + "&nativeShare=${current.id}", forceAdditional = true, allowRouting = false)
     }, onCancel = AntintwrkIncomingShares::clear)
 }
 

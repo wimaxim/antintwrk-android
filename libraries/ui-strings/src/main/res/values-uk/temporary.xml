@@ -7,4 +7,5 @@
     <string name="common_media_upload_quality">Якість надісланих медіа</string>
     <string name="common_location_sharing">Передавання геолокації</string>
     <string name="common_moderation_and_safety">Безпека листування</string>
+    <string name="screen_ant_invite_sms">Привіт! Встанови месенджер і соцмережу ANTINTWRK.COM: https://antintwrk.com</string>
 </resources>

@@ -39,6 +39,8 @@ internal object AntintwrkIncomingShares {
     suspend fun cleanup(context: Context) = withContext(Dispatchers.IO) {
         File(context.cacheDir, "social-incoming").listFiles()
             ?.filter { System.currentTimeMillis() - it.lastModified() > 86_400_000 }?.forEach { it.deleteRecursively() }
+        File(context.cacheDir, "social-camera").listFiles()
+            ?.filter { System.currentTimeMillis() - it.lastModified() > 86_400_000 }?.forEach { it.delete() }
         Unit
     }
 

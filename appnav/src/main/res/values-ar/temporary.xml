@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">أكمل المسودة الحالية أو أغلقها قبل الاستيراد. تم الاحتفاظ بمسودتك.</string>
     <string name="screen_ant_share_failed">تعذر استيراد المحتوى. شارك نصًا أو صور JPEG وPNG وWebP أو فيديو واحدًا بصيغة MP4 أوMOV أوWebM. تحقق من الوصول إلى الملفات والمساحة المتاحة ثم حاول مجددًا.</string>
     <string name="screen_ant_share_your_profile">ملفك الشخصي</string>
+    <string name="screen_ant_media_source">إضافة وسائط</string>
+    <string name="screen_ant_media_gallery">اختيار من المعرض</string>
+    <string name="screen_ant_media_photo">التقاط صورة</string>
+    <string name="screen_ant_media_video">تسجيل فيديو</string>
+    <string name="screen_ant_camera_unavailable">الكاميرا غير متاحة. اسمح بالوصول إليها أو اختر ملفًا من المعرض.</string>
 </resources>

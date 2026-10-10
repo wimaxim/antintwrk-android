@@ -14,4 +14,5 @@
   <string name="screen_ant_account_messages_preparing">Preparing your messages…</string>
   <string name="screen_ant_account_messages_retry">Unable to prepare your messages. Check your connection and try again.</string>
     <string name="screen_ant_contact_denied">You cannot message this profile right now. Their privacy settings may require you to be friends. Check the profile in Social.</string>
+    <string name="screen_ant_invite_sms">Hi! Install the ANTINTWRK.COM messenger and social network: https://antintwrk.com</string>
 </resources>

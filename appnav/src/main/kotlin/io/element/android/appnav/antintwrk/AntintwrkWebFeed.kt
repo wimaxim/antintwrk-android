@@ -238,10 +238,10 @@ class AntintwrkWebFeedController {
     var loading by mutableStateOf(true)
     var failed by mutableStateOf(false)
     var canGoBack by mutableStateOf(false)
-    var launchFilePicker: ((Intent) -> Unit)? = null
+    var launchFilePicker: ((WebChromeClient.FileChooserParams) -> Unit)? = null
     internal var document by mutableStateOf<AntintwrkWebDocument?>(null)
     var launchDocumentSave: ((String) -> Unit)? = null
-    var fileCallback: ValueCallback<Array<Uri>>? = null
+    var fileCallback by mutableStateOf<ValueCallback<Array<Uri>>?>(null)
     var allowMultipleFiles = false
     internal var incomingImportBusy = false
     internal var incomingEvaluationBusy = false
@@ -647,7 +647,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             controller.fileCallback?.onReceiveValue(null)
                             controller.fileCallback = callback
                             controller.allowMultipleFiles = params.mode == FileChooserParams.MODE_OPEN_MULTIPLE
-                            runCatching { requireNotNull(controller.launchFilePicker).invoke(params.createIntent()) }.onFailure {
+                            runCatching { requireNotNull(controller.launchFilePicker).invoke(params) }.onFailure {
                                 controller.fileCallback = null
                                 callback.onReceiveValue(null)
                             }

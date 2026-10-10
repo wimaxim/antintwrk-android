@@ -332,3 +332,11 @@ Source publication: owner explicitly requested public access to wimaxim/antintwr
 Import error follow-up: a failed incoming share keeps its failure explanation even when a composer is already open; only a genuine draft conflict uses the close-draft instruction. Targeted eight native-share tests and ktlint passed.
 
 A stale failed staging read clears its own preparing request after an admission epoch change instead of leaving an indefinite preparing dialog. Eight sharing tests and ktlint passed.
+
+## Mobile requirements, 10 October 2026
+
+Own managed client adds gallery/system camera with bounded private capture output and actor/epoch/page-safe callback; cancellation/logout cannot complete a different account's picker. Explicit system Share creates a fresh UUID standalone composer instead of blocking an existing editor. Ordinary root drafts remain retained; open file/prompt/save/fullscreen actions finish before new share admission. Backend isolates native draft keys and uses standard engine mail; its independent private source stays outside this client repository.
+
+Managed chat details hide Polls/Internal room ID/Room version even in debug. DM Profile opens the social resolver directly; DM Invite selects one phone contact then opens a translated system SMS draft with public antintwrk.com only. No contact upload, READ_CONTACTS or SEND_SMS, and no automatic send. Group member invitation keeps messenger user search. Monetization is above Settings in the social overflow; Referrals/extra participation category removed from common settings. Camera strings and SMS cover all nine social languages. iOS must reproduce this contract when implemented.
+
+Validation: 169 appnav Antintwrk tests + 90 roomdetails tests; 11 final share/picker boundary checks; one actual API36 Chromium media-import instrumentation test; own signed APK upgrade. Full cross-platform contract and exact delivery evidence live in the owner's shared mobile documentation, docs/mobile-tz-2026-10-10.md. No push without the owner's explicit command; APK/runtime and physical camera/SMS acceptance are distinguished.

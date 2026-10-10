@@ -104,10 +104,6 @@ internal fun AntintwrkAppSettings(
                     "native-moderation" to CommonStrings.common_moderation_and_safety,
                 ), onRoute, enabled = messengerSettingsReady)
                 if (!messengerSettingsReady) Text(stringResource(CommonStrings.common_loading), color = ElementTheme.colors.textSecondary)
-                SettingsGroup(R.string.screen_ant_settings_participation, listOf(
-                    "monetization" to R.string.screen_ant_menu_monetization,
-                    "my-referrals" to R.string.screen_ant_menu_referrals,
-                ), onRoute)
                 SettingsGroup(R.string.screen_ant_settings_help, listOf(
                     "support" to R.string.screen_ant_menu_support,
                     "terms" to R.string.screen_ant_menu_terms,

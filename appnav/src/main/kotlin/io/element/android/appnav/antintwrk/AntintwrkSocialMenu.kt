@@ -29,6 +29,7 @@ internal fun AntintwrkSocialMenu(onRoute: (String) -> Unit, onSignOut: (() -> Un
             listOf(
                 "hero-compose" to R.string.screen_ant_menu_compose,
                 "people" to R.string.screen_ant_menu_people,
+                "monetization" to R.string.screen_ant_menu_monetization,
                 "native-settings" to R.string.screen_ant_menu_settings,
             ).forEach { (route, label) ->
                 DropdownMenuItem(text = { Text(stringResource(label)) }, onClick = {

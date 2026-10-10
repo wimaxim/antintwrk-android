@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">Completa o chiudi la bozza attuale prima di importare. La bozza è stata conservata.</string>
     <string name="screen_ant_share_failed">Impossibile importare il contenuto. Condividi testo, immagini JPEG, PNG, WebP o un video MP4, MOV, WebM. Controlla accesso ai file e spazio libero, poi riprova.</string>
     <string name="screen_ant_share_your_profile">Il tuo profilo</string>
+    <string name="screen_ant_media_source">Aggiungi contenuti</string>
+    <string name="screen_ant_media_gallery">Scegli dalla galleria</string>
+    <string name="screen_ant_media_photo">Scatta foto</string>
+    <string name="screen_ant_media_video">Registra video</string>
+    <string name="screen_ant_camera_unavailable">Fotocamera non disponibile. Consenti l’accesso o scegli un file dalla galleria.</string>
 </resources>

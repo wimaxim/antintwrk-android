@@ -7,4 +7,5 @@
     <string name="common_media_upload_quality">发送媒体的质量</string>
     <string name="common_location_sharing">位置共享</string>
     <string name="common_moderation_and_safety">管理与安全</string>
+    <string name="screen_ant_invite_sms">你好！安装 ANTINTWRK.COM 聊天和社交应用：https://antintwrk.com</string>
 </resources>

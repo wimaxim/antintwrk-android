@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">Termina o cierra el borrador actual antes de importar. Tu borrador se ha conservado.</string>
     <string name="screen_ant_share_failed">No se pudo importar el contenido. Comparte texto, imágenes JPEG, PNG, WebP o un vídeo MP4, MOV, WebM. Comprueba el acceso a los archivos y el espacio disponible e inténtalo de nuevo.</string>
     <string name="screen_ant_share_your_profile">Tu perfil</string>
+    <string name="screen_ant_media_source">Añadir contenido</string>
+    <string name="screen_ant_media_gallery">Elegir de la galería</string>
+    <string name="screen_ant_media_photo">Hacer foto</string>
+    <string name="screen_ant_media_video">Grabar vídeo</string>
+    <string name="screen_ant_camera_unavailable">Cámara no disponible. Permite el acceso o elige un archivo de la galería.</string>
 </resources>

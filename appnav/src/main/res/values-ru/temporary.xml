@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">Завершите или закройте текущий черновик перед импортом. Ваш черновик сохранён.</string>
     <string name="screen_ant_share_failed">Не удалось импортировать содержимое. Можно поделиться текстом, изображениями JPEG, PNG, WebP или одним видео MP4, MOV, WebM. Проверьте доступ к файлам и свободное место, затем повторите.</string>
     <string name="screen_ant_share_your_profile">Ваш профиль</string>
+    <string name="screen_ant_media_source">Добавить медиа</string>
+    <string name="screen_ant_media_gallery">Выбрать из галереи</string>
+    <string name="screen_ant_media_photo">Снять фото</string>
+    <string name="screen_ant_media_video">Записать видео</string>
+    <string name="screen_ant_camera_unavailable">Камера недоступна. Разрешите доступ к камере или выберите файл из галереи.</string>
 </resources>

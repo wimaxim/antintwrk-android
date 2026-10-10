@@ -13,6 +13,7 @@ package io.element.android.features.roomdetails.impl
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.AndroidComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -359,6 +360,14 @@ class RoomDetailsViewTest : RobolectricTest() {
             onAllNodesWithText(activity!!.getString(R.string.screen_room_details_invite_title)).onLast().performClick()
         }
     }
+    @Test
+    fun `managed social chat hides polls and technical room details`() = runAndroidComposeUiTest {
+        setRoomDetailView(state = aRoomDetailsState(eventSink = EventsRecorder(expectEvents = false), showDebugInfo = true), managedSocial = true)
+        onNodeWithText(activity!!.getString(R.string.screen_polls_history_title)).assertDoesNotExist()
+        onNodeWithText("Internal room ID").assertDoesNotExist()
+        onNodeWithText("Room version").assertDoesNotExist()
+    }
+
 }
 
 private fun AndroidComposeUiTest<ComponentActivity>.setRoomDetailView(
@@ -381,6 +390,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setRoomDetailView(
     onSecurityAndPrivacyClick: () -> Unit = EnsureNeverCalled(),
     onProfileClick: (UserId) -> Unit = EnsureNeverCalledWithParam(),
     onReportRoomClick: () -> Unit = EnsureNeverCalled(),
+    managedSocial: Boolean = false,
 ) {
     setContent {
         RoomDetailsView(
@@ -402,6 +412,7 @@ private fun AndroidComposeUiTest<ComponentActivity>.setRoomDetailView(
             onProfileClick = onProfileClick,
             onReportRoomClick = onReportRoomClick,
             leaveRoomView = {},
+            managedSocial = managedSocial,
         )
     }
 }

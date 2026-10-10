@@ -137,4 +137,9 @@
     <string name="screen_ant_share_draft">Terminez ou fermez le brouillon actuel avant de partager. Votre brouillon est conservé.</string>
     <string name="screen_ant_share_failed">Impossible d’importer ce contenu. Partagez du texte, des images JPEG, PNG, WebP ou une vidéo MP4, MOV, WebM. Vérifiez l’accès aux fichiers et l’espace disponible, puis réessayez.</string>
     <string name="screen_ant_share_your_profile">Votre profil</string>
+    <string name="screen_ant_media_source">Ajouter un média</string>
+    <string name="screen_ant_media_gallery">Choisir dans la galerie</string>
+    <string name="screen_ant_media_photo">Prendre une photo</string>
+    <string name="screen_ant_media_video">Enregistrer une vidéo</string>
+    <string name="screen_ant_camera_unavailable">Caméra indisponible. Autorisez son accès ou choisissez un fichier dans la galerie.</string>
 </resources>

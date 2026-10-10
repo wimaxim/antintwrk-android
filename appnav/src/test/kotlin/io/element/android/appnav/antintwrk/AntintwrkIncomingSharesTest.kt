@@ -89,6 +89,7 @@ class AntintwrkIncomingSharesTest : RobolectricTest() {
             loading = false
             origin = AntintwrkSocialOrigins.PUBLIC
             profileName = "QA actor"
+            composing = true
         }
         var social = false
         runBlocking { AntintwrkIncomingShares.receive(context, Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT, "QA share")) }
@@ -100,7 +101,10 @@ class AntintwrkIncomingSharesTest : RobolectricTest() {
         onNodeWithText("Create publication").performClick()
         runOnIdle {
             assertThat(social).isTrue()
-            assertThat(controller.currentUrl).isEqualTo("https://antintwrk.com/en/hero-compose?app=1")
+            val url = Uri.parse(controller.currentUrl)
+            assertThat(url.path).isEqualTo("/en/hero-compose")
+            assertThat(url.getQueryParameter("app")).isEqualTo("1")
+            assertThat(url.getQueryParameter("nativeShare")).isEqualTo(controller.incomingDelivery?.id)
             assertThat(controller.incomingDelivery?.text).isEqualTo("QA share")
             assertThat(controller.incomingDelivery?.actor).isEqualTo("@u42:antintwrk.com")
             assertThat(AntintwrkIncomingShares.requests.value).isNull()

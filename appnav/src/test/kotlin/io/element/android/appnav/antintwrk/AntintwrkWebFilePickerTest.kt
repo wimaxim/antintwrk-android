@@ -17,6 +17,15 @@ class AntintwrkWebFilePickerTest : RobolectricTest() {
     private val second = Uri.parse("content://media/picker/2")
 
     @Test
+    fun `camera is offered only for an exclusively supported media input`() {
+        assertThat(socialCaptureKind(arrayOf("image/jpeg,image/png,image/webp"))).isEqualTo("image")
+        assertThat(socialCaptureKind(arrayOf("video/mp4", "video/webm"))).isEqualTo("video")
+        assertThat(socialCaptureKind(arrayOf("*/*"))).isNull()
+        assertThat(socialCaptureKind(arrayOf("image/*", "application/pdf"))).isNull()
+        assertThat(socialCaptureKind(emptyArray())).isNull()
+    }
+
+    @Test
     fun `multiple photo picker results work without intent data`() {
         val clip = ClipData.newRawUri("photo", first).apply {
             addItem(ClipData.Item(second))

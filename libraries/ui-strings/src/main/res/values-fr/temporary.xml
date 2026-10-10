@@ -7,4 +7,5 @@
     <string name="common_media_upload_quality">Qualité des médias envoyés</string>
     <string name="common_location_sharing">Partage de localisation</string>
     <string name="common_moderation_and_safety">Modération et sécurité</string>
+    <string name="screen_ant_invite_sms">Salut ! Installe la messagerie et le réseau social ANTINTWRK.COM : https://antintwrk.com</string>
 </resources>
