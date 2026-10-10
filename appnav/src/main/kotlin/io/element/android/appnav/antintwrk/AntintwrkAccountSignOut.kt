@@ -24,6 +24,7 @@ internal object AntintwrkAccountSignOut {
             androidx.core.app.NotificationManagerCompat.from(context).cancelAll()
         }
         push.clear()
+        AntintwrkIncomingShares.clear()
         AntintwrkSocialPushRoutes.consume()
         AntintwrkMessengerRoutes.clear()
         AntintwrkAppNavigation.clear()

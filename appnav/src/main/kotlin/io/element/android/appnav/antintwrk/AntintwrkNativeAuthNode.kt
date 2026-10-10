@@ -87,6 +87,7 @@ internal fun AntintwrkNativeAppView(
         }
         val unreadMessages by androidx.compose.runtime.key(matrixUserId) { unreadFlow.collectAsState(initial = 0L) }
         val context = LocalAntintwrkActivity.current ?: LocalContext.current
+        LaunchedEffect(Unit) { AntintwrkIncomingShares.cleanup(context.applicationContext) }
         val credentials = remember { AntintwrkNativeCredentials(context) }
         val accountPreferences = remember { context.getSharedPreferences("antintwrk-account", android.content.Context.MODE_PRIVATE) }
 
@@ -143,6 +144,12 @@ internal fun AntintwrkNativeAppView(
         var session by (retainedSurface?.admission ?: remember { mutableStateOf<AntintwrkAuthSession?>(null) })
         AntintwrkStoreBinding(socialClient, webController.routedSession?.takeIf { it.matrixUserId == session?.matrixUserId }, webController)
         val actor = session?.matrixUserId
+        AntintwrkIncomingShareView(
+            actor = actor.takeIf { session?.stage == AntintwrkAuthStage.AUTHENTICATED },
+            controller = webController,
+            language = language,
+            onSocial = { shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social)) },
+        )
         var oauthUrl by remember(actor) { mutableStateOf<String?>(null) }
         var messengerBusy by remember(actor) { mutableStateOf(false) }
         var messengerFailed by remember(actor) { mutableStateOf(false) }
@@ -360,6 +367,7 @@ internal fun AntintwrkNativeAppView(
                         shellState.eventSink(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
                         shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
                         pushStore.clear()
+                        AntintwrkIncomingShares.discardOtherActor(candidate.matrixUserId)
                         AntintwrkSocialPushRoutes.consume()
                         AntintwrkSocialProfileRoutes.consume()
                         AntintwrkProfileNavigation.clear()
@@ -708,6 +716,7 @@ internal fun AntintwrkNativeAppView(
                 AntintwrkMessengerRoutes.clear()
                 AntintwrkAppNavigation.clear()
                 accountPreferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", current.matrixUserId).commit()
+                AntintwrkIncomingShares.clear()
                 AntintwrkSocialPushRoutes.consume()
                 AntintwrkSocialProfileRoutes.consume()
                 AntintwrkProfileNavigation.clear()
@@ -764,6 +773,7 @@ internal fun AntintwrkNativeAppView(
                 onDismiss = { settingsOpen = false },
                 messengerSettingsReady = matrixUserId == actor && onOpenAppPreference != null,
                 failed = settingsFailed,
+                socialOrigin = webController.origin,
                 onSignOut = {
                     settingsOpen = false
                     signOut()

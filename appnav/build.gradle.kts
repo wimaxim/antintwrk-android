@@ -22,6 +22,7 @@ android {
     testOptions { unitTests.isIncludeAndroidResources = true }
     buildFeatures { buildConfig = true }
     defaultConfig {
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField(
             "boolean",
             "ANTINTWRK_ONBOARDING",
@@ -45,6 +46,10 @@ android {
 setupDependencyInjection()
 
 dependencies {
+    androidTestImplementation(libs.test.runner)
+    androidTestImplementation(libs.test.core)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+
     allFeaturesApi(project)
 
     implementation(projects.libraries.core)

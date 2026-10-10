@@ -131,4 +131,10 @@
     <string name="screen_ant_licences_client">عميل Android، بما في ذلك تكاملنا الأصلي للشبكة الاجتماعية، مرخّص بموجب AGPL-3.0-only. حقوق مساهماتنا الأصلية: Maxim Novichkov. تُحفظ الإشعارات الأصلية وتراخيص التبعيات أدناه.</string>
     <string name="screen_ant_licences_backend_scope">تنطبق هذه الإشعارات فقط على أعمال الخادم والويب البعيد الأصلية المستقلة. تحتفظ مكونات الجهات الخارجية بتراخيصها الخاصة.</string>
     <string name="screen_ant_licences_rights">عميل معدّل: تكامل وتكييف antintwrk، 2026. يُقدّم دون ضمان إلى الحد الذي يسمح به القانون. يمكنك تعديل العميل وإعادة توزيعه بموجب AGPL-3.0-only؛ النص الكامل للترخيص متاح أدناه.</string>
+    <string name="screen_ant_share_title">مشاركة على antintwrk</string>
+    <string name="screen_ant_share_create">إنشاء منشور</string>
+    <string name="screen_ant_share_review">الكاتب: %1$s. المرفقات: %2$d. يمكنك مراجعة كل شيء وتعديله قبل النشر.</string>
+    <string name="screen_ant_share_draft">أكمل المسودة الحالية أو أغلقها قبل الاستيراد. تم الاحتفاظ بمسودتك.</string>
+    <string name="screen_ant_share_failed">تعذر استيراد المحتوى. شارك نصًا أو صور JPEG وPNG وWebP أو فيديو واحدًا بصيغة MP4 أوMOV أوWebM. تحقق من الوصول إلى الملفات والمساحة المتاحة ثم حاول مجددًا.</string>
+    <string name="screen_ant_share_your_profile">ملفك الشخصي</string>
 </resources>

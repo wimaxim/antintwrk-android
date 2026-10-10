@@ -72,6 +72,9 @@ android {
         manifestPlaceholders["antintwrkRoundIcon"] = if (nativeSocial) "@mipmap/antintwrk_launcher" else "@mipmap/ic_launcher_round"
         manifestPlaceholders["antintwrkAppTheme"] = if (nativeSocial) "@style/Theme.Antintwrk" else "@style/Theme.ElementX"
         manifestPlaceholders["antintwrkSplashTheme"] = if (nativeSocial) "@style/Theme.Antintwrk.Splash" else "@style/Theme.ElementX.Splash"
+        manifestPlaceholders["antintwrkShareText"] = if (nativeSocial) "text/plain" else "*/*"
+        manifestPlaceholders["antintwrkShareImage"] = if (nativeSocial) "image/*" else "*/*"
+        manifestPlaceholders["antintwrkShareVideo"] = if (nativeSocial) "video/*" else "*/*"
         manifestPlaceholders["antintwrkLocaleConfig"] = if (nativeSocial) "@xml/antintwrk_locales" else "@xml/locales_config"
         resValue(
             "string",

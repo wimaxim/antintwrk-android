@@ -69,7 +69,8 @@ class AntintwrkWebFeedController {
     internal var onTransportFailure: () -> Unit = {}
     internal var onRoutingApplied: (String) -> Unit = {}
     internal val routingProtected get() = composing || editorStates.values.any { it } || draftStates.values.any { it } ||
-        imeVisible || fullscreen != null || prompt != null || document != null || fileCallback != null || popups.isNotEmpty() ||
+        incomingImportBusy || imeVisible || fullscreen != null || prompt != null || document != null || fileCallback != null ||
+            popups.isNotEmpty() ||
         Uri.parse(currentUrl.orEmpty()).pathSegments.getOrNull(1) in setOf("verification", "kindness")
 
     /** Called on an explicit GET navigation, or after confirmed transport failure. Never from geo polling. */
@@ -136,6 +137,7 @@ class AntintwrkWebFeedController {
         if (tab == activePage) currentUrl = url
     }
     internal fun pageStarted(page: WebView, url: String?) {
+        if (incomingResourceLease?.page === page) clearIncomingDelivery()
         val entry = pages.entries.firstOrNull { it.value === page } ?: return
         val tab = entry.key
         url?.let { urls[tab] = it }
@@ -241,6 +243,11 @@ class AntintwrkWebFeedController {
     var launchDocumentSave: ((String) -> Unit)? = null
     var fileCallback: ValueCallback<Array<Uri>>? = null
     var allowMultipleFiles = false
+    internal var incomingImportBusy = false
+    internal var incomingEvaluationBusy = false
+    @Volatile internal var incomingResourceLease: AntintwrkShareResourceLease? = null
+    @Volatile internal var incomingActor: String? = null
+    internal var incomingDelivery: AntintwrkIncomingShare? = null
     internal var prompt by mutableStateOf<AntintwrkWebPrompt?>(null)
     var fullscreen by mutableStateOf<View?>(null)
     var fullscreenCallback: WebChromeClient.CustomViewCallback? = null
@@ -426,6 +433,7 @@ class AntintwrkWebFeedController {
         renderer.destroy()
     }
     fun destroy() {
+        clearIncomingDelivery()
         pendingRouting = null
         onTransportFailure = {}
         composing = false
@@ -691,6 +699,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             return true
                         }
                         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                            controller.incomingResource(view, request)?.let { return it }
                             if (request.url.host in setOf("antimsg.com", "antintwrk.com", "www.antintwrk.com") &&
                                 !policy.sameOrigin(request.url.toString())) {
                                 return WebResourceResponse(
@@ -731,6 +740,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                                 url?.let { controller.visited(it, policy) }
                                 controller.finishMessengerProfileNavigation(view)
                                 AntintwrkWebIme.update(view, controller, policy, install = true)
+                                controller.deliverIncomingShare(view)
                             }
                         }
                         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {

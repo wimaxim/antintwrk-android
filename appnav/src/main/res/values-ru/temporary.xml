@@ -131,4 +131,10 @@
     <string name="screen_ant_licences_client">Android-клиент, включая нашу нативную интеграцию соцсети, распространяется под AGPL-3.0-only. Авторские права на наши оригинальные доработки: Maxim Novichkov. Исходные уведомления и лицензии зависимостей сохранены ниже.</string>
     <string name="screen_ant_licences_backend_scope">Эти условия относятся только к независимым оригинальным серверным и удалённым веб-разработкам. Сторонние компоненты сохраняют собственные лицензии.</string>
     <string name="screen_ant_licences_rights">Модифицированный клиент: интеграция и адаптация antintwrk, 2026. Предоставляется без гарантий в пределах, разрешённых законом. Вы вправе изменять и распространять клиент по AGPL-3.0-only; полный текст лицензии доступен ниже.</string>
+    <string name="screen_ant_share_title">Поделиться в antintwrk</string>
+    <string name="screen_ant_share_create">Создать публикацию</string>
+    <string name="screen_ant_share_review">Автор: %1$s. Вложений: %2$d. Перед публикацией вы сможете всё проверить и отредактировать.</string>
+    <string name="screen_ant_share_draft">Завершите или закройте текущий черновик перед импортом. Ваш черновик сохранён.</string>
+    <string name="screen_ant_share_failed">Не удалось импортировать содержимое. Можно поделиться текстом, изображениями JPEG, PNG, WebP или одним видео MP4, MOV, WebM. Проверьте доступ к файлам и свободное место, затем повторите.</string>
+    <string name="screen_ant_share_your_profile">Ваш профиль</string>
 </resources>

@@ -460,6 +460,10 @@ class RootFlowNode(
     }
 
     suspend fun handleIntent(intent: Intent) {
+        if (BuildConfig.ANTINTWRK_NATIVE_AUTH && intent.action in setOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)) {
+            io.element.android.appnav.antintwrk.AntintwrkIncomingShares.receive(context, intent)
+            return
+        }
         if (BuildConfig.ANTINTWRK_NATIVE_AUTH && intent.action == AntintwrkSocialPushRoutes.ACTION) {
             AntintwrkSocialPushRoutes.open()
             return
