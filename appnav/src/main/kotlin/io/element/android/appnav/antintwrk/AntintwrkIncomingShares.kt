@@ -91,6 +91,8 @@ internal object AntintwrkIncomingShares {
             directory?.deleteRecursively()
             if (eligible()) {
                 pending.value = AntintwrkIncomingShare(id, actor, "", failed = true)
+            } else if (pending.value?.id == id) {
+                pending.value = null
             }
         }
     }

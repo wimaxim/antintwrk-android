@@ -330,3 +330,5 @@ Ask to create a publication as the admitted social profile; do not send to Matri
 Source publication: owner explicitly requested public access to wimaxim/antintwrk-android through the in-app Source Code link. Publish the complete modified client and exact adapters with AGPL/copyright/notices and standalone build instructions. Include only public Firebase Android client configuration. Private signing/service accounts, backup/server source and QSNEmain remain excluded. This is a scoped publication instruction for the own Android repository; normal future push still requires a separate command. No upstream push, force push or iOS visibility change.
 
 Import error follow-up: a failed incoming share keeps its failure explanation even when a composer is already open; only a genuine draft conflict uses the close-draft instruction. Targeted eight native-share tests and ktlint passed.
+
+A stale failed staging read clears its own preparing request after an admission epoch change instead of leaving an indefinite preparing dialog. Eight sharing tests and ktlint passed.
