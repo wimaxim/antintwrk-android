@@ -35,21 +35,39 @@ internal class AntintwrkSocialOriginCoordinator(
     private val lookup: (suspend () -> String)? = null,
     private val transfer: suspend (AntintwrkNativeAuthClient, String, AntintwrkAuthSession) -> AntintwrkAuthSession =
         { client, target, admission -> client.transferSocialSession(target, admission) },
+    private val clock: () -> Long = android.os.SystemClock::elapsedRealtime,
+    private val read: suspend (AntintwrkNativeAuthClient, AntintwrkAuthSession, String) -> AntintwrkAuthSession = { client, session, target ->
+        antintwrkRestoreSocialAdmission(session.matrixUserId, primary = { client.routingSession() }, fallback = {
+            AntintwrkNativeAuthClient(target).routingSession()
+        }, acceptedFallback = {})
+    },
 ) {
     private val preferences = context.getSharedPreferences("antintwrk-social-routing", Context.MODE_PRIVATE)
+    fun recordApplied(origin: String) {
+        require(origin in AntintwrkSocialOrigins.allowed)
+        preferences.edit().putString("working-origin", origin).apply()
+    }
     private val lock = Mutex()
     private var initialChoice: String? = null
     private var chosenAt = 0L
+    private var checkedAt: Long? = null
+    private var outageAt: Long? = null
+    fun nextCheckDelay(): Long = checkedAt?.let { (300_000 - (clock() - it)).coerceIn(30_000, 300_000) } ?: 300_000
     private val http = OkHttpClient.Builder().followRedirects(false).followSslRedirects(false)
         .callTimeout(2500, TimeUnit.MILLISECONDS).build()
 
-    suspend fun preload() = lock.withLock {
+    suspend fun preload(force: Boolean = true) = lock.withLock {
+        if (!force && checkedAt?.let { clock() - it < 300_000 } == true) return@withLock
         initialChoice = recommend()
-        chosenAt = android.os.SystemClock.elapsedRealtime()
+        chosenAt = clock()
+        checkedAt = chosenAt
     }
 
     private suspend fun recommend(): String = withContext(Dispatchers.IO) {
         try {
+            lookup?.let { return@withContext it() }
+            // A surviving old TCP connection could still use the previous VPN/NAT egress.
+            http.connectionPool.evictAll()
             val request = Request.Builder().url("${AntintwrkSocialOrigins.RUSSIAN}/app/geo")
                 .header("User-Agent", AntintwrkNativeAuthClient.USER_AGENT).header("Cache-Control", "no-cache").get().build()
             http.newCall(request).execute().use { response ->
@@ -66,6 +84,46 @@ internal class AntintwrkSocialOriginCoordinator(
         }
     }
 
+    /** Prepare only; a successful lookup never mutates an open document. */
+    suspend fun refresh(
+        client: AntintwrkNativeAuthClient,
+        admission: AntintwrkAuthSession,
+        web: AntintwrkWebFeedController,
+        force: Boolean = false,
+        unavailable: Boolean = false,
+    ) = lock.withLock {
+        if (!web.routingSelected || admission.stage != AntintwrkAuthStage.AUTHENTICATED) return@withLock
+        val now = clock()
+        if (unavailable) {
+            if (outageAt?.let { now - it < 30_000 } == true) return@withLock
+            outageAt = now
+        }
+        if (!force && checkedAt?.let { now - it < 300_000 } == true) return@withLock
+        val epoch = AntintwrkSocialCookieEpoch.current()
+        web.pendingRouting = null
+        val target = recommend().let {
+            if (unavailable && it == web.origin) AntintwrkSocialOrigins.allowed.single { host -> host != web.origin } else it
+        }
+        checkedAt = clock()
+        initialChoice = target
+        chosenAt = checkedAt!!
+        if (target == web.origin) return@withLock
+        try {
+            require(target in AntintwrkSocialOrigins.allowed)
+            val source = client.routingClient()
+            val fresh = read(source, admission, target)
+            require(fresh.stage == AntintwrkAuthStage.AUTHENTICATED && fresh.matrixUserId == admission.matrixUserId)
+            val routed = if (target == source.origin) fresh else transfer(source, target, fresh)
+            AntintwrkSocialCookieEpoch.check(epoch)
+            require(routed.stage == AntintwrkAuthStage.AUTHENTICATED && routed.matrixUserId == admission.matrixUserId)
+            web.pendingRouting = AntintwrkPreparedSocialRouting(target, routed, epoch, clock())
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            // Neither a challenge nor an optional handoff failure changes the existing admission.
+        }
+    }
+
     suspend fun prepare(client: AntintwrkNativeAuthClient, admission: AntintwrkAuthSession, web: AntintwrkWebFeedController) = lock.withLock {
         require(admission.stage == AntintwrkAuthStage.AUTHENTICATED && admission.matrixUserId != null)
         val epoch = AntintwrkSocialCookieEpoch.current()
@@ -73,7 +131,7 @@ internal class AntintwrkSocialOriginCoordinator(
         val target = if (web.routingSelected) {
             web.origin
         } else {
-            lookup?.invoke() ?: initialChoice?.takeIf { android.os.SystemClock.elapsedRealtime() - chosenAt < 180_000 } ?: recommend()
+            initialChoice?.takeIf { clock() - chosenAt < 180_000 } ?: recommend()
         }
         try {
             require(target in AntintwrkSocialOrigins.allowed)

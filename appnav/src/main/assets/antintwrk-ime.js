@@ -64,5 +64,14 @@
   window.visualViewport?.addEventListener('resize', schedule, {passive:true});
   document.addEventListener('focusin', schedule);
   document.addEventListener('input', schedule);
+  // A boolean only: protect edited forms even after the keyboard closes. Never expose their contents.
+  const markDraft = event => {
+    const target = event.target;
+    if (!event.isTrusted || !(target instanceof Element) ||
+        !target.matches('input,textarea,select,[contenteditable]') || target.matches('[type=search],[type=hidden]')) return;
+    window.antintwrkNative?.postMessage(JSON.stringify({type:'draft'}));
+  };
+  document.addEventListener('input', markDraft);
+  document.addEventListener('change', markDraft);
   document.addEventListener('selectionchange', schedule);
 })();

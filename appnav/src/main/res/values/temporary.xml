@@ -124,9 +124,11 @@
     <string name="screen_ant_settings_retry">Unable to open settings. Please try again.</string>
     <string name="screen_ant_licences_project">antintwrk — project and rights</string>
     <string name="screen_ant_licences_operator">Project operator: %1$s</string>
-    <string name="screen_ant_licences_author">Project author: %1$s</string>
+    <string name="screen_ant_licences_author">Project visionary and founder</string>
     <string name="screen_ant_licences_backend_title">Server and web product</string>
     <string name="screen_ant_licences_backend">The independently developed original social-network backend and remote web product are proprietary. All rights of their respective owners are reserved. These terms do not restrict rights granted for the Android client under AGPL.</string>
     <string name="screen_ant_licences_client_title">Android client and open-source components</string>
     <string name="screen_ant_licences_client">The Android client, including our native social-network integration, is licensed under AGPL-3.0-only. Copyright in our original contributions: Maxim Novichkov. Original notices and dependency licences are retained below.</string>
+    <string name="screen_ant_licences_backend_scope">These notices cover only independent original server and remote web works. Third-party components retain their own licences.</string>
+    <string name="screen_ant_licences_rights">Modified client: antintwrk integration and adaptations, 2026. Provided without warranty to the extent permitted by law. You may modify and redistribute the client under AGPL-3.0-only; the complete licence is available below.</string>
 </resources>

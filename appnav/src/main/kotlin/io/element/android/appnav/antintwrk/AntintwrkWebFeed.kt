@@ -58,14 +58,62 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 
+internal data class AntintwrkPreparedSocialRouting(val origin: String, val session: AntintwrkAuthSession, val epoch: Long, val at: Long)
+
 class AntintwrkWebFeedController {
     internal var origin by mutableStateOf(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
     internal var authOrigin by mutableStateOf(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
     internal var routingSelected = false
     internal var routedSession by mutableStateOf<AntintwrkAuthSession?>(null)
+    internal var pendingRouting: AntintwrkPreparedSocialRouting? = null
+    internal var onTransportFailure: () -> Unit = {}
+    internal var onRoutingApplied: (String) -> Unit = {}
+    internal val routingProtected get() = composing || editorStates.values.any { it } || draftStates.values.any { it } ||
+        imeVisible || fullscreen != null || prompt != null || document != null || fileCallback != null || popups.isNotEmpty() ||
+        Uri.parse(currentUrl.orEmpty()).pathSegments.getOrNull(1) in setOf("verification", "kindness")
+
+    /** Called on an explicit GET navigation, or after confirmed transport failure. Never from geo polling. */
+    internal fun applyPreparedRouting(now: Long = android.os.SystemClock.elapsedRealtime()): Boolean {
+        synchronized(AntintwrkSocialCookieEpoch.monitor) {
+            val pending = pendingRouting ?: return false
+            if (pending.epoch != AntintwrkSocialCookieEpoch.current() || now - pending.at !in 0..180_000 ||
+                pending.origin !in AntintwrkSocialOrigins.allowed || pending.session.stage != AntintwrkAuthStage.AUTHENTICATED ||
+                pending.session.matrixUserId != routedSession?.matrixUserId) {
+                pendingRouting = null
+                return false
+            }
+            if (routingProtected || loading && !failed) return false
+            pages.values.forEach {
+                it.stopLoading()
+                it.destroy()
+            }
+            pages.clear()
+            pageLoading.clear()
+            pageFailures.clear()
+            editorStates.clear()
+            editorDialogs.clear()
+            draftStates.clear()
+            crossSectionHistory.clear()
+            prewarmStarted = false
+            messengerProfileDepth = null
+            messengerProfilePendingFinish = false
+            origin = pending.origin
+            routedSession = pending.session
+            urls.toMap().forEach { (tab, url) -> policy.embedded(url)?.let { urls[tab] = it } ?: urls.remove(tab) }
+            currentUrl = currentUrl?.let(policy::embedded)
+            additionalResetHistory = additionalActive
+            canGoBack = additionalActive
+            failed = false
+            loading = true
+            pendingRouting = null
+            onRoutingApplied(origin)
+            return true
+        }
+    }
     internal fun resetRouting() {
         check(currentUrl == null && pages.isEmpty())
         routingSelected = false
+        pendingRouting = null
         routedSession = null
         origin = BuildConfig.ANTINTWRK_SOCIAL_ORIGIN
     }
@@ -77,12 +125,14 @@ class AntintwrkWebFeedController {
         private set
     internal fun pageSection(page: WebView): AntintwrkSection? = pages.entries.firstOrNull { it.value === page }?.key
     internal fun page(tab: AntintwrkSection?): WebView? = pages[tab]
+    internal fun hasPage(page: WebView): Boolean = pages.values.any { it === page }
     internal fun pageUrl(tab: AntintwrkSection?): String? = urls[tab]
     internal fun registerPage(tab: AntintwrkSection?, page: WebView, url: String) {
         pages[tab] = page
         urls[tab] = url
         pageLoading[tab] = true
         pageFailures[tab] = false
+        draftStates[tab] = false
         if (tab == activePage) currentUrl = url
     }
     internal fun pageStarted(page: WebView, url: String?) {
@@ -111,6 +161,7 @@ class AntintwrkWebFeedController {
         val tab = entry.key
         url?.let { urls[tab] = it }
         pageLoading[tab] = false
+        if (pageFailures[tab] != true) draftStates[tab] = false
         if (view === page) loading = false
     }
     internal fun feedReady(page: WebView, url: String) {
@@ -123,10 +174,15 @@ class AntintwrkWebFeedController {
     var ownProfileIdentity: String? = null
     private val editorStates = mutableMapOf<AntintwrkSection?, Boolean>()
     private val editorDialogs = mutableMapOf<AntintwrkSection?, Boolean>()
+    private val draftStates = mutableMapOf<AntintwrkSection?, Boolean>()
+    internal fun markDraft() {
+        draftStates[activePage] = true
+    }
     internal var imeVisible = false
     internal var editorDialog = false
     internal var composing by mutableStateOf(false)
     internal fun updateEditor(active: Boolean, dialog: Boolean = false) {
+        if (composing && !active) draftStates[activePage] = false
         editorDialog = active && dialog
         editorDialogs[activePage] = editorDialog
         composing = active
@@ -141,12 +197,15 @@ class AntintwrkWebFeedController {
     internal fun openMessengerProfile(url: String) = openFromMessenger(url)
 
     internal fun openFromMessenger(url: String) {
+        if (policy.embedded(url) == null) return
+        applyPreparedRouting()
+        val target = policy.embedded(url) ?: return
         crossSectionHistory.clear()
-        openAdditional(url)
+        openAdditional(target)
         val page = view
-        messengerProfileDepth = if (page?.url == url) page.copyBackForwardList().currentIndex else (page?.copyBackForwardList()?.currentIndex ?: -1) + 1
+        messengerProfileDepth = if (page?.url == target) page.copyBackForwardList().currentIndex else (page?.copyBackForwardList()?.currentIndex ?: -1) + 1
         messengerProfilePendingFinish = true
-        navigate(url, forceAdditional = true)
+        navigate(target, forceAdditional = true, allowRouting = false)
     }
     internal fun finishMessengerProfileNavigation(page: WebView) {
         if (page === pages[null] && additionalResetHistory) {
@@ -210,7 +269,10 @@ class AntintwrkWebFeedController {
                 if (ownProfileIdentity != null && parts.getOrNull(1) == "profile") null else policy.section(url)
             }
     }
-    fun selectSection(destination: AntintwrkSection, root: String) {
+    fun selectSection(destination: AntintwrkSection, input: String) {
+        if (policy.embedded(input) == null) return
+        applyPreparedRouting()
+        val root = policy.embedded(input) ?: return
         messengerProfileDepth = null
         messengerProfilePendingFinish = false
         crossSectionHistory.clear()
@@ -260,9 +322,11 @@ class AntintwrkWebFeedController {
     }
     private fun messengerProfileRoute(url: String): Boolean = additionalActive && messengerProfileDepth != null &&
         Uri.parse(url).pathSegments.let { it.size == 3 && it[1] == "hero" }
-    fun navigate(input: String, forceAdditional: Boolean = false) {
+    fun navigate(input: String, forceAdditional: Boolean = false, allowRouting: Boolean = true) {
+        val original = policy.embedded(input) ?: return
+        if (interceptMessenger(original)) return
+        if (allowRouting) applyPreparedRouting()
         val url = policy.embedded(input) ?: return
-        if (interceptMessenger(url)) return
         val destination = if (forceAdditional) null else nativeSection(url)
         if (destination == null) {
             openAdditional(url)
@@ -290,7 +354,7 @@ class AntintwrkWebFeedController {
         if (policy.embedded(url) == null) return
         val destination = nativeSection(url)
         if ((additionalActive && destination != null && !messengerProfileRoute(url)) || (!additionalActive && destination != section)) {
-            navigate(url)
+            navigate(url, allowRouting = false)
             return
         }
         currentUrl = url
@@ -323,6 +387,7 @@ class AntintwrkWebFeedController {
     }
     fun retry() {
         if (composing || fullscreen != null) return
+        applyPreparedRouting()
         val target = currentUrl?.let(policy::embedded) ?: return
         failed = false
         loading = true
@@ -361,11 +426,14 @@ class AntintwrkWebFeedController {
         renderer.destroy()
     }
     fun destroy() {
+        pendingRouting = null
+        onTransportFailure = {}
         composing = false
         imeVisible = false
         editorDialog = false
         editorStates.clear()
         editorDialogs.clear()
+        draftStates.clear()
         profileAvatarSource = null
         profileName = null
         profileAvatar = null
@@ -453,7 +521,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
             it == controller.section || controller.page(it) != null || controller.prewarmStarted
         } + if (controller.additionalActive || controller.page(null) != null) listOf(null) else emptyList()
         tabs.forEach { tab ->
-        key(tab ?: "additional") {
+        key(controller.origin, tab ?: "additional") {
         val active = tab == controller.activePage
         val startUrl = (if (active) controller.currentUrl else controller.pageUrl(tab))?.let(policy::embedded)
             ?: policy.root(language, tab ?: controller.section, controller.ownProfileIdentity)
@@ -511,7 +579,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                                         return true
                                     }
                                     if (target != null) {
-                                        controller.navigate(target)
+                                        controller.navigate(target, allowRouting = false)
                                     } else if (policy.external(url) || policy.outbound(url)) {
                                         controller.onExternalLink(url)
                                     }
@@ -603,12 +671,16 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             }
                             val target = policy.embedded(url)
                             if (target != null) {
+                                if (request.hasGesture() && request.method == "GET" && controller.applyPreparedRouting()) {
+                                    controller.navigate(target)
+                                    return true
+                                }
                                 if (target == url && controller.canNavigateInPage(view, target)) {
                                         controller.loading = true
                                         controller.failed = false
                                         return false
                                     }
-                                controller.navigate(target)
+                                controller.navigate(target, allowRouting = request.hasGesture() && request.method == "GET")
                             } else if ((policy.external(url) || policy.outbound(url)) &&
                                 (request.hasGesture() || policy.outbound(url) || (request.isRedirect && policy.embedded(view.url.orEmpty()) != null))) {
                                 controller.onExternalLink(url)
@@ -662,11 +734,17 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             }
                         }
                         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
-                            if (request.isForMainFrame) controller.pageFailed(view)
+                            if (request.isForMainFrame) {
+                                controller.pageFailed(view)
+                                if (controller.view === view && error.errorCode in setOf(ERROR_HOST_LOOKUP, ERROR_CONNECT, ERROR_TIMEOUT)) {
+                                    controller.onTransportFailure()
+                                }
+                            }
                         }
                         override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
                             if (request.isForMainFrame) {
                                 controller.pageFailed(view)
+                                if (response.statusCode in setOf(500, 502, 503, 504) && controller.view === view) controller.onTransportFailure()
                                 if (response.statusCode == 401 && controller.view === view) controller.onAuthRequired()
                             }
                         }
@@ -685,7 +763,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                 it.onResume()
             },
             onRelease = { view ->
-                view.post { if (!view.isAttachedToWindow) view.onPause() }
+                view.post { if (controller.hasPage(view) && !view.isAttachedToWindow) view.onPause() }
             },
         )
         }

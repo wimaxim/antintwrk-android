@@ -63,6 +63,7 @@ internal object AntintwrkNativeWebSignals {
                     if (route in setOf("verification", "kindness") && json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
                 }
                 "editor" -> if (json.opt("active") is Boolean) controller.updateEditor(json.getBoolean("active"), json.opt("dialog") == true)
+                "draft" -> controller.markDraft()
                 "changed" -> controller.refreshVersion++
                 "auth-required" -> onAuthRequired()
             }

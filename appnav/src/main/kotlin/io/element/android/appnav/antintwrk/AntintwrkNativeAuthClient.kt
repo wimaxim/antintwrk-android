@@ -8,6 +8,7 @@ import io.element.android.appnav.BuildConfig
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.ConnectionPool
 import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -97,6 +98,13 @@ internal class AntintwrkNativeAuthClient(
             require(it.stage == AntintwrkAuthStage.AUTHENTICATED && it.matrixUserId == admission.matrixUserId)
         }
     }
+
+    internal fun routingClient(): AntintwrkNativeAuthClient = AntintwrkNativeAuthClient(
+        origin,
+        http.newBuilder().connectionPool(ConnectionPool(0, 1, TimeUnit.SECONDS)).callTimeout(4, TimeUnit.SECONDS).build()
+    )
+
+    internal suspend fun routingSession(): AntintwrkAuthSession = routingClient().session()
 
     internal suspend fun storeRequest(action: String, actor: String, csrf: String, fields: Map<String, String>, cookies: String): JSONObject {
         require(action in setOf("store-catalog", "store-order", "store-verify"))

@@ -124,9 +124,11 @@
     <string name="screen_ant_settings_retry">No se pudieron abrir los ajustes. Inténtalo de nuevo.</string>
     <string name="screen_ant_licences_project">antintwrk — proyecto y derechos</string>
     <string name="screen_ant_licences_operator">Operador del proyecto: %1$s</string>
-    <string name="screen_ant_licences_author">Autor del proyecto: %1$s</string>
+    <string name="screen_ant_licences_author">Ideólogo y fundador del proyecto</string>
     <string name="screen_ant_licences_backend_title">Servidor y producto web</string>
     <string name="screen_ant_licences_backend">El backend original de la red social y el producto web remoto, desarrollados de forma independiente, son propietarios. Se reservan todos los derechos de sus respectivos titulares. Estas condiciones no limitan los derechos del cliente Android otorgados por AGPL.</string>
     <string name="screen_ant_licences_client_title">Cliente Android y componentes de código abierto</string>
     <string name="screen_ant_licences_client">El cliente Android, incluida nuestra integración nativa de la red social, se distribuye bajo AGPL-3.0-only. Derechos de autor de nuestras contribuciones originales: Maxim Novichkov. Se conservan abajo los avisos originales y las licencias de dependencias.</string>
+    <string name="screen_ant_licences_backend_scope">Estos avisos solo se aplican a los desarrollos originales independientes del servidor y la web remota. Los componentes de terceros conservan sus propias licencias.</string>
+    <string name="screen_ant_licences_rights">Cliente modificado: integración y adaptaciones de antintwrk, 2026. Se proporciona sin garantías en la medida permitida por la ley. Puede modificar y redistribuir el cliente conforme a AGPL-3.0-only; la licencia completa está disponible abajo.</string>
 </resources>

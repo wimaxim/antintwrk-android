@@ -124,9 +124,11 @@
     <string name="screen_ant_settings_retry">无法打开设置。请重试。</string>
     <string name="screen_ant_licences_project">antintwrk — 项目与权利</string>
     <string name="screen_ant_licences_operator">项目运营方：%1$s</string>
-    <string name="screen_ant_licences_author">项目作者：%1$s</string>
+    <string name="screen_ant_licences_author">项目理念发起人及创始人</string>
     <string name="screen_ant_licences_backend_title">服务器与网页产品</string>
     <string name="screen_ant_licences_backend">独立开发的社交网络原创后端和远程网页产品为专有软件。各权利人保留所有权利。这些条款不限制 AGPL 授予的 Android 客户端权利。</string>
     <string name="screen_ant_licences_client_title">Android 客户端与开源组件</string>
     <string name="screen_ant_licences_client">Android 客户端（包括我们的原生社交网络集成）采用 AGPL-3.0-only 许可。原创修改的著作权：Maxim Novichkov。下方保留原始声明及依赖组件许可。</string>
+    <string name="screen_ant_licences_backend_scope">这些声明仅适用于独立开发的原创服务器和远程网页产品。第三方组件保留其各自的许可证。</string>
+    <string name="screen_ant_licences_rights">修改版客户端：antintwrk 集成与适配，2026 年。在法律允许的范围内不提供担保。您可以依据 AGPL-3.0-only 修改和重新分发客户端；下方提供完整许可证。</string>
 </resources>

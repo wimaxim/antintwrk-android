@@ -1,5 +1,9 @@
 # Сохранение этапов разработки antintwrk
 
+## Network geo refresh and project notices — 10 October 2026
+
+NetworkCallback monitors default network/link/VPN changes (debounce 2.5s); foreground/resume and periodic checks use a five-minute cache with bounded scheduling. Geo and routing admission use fresh sockets after network changes. Only prepare in the background; apply a same-actor/epoch, three-minute pending route on safe GET navigation or failed transport without active/hidden drafts, keyboard, chooser, modal or billing activity. Do not replay POST, reset Messenger or limit existing counters/push. Name in licences is multiline under project visionary/founder, with unchanged upstream copyright/AGPL and explicit independent-server scope. See shared docs/geo-network-refresh-2026-10-10.md for current contract, verification and iOS parity. Public source matching the APK remains a release gate; no push.
+
 ## Географический социальный origin — 10 октября 2026
 
 Use the root-owned `AntintwrkWebFeedController.origin` for social page URLs, active bridge trust and resource guards. `BuildConfig.ANTINTWRK_SOCIAL_ORIGIN` remains the Russian native auth/default entry, not the active page origin. Bootstrap is only antimsg.com/app/geo; RU/unknown choose antimsg.com, other countries antintwrk.com. Apply before publishing initial admission; retain the origin/documents on resume and mirror changes into shared Android/iOS documentation.

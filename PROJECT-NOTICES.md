@@ -2,7 +2,7 @@
 
 Project operator: **Super David Universe LLC**.
 
-Project author: **[Maxim Novichkov](https://antintwrk.com/en/hero/2266620)**.
+Project visionary and founder: **[Maxim Novichkov](https://antintwrk.com/en/hero/2266620)**.
 
 ## Independently developed server and web product
 
@@ -24,6 +24,11 @@ The client derives from Element X Android. Preserve the original copyright
 notices and the licences of its dependencies. The upstream commercial licensing
 option in [LICENSE-COMMERCIAL](LICENSE-COMMERCIAL) requires a separate written
 agreement; no such agreement is claimed here.
+
+This is a modified client, with antintwrk integration and adaptations made in
+2026. It is supplied without warranty to the extent permitted by law; recipients
+may modify and redistribute the covered client under the AGPL. The project role
+above does not claim authorship or ownership of the upstream Element code.
 
 Google Play Billing is included only in the Google Play build. Its applicable
 Android SDK licence and all other resolved dependency notices are included in

@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,8 +49,12 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
@@ -60,6 +65,7 @@ class AntintwrkNativeAuthNode(buildContext: BuildContext, private val onSwitchAc
 }
 
 @Composable
+@OptIn(kotlinx.coroutines.FlowPreview::class)
 internal fun AntintwrkNativeAppView(
     modifier: Modifier = Modifier,
     matrixUserId: String? = null,
@@ -107,6 +113,8 @@ internal fun AntintwrkNativeAppView(
         val webController = retainedSurface?.web ?: rememberAntintwrkWebFeedController()
         val client = remember(webController.authOrigin) { AntintwrkNativeAuthClient(webController.authOrigin) }
         val routing = remember { AntintwrkSocialOriginCoordinator(context.applicationContext) }
+        val geoNetwork = remember { AntintwrkGeoNetworkMonitor(context.applicationContext) }
+        webController.onRoutingApplied = routing::recordApplied
         val socialClient = remember(webController.origin) { AntintwrkNativeAuthClient(webController.origin) }
         LaunchedEffect(routing, webController.routingSelected) { if (!webController.routingSelected) routing.preload() }
         AntintwrkWebFilePicker(webController)
@@ -145,6 +153,37 @@ internal fun AntintwrkNativeAppView(
         var matrixUnavailable by remember { mutableStateOf(false) }
         var healthAttempt by remember { mutableLongStateOf(0L) }
         var foreground by remember { mutableStateOf(true) }
+        var transportFailure by remember { mutableLongStateOf(0L) }
+        val latestClient by rememberUpdatedState(client)
+        suspend fun refreshGeo(force: Boolean, unavailable: Boolean = false) {
+            val admitted = session?.takeIf { it.stage == AntintwrkAuthStage.AUTHENTICATED }
+            if (admitted == null) {
+                routing.preload(force)
+                return
+            }
+            routing.refresh(latestClient, admitted, webController, force, unavailable)
+            if (unavailable && foreground && (socialUnavailable || webController.failed) && webController.applyPreparedRouting()) {
+                socialUnavailable = false
+                webController.retry()
+            }
+        }
+        webController.onTransportFailure = { transportFailure++ }
+        LaunchedEffect(actor, foreground) {
+            if (foreground) {
+                val periodic = flow {
+                    emit(false) // Resume only probes if the five-minute cache has expired.
+                    while (true) {
+                        delay(routing.nextCheckDelay())
+                        emit(false)
+                    }
+                }
+                val network = geoNetwork.changes.debounce(2500).map { true }
+                merge(periodic, network).collectLatest { force -> refreshGeo(force, unavailable = socialUnavailable || webController.failed) }
+            }
+        }
+        LaunchedEffect(actor, foreground, socialUnavailable, transportFailure) {
+            if (actor != null && foreground && (socialUnavailable || webController.failed)) refreshGeo(true, unavailable = true)
+        }
         LaunchedEffect(actor, healthAttempt, foreground, webController.origin) {
             if (actor != null && foreground) {
                 val health = AntintwrkServiceHealth()

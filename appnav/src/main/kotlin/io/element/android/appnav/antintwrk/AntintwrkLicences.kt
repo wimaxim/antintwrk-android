@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 package io.element.android.appnav.antintwrk
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import io.element.android.appnav.R
 import io.element.android.libraries.designsystem.theme.components.Text
@@ -69,13 +74,20 @@ internal fun AntintwrkLicencesDialog(onOpenAuthor: (() -> Unit)? = null, onDismi
                 item {
                     Text(stringResource(R.string.screen_ant_licences_project))
                     Text(stringResource(R.string.screen_ant_licences_operator, "Super David Universe LLC"))
-                    TextButton(stringResource(R.string.screen_ant_licences_author, "Maxim Novichkov"), onClick = {
-                        onOpenAuthor?.invoke() ?: uriHandler.openUri("https://antintwrk.com/en/hero/2266620")
-                    })
+                    Text(stringResource(R.string.screen_ant_licences_author))
+                    Text(
+                        "Maxim Novichkov",
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button) {
+                            onOpenAuthor?.invoke() ?: uriHandler.openUri("https://antintwrk.com/en/hero/2266620")
+                        }.padding(vertical = 8.dp),
+                    )
                     Text(stringResource(R.string.screen_ant_licences_backend_title))
                     Text(stringResource(R.string.screen_ant_licences_backend))
+                    Text(stringResource(R.string.screen_ant_licences_backend_scope))
                     Text(stringResource(R.string.screen_ant_licences_client_title))
                     Text(stringResource(R.string.screen_ant_licences_client))
+                    Text(stringResource(R.string.screen_ant_licences_rights))
                     Text(
                         "Copyright 2026 Maxim Novichkov\nElement X — AGPL-3.0-only\nCopyright 2022–2025 New Vector Ltd.\nCopyright 2025 Element Creations Ltd."
                     )
