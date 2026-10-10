@@ -34,7 +34,7 @@ Google Play Billing is included only in the Google Play build. Its applicable
 Android SDK licence and all other resolved dependency notices are included in
 the generated in-app licences list. The FDroid build does not include Billing.
 
-Publishing corresponding source remains a release requirement: the complete
-client source and build instructions must match the distributed binary. A
-private repository link alone does not satisfy access to that source. Repository
-visibility has not been changed by adding this notice.
+Corresponding client source and standalone build instructions are provided in
+this repository. Each distributed version must identify its source revision.
+Private signing material and independent server source are not included.
+See README.md and tools/build-antintwrk.sh for reproducible build inputs.

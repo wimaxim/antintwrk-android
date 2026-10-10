@@ -69,6 +69,7 @@ internal fun AntintwrkAppSettings(
     onSignOut: () -> Unit,
     messengerSettingsReady: Boolean = false,
     failed: Boolean = false,
+    socialOrigin: String = AntintwrkSocialOrigins.RUSSIAN,
 ) {
     val context = LocalAntintwrkActivity.current ?: LocalContext.current
     var choosingLanguage by remember { mutableStateOf(false) }
@@ -118,7 +119,11 @@ internal fun AntintwrkAppSettings(
                 val version = remember(context) { context.packageManager.getPackageInfo(context.packageName, 0) }
                 val code = if (Build.VERSION.SDK_INT >= 28) version.longVersionCode else version.versionCode.toLong()
                 Text(
-                    stringResource(CommonStrings.settings_version_number, version.versionName.orEmpty(), code.toString()),
+                    stringResource(
+                        CommonStrings.settings_version_number,
+                        "${version.versionName.orEmpty()} ${antintwrkServerLabel(socialOrigin)}",
+                        code.toString()
+                    ),
                     color = ElementTheme.colors.textSecondary,
                     style = ElementTheme.typography.fontBodySmRegular
                 )
@@ -133,4 +138,11 @@ private fun SettingsGroup(title: Int, routes: List<Pair<String, Int>>, onRoute: 
     HorizontalDivider(Modifier.padding(vertical = 12.dp))
     Text(stringResource(title), color = ElementTheme.colors.textSecondary, style = ElementTheme.typography.fontBodySmRegular)
     routes.forEach { (route, label) -> TextButton(stringResource(label), { onRoute(route) }, enabled = enabled) }
+}
+
+/** Actual applied social origin; Matrix remains on the Russian transport in both cases. */
+internal fun antintwrkServerLabel(origin: String): String = when (origin) {
+    AntintwrkSocialOrigins.RUSSIAN -> "R"
+    AntintwrkSocialOrigins.PUBLIC -> "G"
+    else -> "?"
 }

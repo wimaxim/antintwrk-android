@@ -147,3 +147,7 @@ We wrap the `matrix-rust-sdk` to isolate the UI from the underlying SDK.
 ## Mandatory Android → iOS adaptation record
 
 Before modifying the managed shell or messenger, read ../docs/mobile-adaptation-index.md and the shared common/decisions/Android/iOS documents. Every completed adaptation must update the shared contract, Android implementation/validation, iOS parity requirements and this index in the same task. Record source anchors, actual tests and remaining limitations; do not keep decisions only in chat or silently treat historical reports as current. This rule must be carried into the future iOS AGENTS.md.
+
+## Public corresponding Android source — 10 October 2026
+
+The owner explicitly instructed making wimaxim/antintwrk-android public so the in-app Source Code link is accessible. Publish the corresponding current client source and standalone build instructions for this task. This scoped instruction overrides development-only private visibility for Android, and does not authorize any iOS/QSNEmain publication, history rewrite, or upstream push. Subsequent routine pushes still require the owner's explicit command. Do not commit private signing/service credentials or backend/backup material.

@@ -113,3 +113,6 @@ lint/tmp/
 .DS_Store
 
 checkouts/**
+
+# Local standalone antintwrk signing material
+.antintwrk-local/
