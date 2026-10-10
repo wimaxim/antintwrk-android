@@ -65,6 +65,13 @@ internal class AntintwrkNativeAuthClient(
     suspend fun messengerHandoff(query: String, csrf: String): JSONObject =
         JSONObject(post("messenger-handoff", mapOf("query" to query, "csrf" to csrf)))
 
+    internal suspend fun storeRequest(action: String, actor: String, csrf: String, fields: Map<String, String>, cookies: String): JSONObject {
+        require(action in setOf("store-catalog", "store-order", "store-verify"))
+        return JSONObject(post(action, fields + mapOf("actor" to actor, "csrf" to csrf), cookieSnapshot = cookies)).also {
+            require(it.optBoolean("ok") && it.optString("matrixUserId") == actor)
+        }
+    }
+
     suspend fun messengerRecipient(target: String, csrf: String): JSONObject =
         JSONObject(post("messenger-recipient", mapOf("target" to target, "csrf" to csrf)))
 

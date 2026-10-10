@@ -58,13 +58,19 @@ class MainActivity : NodeActivity() {
 
     private lateinit var mainNode: MainNode
     private lateinit var appBindings: AppBindings
+    private var antintwrkStore: io.element.android.appnav.antintwrk.AntintwrkStore? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Timber.tag(loggerTag.value).d("onCreate, with savedInstanceState: ${savedInstanceState != null}")
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        if (AppNavBuildConfig.ANTINTWRK_NATIVE_AUTH) AntintwrkBillingRuntime.attach(this)
         appBindings = bindings()
+        if (AppNavBuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            antintwrkStore = AntintwrkBillingRuntime.attach(this) {
+                lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED) &&
+                    appBindings.lockScreenService().lockState.value == io.element.android.features.lockscreen.api.LockScreenLockState.Unlocked
+            }
+        }
         setupLockManagement(appBindings.lockScreenService(), appBindings.lockScreenEntryPoint())
         enableEdgeToEdge()
         setContent {
@@ -94,6 +100,7 @@ class MainActivity : NodeActivity() {
             themeOverride = if (AppNavBuildConfig.ANTINTWRK_NATIVE_AUTH) Theme.Dark else null,
         ) {
             CompositionLocalProvider(
+                io.element.android.appnav.antintwrk.LocalAntintwrkStore provides antintwrkStore,
                 LocalAntintwrkActivity provides if (AppNavBuildConfig.ANTINTWRK_ONBOARDING) this@MainActivity else null,
                 LocalSnackbarDispatcher provides appBindings.snackbarDispatcher(),
                 LocalUriHandler provides SafeUriHandler(this),

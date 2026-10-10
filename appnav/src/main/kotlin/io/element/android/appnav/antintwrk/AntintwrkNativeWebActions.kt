@@ -30,6 +30,22 @@ internal object AntintwrkNativeWebActions {
     fun handle(context: Context, controller: AntintwrkWebFeedController, json: JSONObject, complete: (Boolean) -> Unit) {
         runCatching {
             when (json.optString("type")) {
+                "open-external" -> {
+                    val uri = Uri.parse(json.getString("url"))
+                    require(uri.scheme == "https" && uri.userInfo == null && uri.port == -1 && uri.fragment == null)
+                    val allowed = when (uri.host) {
+                        "play.google.com" -> uri.path == "/store/account/subscriptions" &&
+                            uri.getQueryParameter("package") == context.packageName && uri.queryParameterNames.all { it in setOf("package", "sku") }
+                        "cerebralpalsycommunity.org" -> uri.path?.matches(Regex("/[a-z]{2}/give")) == true &&
+                            uri.getQueryParameter("source") == "heroworld" && uri.queryParameterNames.all { it in setOf("source", "ref", "donation_only") }
+                        "helpcp.org" -> uri.path?.matches(Regex("/[a-z]{2}/help/davidnewman")) == true &&
+                            uri.getQueryParameter("source") == "heroworld" && uri.queryParameterNames.all { it in setOf("source", "ref", "donation_only") }
+                        else -> false
+                    }
+                    require(allowed && uri.toString().length <= 1800)
+                    controller.onExternalLink(uri.toString())
+                    complete(true)
+                }
                 "copy" -> {
                     val original = json.getString("text")
                     val text = if (original.startsWith("https://antimsg.com/")) publicSocialLink(original) else original

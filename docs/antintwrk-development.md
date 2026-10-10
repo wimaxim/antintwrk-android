@@ -302,3 +302,7 @@ Validation: native appnav 128 + preferences 87 + secondary logout 5 = 220 tests,
 ## 9 October 2026 — Hero World external SSO
 
 Current .8 APK already resolves authenticated antimsg /goto and stops before the external SSO URL. Source v3 native-game-browser ticket fixes the cross-UA/IP browser handoff; ordinary web fingerprint preserved. Production server-side HTTP fixture test confirms correct Test Android actor cookie/game page and rejects replay without cookie. No native code/APK change; phone/browser UI acceptance separate. Mandatory shared report in the mobile root: docs/hero-world-handoff-2026-10-09.md; iOS carry-over in shared ios.md and adaptation index. No push.
+
+## Release candidate preparation — 9 October 2026
+
+Three retained social roots plus an additional internal WebView, native Play store bridge/ownership/restore, foreground + lock gate, Kotlin 2.4.20/BOM, hash-pinned false-CPE corrections and dedicated release signing/Firebase prepared. Client adapters are included under docs/social-web-adapter. 146 managed/Billing tests, formatting, 116 pure and 36 temporary-ledger server checks, 72 native-language renders passed. Console/product/signature/internal-track acceptance and source publication are distinct pending gates; registration not submitted, no push. See [shared report](../../docs/play-software-preparation-2026-10-09.md).

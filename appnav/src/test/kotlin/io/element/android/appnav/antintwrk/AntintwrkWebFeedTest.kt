@@ -55,7 +55,7 @@ class AntintwrkWebFeedTest : RobolectricTest() {
     }
 
     @Test
-    fun `community root replaces people on return but root pages are reused`() {
+    fun `community root stays intact while people uses an additional page`() {
         val controller = AntintwrkWebFeedController()
         val root = policy.root("en", AntintwrkSection.Communities)
         controller.selectSection(AntintwrkSection.Communities, root)
@@ -67,12 +67,61 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         controller.selectSection(AntintwrkSection.Communities, root)
         assertThat(controller.currentUrl).isEqualTo(root)
         assertThat(controller.view).isSameInstanceAs(page)
-        verify(exactly = 1) { page.loadUrl(root) }
+        verify(exactly = 0) { page.loadUrl(root) }
         controller.pageFinished(page, root)
         controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
         controller.selectSection(AntintwrkSection.Communities, root)
-        verify(exactly = 1) { page.loadUrl(root) }
+        verify(exactly = 0) { page.loadUrl(root) }
         assertThat(controller.loading).isFalse()
+    }
+
+    @Test
+    fun `additional navigation never loads a retained root and closing it preserves scroll`() {
+        val controller = AntintwrkWebFeedController()
+        controller.ownProfileIdentity = "tester"
+        val feed = mockk<WebView>(relaxed = true)
+        controller.registerPage(AntintwrkSection.Feed, feed, policy.feed("en"))
+        controller.pageFinished(feed, policy.feed("en"))
+        val extra = mockk<WebView>(relaxed = true)
+        controller.navigate(policy.route("en", "people"))
+        controller.registerPage(null, extra, policy.route("en", "people"))
+        controller.pageFinished(extra, policy.route("en", "people"))
+        controller.finishMessengerProfileNavigation(extra)
+        controller.navigate(policy.route("en", "hero/123"))
+        assertThat(controller.view).isSameInstanceAs(extra)
+        assertThat(controller.pageUrl(AntintwrkSection.Feed)).isEqualTo(policy.feed("en"))
+        controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
+        assertThat(controller.view).isSameInstanceAs(feed)
+        assertThat(controller.loading).isFalse()
+        verify(exactly = 0) { feed.loadUrl(any()) }
+        verify(exactly = 0) { feed.scrollTo(any(), any()) }
+        assertThat(controller.canNavigateInPage(feed, policy.route("en", "hero/123"))).isFalse()
+        assertThat(controller.canNavigateInPage(extra, policy.feed("en"))).isFalse()
+        assertThat(controller.canNavigateInPage(extra, policy.route("en", "support"))).isTrue()
+    }
+
+    @Test
+    fun `hidden additional callbacks never replace a selected root and logout destroys all pages`() {
+        val controller = AntintwrkWebFeedController()
+        val feed = mockk<WebView>(relaxed = true)
+        val extra = mockk<WebView>(relaxed = true)
+        controller.registerPage(AntintwrkSection.Feed, feed, policy.feed("en"))
+        controller.pageFinished(feed, policy.feed("en"))
+        val people = policy.route("en", "people")
+        controller.navigate(people)
+        controller.registerPage(null, extra, people)
+        controller.selectSection(AntintwrkSection.Feed, policy.feed("en"))
+        controller.pageStarted(extra, people)
+        controller.pageFailed(extra)
+        controller.pageFinished(extra, people)
+        assertThat(controller.currentUrl).isEqualTo(policy.feed("en"))
+        assertThat(controller.failed).isFalse()
+        assertThat(controller.loading).isFalse()
+        controller.destroy()
+        verify { feed.destroy() }
+        verify { extra.destroy() }
+        assertThat(controller.additionalActive).isFalse()
+        assertThat(controller.page(null)).isNull()
     }
 
     @Test
@@ -242,10 +291,9 @@ class AntintwrkWebFeedTest : RobolectricTest() {
 
     @Test
     fun `web routes select their native section and auxiliary pages retain context`() {
-        assertThat(policy.section("https://antimsg.com/ru/channel/page/manage?app=1"))
-            .isEqualTo(AntintwrkSection.Communities)
+        assertThat(policy.section("https://antimsg.com/ru/channel/page/manage?app=1")).isNull()
         assertThat(policy.section("https://antimsg.com/ru/profile?app=1")).isEqualTo(AntintwrkSection.Profile)
-        assertThat(policy.section("https://antimsg.com/ru/reels?app=1")).isEqualTo(AntintwrkSection.Feed)
+        assertThat(policy.section("https://antimsg.com/ru/reels?app=1")).isNull()
         listOf("discover", "notifications", "hero/someone").forEach {
             assertThat(policy.section("https://antimsg.com/ru/$it?app=1")).isNull()
         }
@@ -376,8 +424,10 @@ class AntintwrkWebFeedTest : RobolectricTest() {
             controller.navigate("https://antimsg.com/en/group/example?app=1")
         }
         runOnIdle {
-            assertThat(controller.section).isEqualTo(AntintwrkSection.Communities)
-            assertThat(controller.view).isSameInstanceAs(communities)
+            assertThat(controller.section).isEqualTo(AntintwrkSection.Feed)
+            assertThat(controller.additionalActive).isTrue()
+            assertThat(controller.view).isNotSameInstanceAs(communities)
+            assertThat(controller.view).isNotSameInstanceAs(feed)
             controller.back()
         }
         runOnIdle {
@@ -426,5 +476,23 @@ class AntintwrkWebFeedTest : RobolectricTest() {
         assertThat(controller.atMessengerProfileRoot()).isFalse()
         controller.back()
         assertThat(returns).isEqualTo(1)
+    }
+
+    @Test
+    fun `own profile opened from messenger also uses the additional page and returns to messenger`() {
+        val controller = AntintwrkWebFeedController()
+        controller.ownProfileIdentity = "123"
+        val root = policy.root("en", AntintwrkSection.Profile, "123")
+        val own = mockk<WebView>(relaxed = true)
+        controller.registerPage(AntintwrkSection.Profile, own, root)
+        controller.pageFinished(own, root)
+        controller.openMessengerProfile(root)
+        val extra = mockk<WebView>(relaxed = true)
+        controller.registerPage(null, extra, root)
+        controller.visited(root, policy)
+        assertThat(controller.view).isSameInstanceAs(extra)
+        assertThat(controller.canNavigateInPage(extra, root)).isTrue()
+        assertThat(controller.atMessengerProfileRoot()).isTrue()
+        verify(exactly = 0) { own.loadUrl(any()) }
     }
 }

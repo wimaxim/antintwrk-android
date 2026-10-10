@@ -44,6 +44,7 @@ internal class AntintwrkWebPolicy(private val origin: String) {
         "dmca",
         "community",
         "safety",
+        "verification",
     )
 
     /** Canonicalise legacy navigation only; legacy origins never become trusted JS origins. */
@@ -114,11 +115,13 @@ internal class AntintwrkWebPolicy(private val origin: String) {
     }
     fun section(url: String): AntintwrkSection? {
         if (embedded(url) == null) return null
-        return when (Uri.parse(url).pathSegments.getOrNull(1)) {
-            "communities", "create-community", "communities-people", "channel", "group" -> AntintwrkSection.Communities
-            "profile", "deleteaccount", "monetization", "my-referrals", "kindness" -> AntintwrkSection.Profile
-            "hero-feed", "reels", "stories", "hero-compose" -> AntintwrkSection.Feed
-            else -> null // Search, notifications and other people's profiles retain their entry section.
+        val parts = Uri.parse(url).pathSegments
+        if (parts.size != 2) return null
+        return when (parts[1]) {
+            "communities" -> AntintwrkSection.Communities
+            "profile" -> AntintwrkSection.Profile
+            "hero-feed" -> AntintwrkSection.Feed
+            else -> null // All other pages use the separate additional screen.
         }
     }
     fun external(url: String): Boolean = Uri.parse(url).let { uri ->

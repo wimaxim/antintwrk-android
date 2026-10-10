@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 package io.element.android.x
 
+import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClientStateListener
+import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.PendingPurchasesParams
 import com.android.billingclient.api.ProductDetails
@@ -17,11 +19,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
-/** Store transport only. No checkout, entitlement grant, consume or acknowledge before server integration. */
+/** Store transport only. Server verification owns entitlement, acknowledgement and consumption. */
 internal class AntintwrkPlayBilling internal constructor(private val client: BillingClient) : DefaultLifecycleObserver {
     enum class Connection { Disconnected, Connecting, Ready, Unavailable, Closed }
 
@@ -58,7 +61,7 @@ internal class AntintwrkPlayBilling internal constructor(private val client: Bil
 
     /** Prices/offers must come from Play. Product IDs will be agreed after the web verification flow is ready. */
     suspend fun products(requests: List<QueryProductDetailsParams.Product>): Response<List<ProductDetails>> {
-        if (!available()) return unavailable()
+        if (!awaitReady()) return unavailable()
         require(requests.isNotEmpty())
         return withTimeoutOrNull(20_000) {
             suspendCancellableCoroutine { continuation ->
@@ -72,7 +75,7 @@ internal class AntintwrkPlayBilling internal constructor(private val client: Bil
     /** PURCHASED and PENDING are untrusted candidates, never authorization to issue a badge or credit. */
     suspend fun purchases(type: String): Response<List<Purchase>> {
         require(type == BillingClient.ProductType.INAPP || type == BillingClient.ProductType.SUBS)
-        if (!available()) return unavailable()
+        if (!awaitReady()) return unavailable()
         return withTimeoutOrNull(20_000) {
             suspendCancellableCoroutine { continuation ->
                 client.queryPurchasesAsync(QueryPurchasesParams.newBuilder().setProductType(type).build()) { result, purchases ->
@@ -87,6 +90,24 @@ internal class AntintwrkPlayBilling internal constructor(private val client: Bil
     }
 
     private fun available() = connection.value != Connection.Closed && client.isReady
+
+    private suspend fun awaitReady(): Boolean {
+        if (available()) return true
+        if (connection.value == Connection.Closed) return false
+        connect()
+        withTimeoutOrNull(15_000) {
+            connection.first { it in setOf(Connection.Ready, Connection.Unavailable, Connection.Closed) }
+        }
+        return available()
+    }
+
+    internal fun launch(activity: Activity, details: ProductDetails, offerToken: String, accountId: String, profileId: String): Int {
+        if (!available()) return BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE
+        val item = BillingFlowParams.ProductDetailsParams.newBuilder().setProductDetails(details).setOfferToken(offerToken).build()
+        val params = BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(item))
+            .setObfuscatedAccountId(accountId).setObfuscatedProfileId(profileId).build()
+        return client.launchBillingFlow(activity, params).responseCode
+    }
     private fun <T> unavailable() = Response<T>(BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE, null)
 
     override fun onDestroy(owner: LifecycleOwner) {

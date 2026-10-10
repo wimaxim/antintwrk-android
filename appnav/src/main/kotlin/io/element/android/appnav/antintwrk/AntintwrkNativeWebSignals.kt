@@ -18,6 +18,20 @@ internal object AntintwrkNativeWebSignals {
             if (controller.view === view &&
                 message.type == WebMessageCompat.TYPE_STRING) {
                     accept(controller, policy, view.url.orEmpty(), origin.toString(), main, message.data, onAuthRequired) { json ->
+                    if (json.optString("type").startsWith("store-")) {
+                        val pageUrl = view.url
+                        val callback = controller.onStoreRequest
+                        if (callback == null) {
+                            reply.postMessage(JSONObject().put("id", json.optString("id")).put("ok", false).toString())
+                        } else {
+                            callback(json) { result ->
+                                if (controller.view === view && view.url == pageUrl) {
+                                    runCatching { reply.postMessage(result.put("id", json.optString("id")).toString()) }
+                                }
+                            }
+                        }
+                        return@accept
+                    }
                     AntintwrkNativeWebActions.handle(view.context, controller, json) { ok ->
                         runCatching { reply.postMessage(JSONObject().put("id", json.optString("id")).put("ok", ok).toString()) }
                     }
@@ -44,7 +58,11 @@ internal object AntintwrkNativeWebSignals {
                     val url = json.optString("url")
                     if (policy.embedded(url) != null && android.net.Uri.parse(url) == android.net.Uri.parse(currentUrl)) controller.visited(url, policy)
                 }
-                "share", "copy", "download" -> if (json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
+                "share", "copy", "download", "open-external" -> if (json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
+                "store-catalog", "store-purchase", "store-restore" -> {
+                    val route = android.net.Uri.parse(currentUrl).pathSegments.getOrNull(1)
+                    if (route in setOf("verification", "kindness") && json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
+                }
                 "editor" -> if (json.opt("active") is Boolean) controller.updateEditor(json.getBoolean("active"), json.opt("dialog") == true)
                 "changed" -> controller.refreshVersion++
                 "auth-required" -> onAuthRequired()

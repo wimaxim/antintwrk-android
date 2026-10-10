@@ -15,7 +15,7 @@ licences of any third-party server or web components.
 ## Android client
 
 The Android client, including our native integration of the social network and
-original client modifications, is distributed under **AGPL-3.0-only**. Copyright
+original client modifications and the [social web adapters](docs/social-web-adapter/README.md), is distributed under **AGPL-3.0-only**. Copyright
 2026 Maxim Novichkov in original contributions. See [LICENSE](LICENSE) for the
 full licence. The server/web notice above does not restrict any rights granted
 under the AGPL for this client or make bundled client code proprietary.

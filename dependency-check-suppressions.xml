@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/io.github.zxing-cpp/android@3.1.1; ZXing C++ barcode bindings, not GitHub Rails hosting. https://github.com/zxing-cpp/zxing-cpp Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>2e65f90377b66b784596c4eb2bbee6e022f27252</sha1>
+    
+    
+    <cpe>cpe:/a:github:github:3.1.1:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/androidx.browser/browser@1.10.0; AndroidX Custom Tabs, not the Android OS Browser app. https://developer.android.com/jetpack/androidx/releases/browser Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>cfaf02f4ba3b190f84497ca4e8b86dc5371a19f4</sha1>
+    
+    
+    <cpe>cpe:/a:android:android_browser:1.10.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.compose.runtime/runtime-saveable-android@1.12.0; Android Compose UI runtime, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>e4c5761539c45bb337ea2d25ad7231aa51a0849d</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:1.12.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.androidx.lifecycle/lifecycle-runtime-android@2.11.0; Android lifecycle library, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>95ec51967aef31bbc0d6bd773dfc9f58a6ab0965</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:2.11.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.androidx.lifecycle/lifecycle-runtime-compose-android@2.11.0; Android lifecycle library, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>a73a10164404b61c4c7434e88f03ef46abc51342</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:2.11.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/me.saket.telephoto/zoomable-image-coil3@0.19.0; Compose image zoom library, not npm async. https://github.com/saket/telephoto Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>ba55a55ad4a3262de44a2a9463f2440b4dc1a108</sha1>
+    
+    
+    <cpe>cpe:/a:async_project:async:0.19.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/androidx.browser/browser@1.10.0; AndroidX Custom Tabs, not the Android OS Browser app. https://developer.android.com/jetpack/androidx/releases/browser Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>bd58a6e40512f36caab579359267bac6a268b9f2</sha1>
+    
+    
+    <cpe>cpe:/a:android:android_browser:1.10.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.compose.runtime/runtime-android@1.12.0; Android Compose UI runtime, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>24eed050a66f2f9a3ef25bf65741c617d270cdde</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:1.12.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/io.element.android/opusencoder@1.2.0; Opus JNI encoder, not Element Classic Android app/PIN/preferences/logging. POM/classes and https://github.com/vector-im/libopusencoder-android Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>6c4ae908351e2721ada8ffb19ff5f0bd8fb3151b</sha1>
+    
+    
+    <cpe>cpe:/a:element:element:1.2.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/io.element.android/emojibase-bindings@1.5.3; Emoji/native data bindings, not Element Web or Classic Android app. POM/classes and https://github.com/matrix-org/emojibase-bindings Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>9929fc63420e54fddaa2455729e0a81a8c44e2b3</sha1>
+    
+    
+    <cpe>cpe:/a:element:element:1.5.3:</cpe>
+    
+    
+    <cpe>cpe:/a:matrix:element:1.5.3:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/io.element.android/element-call-embedded@0.26.0; Embedded Element Call component, not Element Classic Android app PIN/logging. https://github.com/element-hq/element-call and https://github.com/element-hq/element-android/security/advisories/GHSA-632v-9pm3-m8ch Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>10b40679206af54442b508c11c3253fa25e5bd9e</sha1>
+    
+    
+    <cpe>cpe:/a:element:element:0.26.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/io.element.android/emojibase-bindings@1.5.3; Emoji/native data bindings, not Element Web or Classic Android app. POM/classes and https://github.com/matrix-org/emojibase-bindings Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>94bf8b84030db6f04f8743b05963312574bc2cd7</sha1>
+    
+    
+    <cpe>cpe:/a:element:element:1.5.3:</cpe>
+    
+    
+    <cpe>cpe:/a:matrix:element:1.5.3:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/net.java.dev.jna/jna@5.19.1; JNI access library, not Sun Java JRE. https://github.com/java-native-access/jna Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>af25a9b1e286a62e2786388671c703b9a1f75a65</sha1>
+    
+    
+    <cpe>cpe:/a:sun:java:5.19.1:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.kotlinx/kotlinx-coroutines-play-services@1.11.0; Coroutines Google Tasks integration, not Nextcloud Tasks app. https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-play-services/ Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>1669ebaddbc4df1c7cfff7ae983cd14d73579c11</sha1>
+    
+    
+    <cpe>cpe:/a:tasks:tasks:1.11.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.androidx.lifecycle/lifecycle-runtime-compose-android@2.11.0; Android lifecycle library, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>1f7d60a7fe3c939e2df286f5f236a747d6e02d81</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:2.11.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.androidx.lifecycle/lifecycle-runtime-android@2.11.0; Android lifecycle library, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>6447dcdd213b8c2977ebf7af4287a34961abd29a</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:2.11.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/io.element.android/opusencoder@1.2.0; Opus JNI encoder, not Element Classic Android app/PIN/preferences/logging. POM/classes and https://github.com/vector-im/libopusencoder-android Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>a46b8b75c13c361eb8f66512326c0a6fe84c5672</sha1>
+    
+    
+    <cpe>cpe:/a:element:element:1.2.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.compose.runtime/runtime-saveable-android@1.12.0; Android Compose UI runtime, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>55c2cdc598cc2140097222731dc611e7a0ddb1bc</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:1.12.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/org.jetbrains.compose.runtime/runtime-android@1.12.0; Android Compose UI runtime, not JetBrains Runtime JDK. https://github.com/JetBrains/compose-multiplatform Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>4cfd12fdb52e796a5bee7fc4ebfa426630815efb</sha1>
+    
+    
+    <cpe>cpe:/a:jetbrains:runtime:1.12.0:</cpe>
+    
+  
+  </suppress>
+  
+  
+  <suppress until="2027-01-09Z">
+    
+    
+    <notes>pkg:maven/me.saket.telephoto/zoomable-image-coil3@0.19.0; Compose image zoom library, not npm async. https://github.com/saket/telephoto Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
+    
+    
+    <sha1>98deadee72fc5226a95f58586edbd9dd0397827f</sha1>
+    
+    
+    <cpe>cpe:/a:async_project:async:0.19.0:</cpe>
+    
+  
+  </suppress>
+  
+
+</suppressions>

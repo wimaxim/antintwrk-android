@@ -24,6 +24,7 @@ out/
 # Gradle files
 .gradle/
 build/
+.dependency-check
 
 # Python cache
 __pycache__/

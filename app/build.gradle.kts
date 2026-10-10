@@ -139,6 +139,12 @@ android {
             }
             storePassword = "android"
         }
+        register("antintwrkUpload") {
+            providers.environmentVariable("ANTINTWRK_UPLOAD_KEYSTORE").orNull?.let { storeFile = file(it) }
+            keyAlias = "antintwrk-upload"
+            storePassword = providers.environmentVariable("ANTINTWRK_UPLOAD_STORE_PASSWORD").orNull
+            keyPassword = providers.environmentVariable("ANTINTWRK_UPLOAD_STORE_PASSWORD").orNull
+        }
         register("nightly") {
             keyAlias = System.getenv("ELEMENT_ANDROID_NIGHTLY_KEYID")
                 ?: project.property("signing.element.nightly.keyId") as? String?
@@ -172,9 +178,11 @@ android {
             resValue(
                 "string",
                 "login_redirect_scheme",
-                oAuthRedirectSchemeBase,
+                if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) "com.antintwrk.app" else oAuthRedirectSchemeBase,
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(
+                if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) "antintwrkUpload" else "debug"
+            )
 
             optimization {
                 enable = true
@@ -324,6 +332,7 @@ tasks.withType<SonarResolverTask>().configureEach {
 setupDependencyInjection()
 
 dependencies {
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom:${libs.versions.kotlin.get()}"))
     allLibrariesImpl()
     allServicesImpl(project)
     if (isEnterpriseBuild) {
@@ -441,5 +450,41 @@ configurations.all {
             val tink = libs.google.tink.get()
             substitute(module("com.google.crypto.tink:tink")).using(module("${tink.group}:${tink.name}:${tink.version}"))
         }
+    }
+}
+
+extensions.configure<org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension> {
+    autoUpdate = true
+    failOnError = true
+    failBuildOnCVSS = 7.0f
+    formats = listOf("HTML", "JSON")
+    failBuildOnUnusedSuppressionRule = true
+    suppressionFiles = listOf(rootProject.file("dependency-check-suppressions.xml").absolutePath)
+    data.directory = rootProject.layout.projectDirectory.dir(".dependency-check").asFile.absolutePath
+    scanConfigurations = listOf("gplayReleaseRuntimeClasspath")
+    val nvdKey = providers.environmentVariable("NVD_API_KEY").orNull?.trim()?.takeIf { it.isNotEmpty() }
+    if (nvdKey != null) {
+        nvd.apiKey = nvdKey
+    } else {
+        // Official feed avoids sending an empty API key; unavailable data still fails the scan.
+        nvd.datafeedUrl = "https://nvd.nist.gov/feeds/json/cve/2.0/nvdcve-2.0-{0}.json.gz"
+    }
+}
+
+tasks.named("dependencyCheckAnalyze") {
+    notCompatibleWithConfigurationCache("Dependency-Check resolves project artifacts at execution time")
+    outputs.upToDateWhen { false }
+    outputs.cacheIf("Vulnerability information must be current") { false }
+}
+
+val antintwrkDependencyCheck = extensions.getByType<org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension>()
+tasks.register("antintwrkDependencyCheckConfiguration") {
+    notCompatibleWithConfigurationCache("Maintenance diagnostic reads extension values")
+    doLast {
+        logger.lifecycle("Dependency scan data directory: ${antintwrkDependencyCheck.data.directory.orNull}")
+        logger.lifecycle("Dependency scan suppression files: ${antintwrkDependencyCheck.suppressionFiles.orNull}")
+        logger.lifecycle("Dependency scan feed: ${antintwrkDependencyCheck.nvd.datafeedUrl.orNull}")
+        logger.lifecycle("Dependency scan configurations: ${antintwrkDependencyCheck.scanConfigurations.orNull}")
+        logger.lifecycle("Dependency scan output: ${antintwrkDependencyCheck.outputDirectory.orNull}")
     }
 }

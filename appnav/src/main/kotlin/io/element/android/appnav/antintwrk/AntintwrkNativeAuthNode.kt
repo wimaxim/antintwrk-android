@@ -131,6 +131,7 @@ internal fun AntintwrkNativeAppView(
         val sessionExpiredError = stringResource(R.string.screen_ant_auth_session_expired)
         val rateLimitError = stringResource(R.string.screen_ant_auth_rate_limited)
         var session by (retainedSurface?.admission ?: remember { mutableStateOf<AntintwrkAuthSession?>(null) })
+        AntintwrkStoreBinding(client, session, webController)
         val actor = session?.matrixUserId
         var oauthUrl by remember(actor) { mutableStateOf<String?>(null) }
         var messengerBusy by remember(actor) { mutableStateOf(false) }
@@ -691,7 +692,7 @@ internal fun AntintwrkNativeAppView(
                 AntintwrkAppDestination.Support -> {
                     settingsOpen = false
                     shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
-                    webController.navigate(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "support"))
+                    webController.openFromMessenger(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "support"))
                 }
                 AntintwrkAppDestination.SignOut -> signOut()
             }
@@ -728,8 +729,9 @@ internal fun AntintwrkNativeAppView(
                             }
                         }
                         else -> {
+                            val url = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, path)
+                            if (shellState.mode == AntintwrkMode.Messenger) webController.openFromMessenger(url) else webController.navigate(url)
                             shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
-                            webController.navigate(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, path))
                         }
                     }
                 }
