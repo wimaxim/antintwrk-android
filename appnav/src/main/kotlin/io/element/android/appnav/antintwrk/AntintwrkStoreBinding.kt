@@ -11,7 +11,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import io.element.android.appnav.BuildConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -21,13 +20,13 @@ internal fun AntintwrkStoreBinding(client: AntintwrkNativeAuthClient, session: A
     val store = LocalAntintwrkStore.current
     val context = LocalContext.current
     val current = rememberUpdatedState(session)
-    val coordinator = remember(store, session?.matrixUserId, session?.csrf, session?.stage) {
+    val coordinator = remember(store, client.origin, session?.matrixUserId, session?.csrf, session?.stage) {
         if (store != null && session?.stage == AntintwrkAuthStage.AUTHENTICATED && session.matrixUserId != null) {
             AntintwrkStoreCoordinator(
                 store,
                 client,
                 session,
-                CookieManager.getInstance().getCookie(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).orEmpty(),
+                CookieManager.getInstance().getCookie(client.origin).orEmpty(),
                 context.packageName
             )
         } else {
@@ -39,7 +38,7 @@ internal fun AntintwrkStoreBinding(client: AntintwrkNativeAuthClient, session: A
     fun updated() {
         if (current.value?.stage == AntintwrkAuthStage.AUTHENTICATED && current.value?.matrixUserId == actor) {
             val page = controller.view ?: return
-            if (AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).embedded(page.url.orEmpty()) != null) {
+            if (AntintwrkWebPolicy(client.origin).embedded(page.url.orEmpty()) != null) {
                 page.evaluateJavascript("window.dispatchEvent(new Event('antintwrk-store-updated'))", null)
             }
         }

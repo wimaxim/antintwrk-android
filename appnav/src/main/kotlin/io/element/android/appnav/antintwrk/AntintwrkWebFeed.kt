@@ -59,6 +59,16 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayInputStream
 
 class AntintwrkWebFeedController {
+    internal var origin by mutableStateOf(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+    internal var authOrigin by mutableStateOf(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+    internal var routingSelected = false
+    internal var routedSession by mutableStateOf<AntintwrkAuthSession?>(null)
+    internal fun resetRouting() {
+        check(currentUrl == null && pages.isEmpty())
+        routingSelected = false
+        routedSession = null
+        origin = BuildConfig.ANTINTWRK_SOCIAL_ORIGIN
+    }
     private val pages = mutableMapOf<AntintwrkSection?, WebView>()
     private val urls = mutableMapOf<AntintwrkSection?, String>()
     private val pageLoading = mutableMapOf<AntintwrkSection?, Boolean>()
@@ -183,7 +193,7 @@ class AntintwrkWebFeedController {
     internal var onExternalLink: (String) -> Unit = {}
     var onMessenger: ((String?) -> Unit)? = null
     internal var onStoreRequest: ((org.json.JSONObject, (org.json.JSONObject) -> Unit) -> Unit)? = null
-    private val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+    private val policy get() = AntintwrkWebPolicy(origin)
     fun closeFullscreen() {
         fullscreen = null
         fullscreenCallback?.onCustomViewHidden()
@@ -403,7 +413,7 @@ internal fun rememberAntintwrkWebFeedController(): AntintwrkWebFeedController {
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnabled: Boolean, onAuthRequired: () -> Unit = {}) {
-    val policy = remember { AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN) }
+    val policy = remember(controller.origin) { AntintwrkWebPolicy(controller.origin) }
     val language = LocalConfiguration.current.locales[0].language
     controller.imeVisible = WindowInsets.isImeVisible
     LaunchedEffect(controller.imeVisible, controller.activePage) {
@@ -609,12 +619,13 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                             return true
                         }
                         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
-                            if (request.url.host in setOf("antintwrk.com", "www.antintwrk.com")) {
+                            if (request.url.host in setOf("antimsg.com", "antintwrk.com", "www.antintwrk.com") &&
+                                !policy.sameOrigin(request.url.toString())) {
                                 return WebResourceResponse(
                                     "text/plain",
                                     "UTF-8",
                                     403,
-                                    "Legacy social domain blocked",
+                                    "Inactive social domain blocked",
                                     emptyMap(),
                                     ByteArrayInputStream(ByteArray(0))
                                 )

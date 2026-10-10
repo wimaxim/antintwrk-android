@@ -7,14 +7,13 @@ import android.webkit.WebView
 import androidx.webkit.WebMessageCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import io.element.android.appnav.BuildConfig
 import org.json.JSONObject
 
 /** Exact-origin, main-frame events contain no cookies, credentials or account authority. */
 internal object AntintwrkNativeWebSignals {
     fun attach(view: WebView, controller: AntintwrkWebFeedController, policy: AntintwrkWebPolicy, onAuthRequired: () -> Unit) {
         if (!runCatching { WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) }.getOrDefault(false)) return
-        WebViewCompat.addWebMessageListener(view, "antintwrkNative", setOf(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)) { _, message, origin, main, reply ->
+        WebViewCompat.addWebMessageListener(view, "antintwrkNative", setOf(policy.origin)) { _, message, origin, main, reply ->
             if (controller.view === view &&
                 message.type == WebMessageCompat.TYPE_STRING) {
                     accept(controller, policy, view.url.orEmpty(), origin.toString(), main, message.data, onAuthRequired) { json ->

@@ -5,15 +5,28 @@ package io.element.android.appnav.antintwrk
 
 import android.webkit.CookieManager
 import com.google.common.truth.Truth.assertThat
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
+import io.mockk.verify
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
@@ -205,5 +218,40 @@ class AntintwrkNativeAuthClientTest {
         val error = runCatching { client.requestAccount("register", emptyMap(), csrf) }.exceptionOrNull()
         assertThat(error).isInstanceOf(AntintwrkRequestError::class.java)
         assertThat((error as AntintwrkRequestError).code).isEqualTo("PROFILE")
+    }
+
+    @Test
+    fun `logout clears both social origins without touching messenger cookies`() {
+        val cookies = mockk<CookieManager>(relaxed = true)
+        every { cookies.getCookie("https://antimsg.com") } returns "fixture_source=ru"
+        every { cookies.getCookie("https://antintwrk.com") } returns "fixture_target=public"
+        mockkStatic(CookieManager::class)
+        every { CookieManager.getInstance() } returns cookies
+        try {
+            AntintwrkNativeAuthClient().clearLocalSession()
+            verify { cookies.setCookie("https://antimsg.com", match { it.startsWith("fixture_source=;") && it.contains("Max-Age=0") }) }
+            verify { cookies.setCookie("https://antintwrk.com", match { it.startsWith("fixture_target=;") && it.contains("Max-Age=0") }) }
+            verify(exactly = 0) { cookies.getCookie("https://auth.antimsg.com") }
+            verify(exactly = 0) { cookies.setCookie("https://auth.antimsg.com", any()) }
+        } finally {
+            unmockkStatic(CookieManager::class)
+        }
+    }
+
+    @Test
+    fun `an HTTP response arriving after logout cannot restore a cookie`() = runTest {
+        val release = CountDownLatch(1)
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                check(release.await(10, TimeUnit.SECONDS))
+                return session("LOGIN").setHeader("Set-Cookie", "late_fixture=denied; Path=/")
+            }
+        }
+        val pending = async(start = CoroutineStart.UNDISPATCHED) { runCatching { client.session() } }
+        withContext(Dispatchers.IO) { checkNotNull(server.takeRequest(10, TimeUnit.SECONDS)) }
+        client.clearLocalSession()
+        release.countDown()
+        assertThat(pending.await().isFailure).isTrue()
+        assertThat(CookieManager.getInstance().getCookie(server.url("/").toString()).orEmpty()).doesNotContain("late_fixture=")
     }
 }

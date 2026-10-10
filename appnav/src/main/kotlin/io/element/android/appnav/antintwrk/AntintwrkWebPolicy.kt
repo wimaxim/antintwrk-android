@@ -6,7 +6,7 @@ package io.element.android.appnav.antintwrk
 import android.net.Uri
 
 /** Routes are presentation hints; account and action permissions stay on the server. */
-internal class AntintwrkWebPolicy(private val origin: String) {
+internal class AntintwrkWebPolicy(val origin: String) {
     data class MessengerLink(val target: String?)
     private val base = Uri.parse(origin)
     private val languages = setOf("en", "ru", "uk", "de", "es", "fr", "it", "ar", "zh")
@@ -50,9 +50,9 @@ internal class AntintwrkWebPolicy(private val origin: String) {
     /** Canonicalise legacy navigation only; legacy origins never become trusted JS origins. */
     fun canonical(url: String): String {
         val uri = Uri.parse(url)
-        return if (base.host == "antimsg.com" && uri.scheme == "https" && uri.host in setOf("antintwrk.com", "www.antintwrk.com") &&
+        return if (uri.scheme == "https" && uri.host in setOf("antimsg.com", "antintwrk.com", "www.antintwrk.com") &&
             uri.userInfo == null && uri.port in setOf(-1, 443)) {
-                uri.buildUpon().authority("antimsg.com").build().toString()
+                uri.buildUpon().authority(base.authority).build().toString()
             } else {
                 url
             }
@@ -126,6 +126,6 @@ internal class AntintwrkWebPolicy(private val origin: String) {
     }
     fun external(url: String): Boolean = Uri.parse(url).let { uri ->
         uri.scheme in setOf("https", "http", "mailto", "tel") && uri.userInfo == null &&
-            uri.host !in setOf(base.host, "antintwrk.com", "www.antintwrk.com")
+            uri.host !in setOf(base.host, "antimsg.com", "antintwrk.com", "www.antintwrk.com")
     }
 }

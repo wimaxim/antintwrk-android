@@ -21,30 +21,45 @@ internal data class AntintwrkSocialStatus(val notifications: Int, val profileIde
 internal class AntintwrkRegistrationRequired(val ticket: String, val email: String, val firstName: String, val surname: String) : Exception()
 internal class AntintwrkRequestError(val code: String, val httpStatus: Int? = null) : Exception()
 internal class AntintwrkAccountError(val messageForUser: String) : Exception()
-internal data class AntintwrkAuthSession(val stage: AntintwrkAuthStage, val csrf: String, val profileIdentity: String? = null, val matrixUserId: String? = null)
+internal data class AntintwrkAuthSession(
+    val stage: AntintwrkAuthStage,
+    val csrf: String,
+    val profileIdentity: String? = null,
+    val matrixUserId: String? = null,
+    val domainBinding: String? = null,
+)
 
 /** No logging interceptor, password persistence, browser redirects or bearer tokens. */
 internal class AntintwrkNativeAuthClient(
-    private val origin: String = BuildConfig.ANTINTWRK_SOCIAL_ORIGIN,
+    val origin: String = BuildConfig.ANTINTWRK_SOCIAL_ORIGIN,
     private val http: OkHttpClient = OkHttpClient.Builder().followRedirects(false).followSslRedirects(false)
         .callTimeout(30, TimeUnit.SECONDS).build(),
+    private val transferEpoch: Long? = null,
 ) {
     companion object {
         const val USER_AGENT = "ANTINTWRK Android native-client/1.0 (+https://qwertynetworks.com)"
     }
 
     private suspend fun post(action: String, fields: Map<String, String> = emptyMap(), cookieSnapshot: String? = null): String = withContext(Dispatchers.IO) {
+        val epoch = transferEpoch ?: if (action in setOf("login", "passkey", "google", "google-register")) {
+            AntintwrkSocialCookieEpoch.advance()
+        } else {
+            AntintwrkSocialCookieEpoch.current()
+        }
         val cookies = CookieManager.getInstance()
         val body = FormBody.Builder().add("action", action).apply { fields.forEach { (key, value) -> add(key, value) } }.build()
         val request = Request.Builder().url("$origin/antintwrk_mobile.php")
             .header("Origin", origin).header("X-Antintwrk-Client", "native").header("User-Agent", USER_AGENT)
             .header("Cookie", cookieSnapshot ?: cookies.getCookie(origin).orEmpty()).post(body).build()
         http.newCall(request).apply {
-            if (action == "messenger-recipient") timeout().timeout(8, TimeUnit.SECONDS)
+            if (action in setOf("messenger-recipient", "social-domain-issue", "social-domain-consume")) timeout().timeout(8, TimeUnit.SECONDS)
         }.execute().use { response ->
             if (cookieSnapshot == null) {
-                response.headers.values("Set-Cookie").forEach { cookies.setCookie(origin, it) }
-                cookies.flush()
+                synchronized(AntintwrkSocialCookieEpoch.monitor) {
+                    AntintwrkSocialCookieEpoch.check(epoch)
+                    response.headers.values("Set-Cookie").forEach { cookies.setCookie(origin, it) }
+                    cookies.flush()
+                }
             }
             // The engine completes these actions with a local redirect. Never follow it;
             // callers must still fetch the cookie-backed admission stage.
@@ -64,6 +79,24 @@ internal class AntintwrkNativeAuthClient(
 
     suspend fun messengerHandoff(query: String, csrf: String): JSONObject =
         JSONObject(post("messenger-handoff", mapOf("query" to query, "csrf" to csrf)))
+
+    suspend fun transferSocialSession(target: String, admission: AntintwrkAuthSession): AntintwrkAuthSession {
+        require(target in AntintwrkSocialOrigins.allowed && target != origin && admission.stage == AntintwrkAuthStage.AUTHENTICATED)
+        val epoch = AntintwrkSocialCookieEpoch.current()
+        val receiver = AntintwrkNativeAuthClient(target, http.newBuilder().callTimeout(4, TimeUnit.SECONDS).build(), epoch)
+        val receiving = receiver.session()
+        if (receiving.stage == AntintwrkAuthStage.AUTHENTICATED && receiving.matrixUserId == admission.matrixUserId) return receiving
+        val binding = requireNotNull(receiving.domainBinding)
+        val issued = JSONObject(post("social-domain-issue", mapOf("target" to target, "binding" to binding, "csrf" to admission.csrf)))
+        require(issued.getString("matrixUserId") == admission.matrixUserId)
+        val ticket = issued.getString("ticket").also { require(it.matches(Regex("[a-f0-9]{64}"))) }
+        val consumed = JSONObject(receiver.post("social-domain-consume", mapOf("ticket" to ticket, "csrf" to receiving.csrf)))
+        require(consumed.getString("matrixUserId") == admission.matrixUserId)
+        return receiver.session().also {
+            synchronized(AntintwrkSocialCookieEpoch.monitor) { AntintwrkSocialCookieEpoch.check(epoch) }
+            require(it.stage == AntintwrkAuthStage.AUTHENTICATED && it.matrixUserId == admission.matrixUserId)
+        }
+    }
 
     internal suspend fun storeRequest(action: String, actor: String, csrf: String, fields: Map<String, String>, cookies: String): JSONObject {
         require(action in setOf("store-catalog", "store-order", "store-verify"))
@@ -107,7 +140,8 @@ internal class AntintwrkNativeAuthClient(
             AntintwrkAuthStage.valueOf(json.getString("stage")),
             csrf,
             json.optString("profileIdentity").takeIf { it.matches(Regex("[A-Za-z0-9._-]{1,100}")) },
-            json.optString("matrixUserId").takeIf { io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(it) != null }
+            json.optString("matrixUserId").takeIf { io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(it) != null },
+            json.optString("domainBinding").takeIf { it.matches(Regex("[a-f0-9]{64}")) },
         )
     }
 
@@ -215,7 +249,8 @@ internal class AntintwrkNativeAuthClient(
     }
 
     /** Clear immediately; return only an in-memory snapshot for bounded server cleanup. */
-    fun clearLocalSession(): String {
+    fun clearLocalSession(): String = synchronized(AntintwrkSocialCookieEpoch.monitor) {
+        AntintwrkSocialCookieEpoch.advance()
         val cookies = CookieManager.getInstance()
         val snapshot = cookies.getCookie(origin).orEmpty()
         snapshot.split(';').map { it.substringBefore('=').trim() }
@@ -224,7 +259,16 @@ internal class AntintwrkNativeAuthClient(
             }
         cookies.flush()
         android.webkit.WebStorage.getInstance().deleteOrigin(origin)
-        return snapshot
+        // Both social transports may hold host-only cookies for this app's actor.
+        AntintwrkSocialOrigins.allowed.filter { it != origin }.forEach { target ->
+            val other = cookies.getCookie(target).orEmpty()
+            other.split(';').map { it.substringBefore('=').trim() }.filter { it.matches(Regex("[A-Za-z0-9_-]+")) }.forEach { name ->
+                cookies.setCookie(target, "$name=; Max-Age=0; Path=/; Secure; HttpOnly")
+            }
+            android.webkit.WebStorage.getInstance().deleteOrigin(target)
+        }
+        cookies.flush()
+        snapshot
     }
 
     suspend fun logout(csrf: String, cookieSnapshot: String? = null) {

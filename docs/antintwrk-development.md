@@ -1,5 +1,11 @@
 # Сохранение этапов разработки antintwrk
 
+## Географический социальный origin — 10 октября 2026
+
+Use the root-owned `AntintwrkWebFeedController.origin` for social page URLs, active bridge trust and resource guards. `BuildConfig.ANTINTWRK_SOCIAL_ORIGIN` remains the Russian native auth/default entry, not the active page origin. Bootstrap is only antimsg.com/app/geo; RU/unknown choose antimsg.com, other countries antintwrk.com. Apply before publishing initial admission; retain the origin/documents on resume and mirror changes into shared Android/iOS documentation.
+
+Keep native auth/passkey RP and all messenger transports stable. Each origin owns its cookies/CSRF; a native one-use receiving-cookie-bound server grant transfers admission. Never copy raw cookies to the other host or pass secrets to JS. Logout clears both social origins, invalidates delayed writes and retains the existing SDK logout/recovery contract. Public sharing always uses antintwrk.com. Actor changes hide old content until the new origin is ready. Implementation and verification: ../docs/geo-social-routing-2026-10-10.md in the shared mobile workspace. Backend source stays outside this client repository. Physical-phone passkey and complete Russian new-device email verification remain separate acceptance; no push.
+
 ## 9 October 2026 — Play Billing foundation and project notices
 
 Gplay-only Billing 9.1.0 is connected to the native activity lifecycle; product/ownership query APIs have bounded timeouts. This prepares integration, but paid checkout and server verification are not active: blue-badge integration waits for the parallel web implementation. Owner clarified Kindness purchases in Android also use Play Billing; independent Ukraine/David assistance keeps third-party providers without purchasing app points/features.

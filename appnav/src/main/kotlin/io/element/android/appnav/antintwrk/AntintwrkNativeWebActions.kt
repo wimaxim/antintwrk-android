@@ -16,8 +16,8 @@ internal data class AntintwrkWebDocument(val content: String, val complete: (Boo
 internal object AntintwrkNativeWebActions {
     private fun publicSocialLink(url: String): String {
         val uri = Uri.parse(url)
-        if (uri.scheme != "https" || uri.host != "antimsg.com" || uri.userInfo != null) return url
-        require(AntintwrkWebPolicy("https://antimsg.com").embedded(url) != null)
+        if (uri.scheme != "https" || uri.host !in setOf("antimsg.com", "antintwrk.com") || uri.userInfo != null) return url
+        require(AntintwrkWebPolicy("https://${uri.host}").embedded(url) != null)
         return uri.buildUpon().authority("antintwrk.com").clearQuery().apply {
             uri.queryParameterNames.filter {
                 it !in
@@ -48,7 +48,13 @@ internal object AntintwrkNativeWebActions {
                 }
                 "copy" -> {
                     val original = json.getString("text")
-                    val text = if (original.startsWith("https://antimsg.com/")) publicSocialLink(original) else original
+                    val text = if ((original.startsWith(
+                            "https://antimsg.com/"
+                        ) || original.startsWith("https://antintwrk.com/"))) {
+                            publicSocialLink(original)
+                        } else {
+                            original
+                        }
                     require(text.length <= 1800)
                     context.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("antintwrk", text))
                     complete(true)

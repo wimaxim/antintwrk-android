@@ -17,6 +17,8 @@ internal class AntintwrkSocialSurface(initialBusy: Boolean = true) {
         busy.value = false
         chatsRequested.value = false
         web.destroy()
+        web.resetRouting()
+        web.authOrigin = io.element.android.appnav.BuildConfig.ANTINTWRK_SOCIAL_ORIGIN
         shell.value = AntintwrkShellState()
     }
 

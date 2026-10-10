@@ -38,7 +38,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
-import io.element.android.appnav.BuildConfig
 import io.element.android.appnav.R
 import io.element.android.features.userprofile.api.AntintwrkProfileNavigation
 import io.element.android.libraries.architecture.bindings
@@ -81,7 +80,6 @@ internal fun AntintwrkNativeAppView(
             } ?: kotlinx.coroutines.flow.flowOf(0L)
         }
         val unreadMessages by androidx.compose.runtime.key(matrixUserId) { unreadFlow.collectAsState(initial = 0L) }
-        val client = remember { AntintwrkNativeAuthClient() }
         val context = LocalAntintwrkActivity.current ?: LocalContext.current
         val credentials = remember { AntintwrkNativeCredentials(context) }
         val accountPreferences = remember { context.getSharedPreferences("antintwrk-account", android.content.Context.MODE_PRIVATE) }
@@ -107,6 +105,10 @@ internal fun AntintwrkNativeAppView(
         val retainedSurface = LocalAntintwrkSocialSurface.current
         val shellState = retainedSurface?.let { it.shell.value.copy(eventSink = it::event) } ?: shell.present()
         val webController = retainedSurface?.web ?: rememberAntintwrkWebFeedController()
+        val client = remember(webController.authOrigin) { AntintwrkNativeAuthClient(webController.authOrigin) }
+        val routing = remember { AntintwrkSocialOriginCoordinator(context.applicationContext) }
+        val socialClient = remember(webController.origin) { AntintwrkNativeAuthClient(webController.origin) }
+        LaunchedEffect(routing, webController.routingSelected) { if (!webController.routingSelected) routing.preload() }
         AntintwrkWebFilePicker(webController)
         val state = presenter.present()
         val scope = rememberCoroutineScope()
@@ -122,7 +124,7 @@ internal fun AntintwrkNativeAppView(
             if (current != null && android.net.Uri.parse(current).path?.split('/')?.getOrNull(1) != language) {
                 webController.destroy()
                 webController.currentUrl =
-                    AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).root(language, shellState.section, webController.ownProfileIdentity)
+                    AntintwrkWebPolicy(webController.origin).root(language, shellState.section, webController.ownProfileIdentity)
             }
         }
         val profileError = stringResource(R.string.screen_ant_auth_profile_requirements)
@@ -131,7 +133,7 @@ internal fun AntintwrkNativeAppView(
         val sessionExpiredError = stringResource(R.string.screen_ant_auth_session_expired)
         val rateLimitError = stringResource(R.string.screen_ant_auth_rate_limited)
         var session by (retainedSurface?.admission ?: remember { mutableStateOf<AntintwrkAuthSession?>(null) })
-        AntintwrkStoreBinding(client, session, webController)
+        AntintwrkStoreBinding(socialClient, webController.routedSession?.takeIf { it.matrixUserId == session?.matrixUserId }, webController)
         val actor = session?.matrixUserId
         var oauthUrl by remember(actor) { mutableStateOf<String?>(null) }
         var messengerBusy by remember(actor) { mutableStateOf(false) }
@@ -143,14 +145,14 @@ internal fun AntintwrkNativeAppView(
         var matrixUnavailable by remember { mutableStateOf(false) }
         var healthAttempt by remember { mutableLongStateOf(0L) }
         var foreground by remember { mutableStateOf(true) }
-        LaunchedEffect(actor, healthAttempt, foreground) {
+        LaunchedEffect(actor, healthAttempt, foreground, webController.origin) {
             if (actor != null && foreground) {
                 val health = AntintwrkServiceHealth()
                 val socialGate = AntintwrkHealthGate()
                 val matrixGate = AntintwrkHealthGate()
                 while (true) {
                     kotlinx.coroutines.coroutineScope {
-                        val social = async { health.reachable(false) }
+                        val social = async { health.reachable(false, webController.origin) }
                         val matrix = async { health.reachable(true) }
                         socialUnavailable = socialGate.record(social.await())
                         matrixUnavailable = matrixGate.record(matrix.await())
@@ -271,6 +273,18 @@ internal fun AntintwrkNativeAppView(
                 }
             }
         }
+        suspend fun readAdmission(): AntintwrkAuthSession {
+            val expected = accountPreferences.getString("social-actor", null).takeUnless { accountPreferences.getBoolean("logged-out", false) }
+            val epoch = AntintwrkSocialCookieEpoch.current()
+            if (client.origin != AntintwrkSocialOrigins.RUSSIAN) return client.session()
+            return antintwrkRestoreSocialAdmission(expected, primary = { client.session() }, fallback = {
+                AntintwrkNativeAuthClient(AntintwrkSocialOrigins.PUBLIC).session()
+            }, acceptedFallback = {
+                synchronized(AntintwrkSocialCookieEpoch.monitor) { AntintwrkSocialCookieEpoch.check(epoch) }
+                check(!accountPreferences.getBoolean("logged-out", false) && accountPreferences.getString("social-actor", null) == expected)
+                webController.authOrigin = AntintwrkSocialOrigins.PUBLIC
+            })
+        }
         suspend fun runRequest(revalidate: Boolean = false, request: suspend () -> AntintwrkAuthSession) {
             // A transient background check must not destroy an already admitted page.
             var retainAdmission = antintwrkRetainAdmission(revalidate, session?.stage == AntintwrkAuthStage.AUTHENTICATED)
@@ -280,17 +294,20 @@ internal fun AntintwrkNativeAppView(
             failed = false
             serverMessage = ""
             try {
-                session = request()
-                if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
+                val candidate = request()
+                if (candidate.stage == AntintwrkAuthStage.AUTHENTICATED) {
                     val previousActor = accountPreferences.getString("social-actor", null)
                     synchronized(io.element.android.libraries.push.api.PushAccountPolicyLock.monitor) {
-                        accountPreferences.edit().putBoolean("logged-out", false).putString("social-actor", session?.matrixUserId)
+                        accountPreferences.edit().putBoolean("logged-out", false).putString("social-actor", candidate.matrixUserId)
                             .remove("logged-out-actor").commit()
-                        if (previousActor != null && previousActor != session?.matrixUserId) {
+                        if (previousActor != null && previousActor != candidate.matrixUserId) {
                             androidx.core.app.NotificationManagerCompat.from(context).cancelAll()
                         }
                     }
-                    if (previousActor != null && previousActor != session?.matrixUserId) {
+                    if (previousActor != null && previousActor != candidate.matrixUserId) {
+                        retainAdmission = false
+                        busy = true
+                        session = null
                         chatsRequested = false
                         navigationSequence++
                         navigationEpoch.advance()
@@ -299,6 +316,7 @@ internal fun AntintwrkNativeAppView(
                         externalLinkFailed = false
                         directJob?.cancel()
                         webController.destroy()
+                        webController.resetRouting()
                         webController.currentUrl = null
                         shellState.eventSink(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
                         shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
@@ -307,15 +325,18 @@ internal fun AntintwrkNativeAppView(
                         AntintwrkSocialProfileRoutes.consume()
                         AntintwrkProfileNavigation.clear()
                     }
-                    AntintwrkMessengerRoutes.discardOtherActor(session?.matrixUserId)
+                    AntintwrkMessengerRoutes.discardOtherActor(candidate.matrixUserId)
+                    routing.prepare(AntintwrkNativeAuthClient(webController.authOrigin), candidate, webController)
                 }
-                webController.ownProfileIdentity = session?.profileIdentity
-                if (session?.stage != AntintwrkAuthStage.AUTHENTICATED) {
+                session = candidate
+                webController.ownProfileIdentity = candidate.profileIdentity
+                if (candidate.stage != AntintwrkAuthStage.AUTHENTICATED) {
                     pushStore.clear()
                     pushOpen = false
                     webController.destroy()
+                    webController.resetRouting()
                 }
-                if (session?.stage == AntintwrkAuthStage.DEVICE) client.startDevice(session!!.csrf)
+                if (candidate.stage == AntintwrkAuthStage.DEVICE) client.startDevice(candidate.csrf)
             } catch (required: AntintwrkRegistrationRequired) {
                 googleRegistration = required.ticket
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Profile))
@@ -361,7 +382,7 @@ internal fun AntintwrkNativeAppView(
         LaunchedEffect(sessionVerificationFailed, backgroundValidationPending, foreground) {
             while ((sessionVerificationFailed || backgroundValidationPending) && foreground && !accountPreferences.getBoolean("logged-out", false)) {
                 delay(15_000)
-                runRequest(revalidate = true) { client.session() }
+                runRequest(revalidate = true) { readAdmission() }
             }
         }
         DisposableEffect(session?.stage, session?.matrixUserId, matrixUserId, session?.csrf) {
@@ -395,18 +416,18 @@ internal fun AntintwrkNativeAppView(
             binding?.let(io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory::bind)
             onDispose { binding?.let(io.element.android.libraries.matrix.api.user.AntintwrkSocialDirectory::clear) }
         }
-        LaunchedEffect(session?.stage, busy, webController.refreshVersion, webController.currentUrl) {
+        LaunchedEffect(session?.stage, busy, webController.refreshVersion, webController.currentUrl, webController.origin, webController.routedSession?.csrf) {
             if (session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
                 while (true) {
                     delay((10_000L - (android.os.SystemClock.elapsedRealtime() - lastStatusAt)).coerceAtLeast(0L))
                     lastStatusAt = android.os.SystemClock.elapsedRealtime()
                     try {
-                        val status = client.status(session!!.csrf)
+                        val status = socialClient.status((webController.routedSession ?: session!!).csrf)
                         webController.notifications = status.notifications
                         webController.ownProfileIdentity = status.profileIdentity
                         webController.profileName = status.name
                         if (status.avatar != webController.profileAvatarSource) {
-                            val avatar = status.avatar?.let { client.avatar(it) }
+                            val avatar = status.avatar?.let { socialClient.avatar(it) }
                             if (avatar != null || status.avatar == null) {
                                 webController.profileAvatar = avatar
                                 webController.profileAvatarSource = status.avatar
@@ -415,8 +436,8 @@ internal fun AntintwrkNativeAppView(
                     } catch (cancelled: CancellationException) {
                         throw cancelled
                     } catch (error: AntintwrkRequestError) {
-                        if (error.code == "AUTH_REQUIRED") {
-                            runRequest(revalidate = true) { client.session() }
+                        if (error.code in setOf("AUTH_REQUIRED", "SESSION_EXPIRED")) {
+                            runRequest(revalidate = true) { readAdmission() }
                             break
                         }
                     } catch (_: Exception) {
@@ -430,7 +451,7 @@ internal fun AntintwrkNativeAppView(
             foreground = true
             if (!accountPreferences.getBoolean("logged-out", false) &&
                 (session?.stage == AntintwrkAuthStage.AUTHENTICATED || !busy || (session == null && state.page == AntintwrkPage.Welcome))) {
-                scope.launch { runRequest(revalidate = true) { client.session() } }
+                scope.launch { runRequest(revalidate = true) { readAdmission() } }
             }
         }
         LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
@@ -454,7 +475,7 @@ internal fun AntintwrkNativeAppView(
             if (request != null && session?.stage == AntintwrkAuthStage.AUTHENTICATED && !busy) {
                 AntintwrkProfileNavigation.consume(request)
                 if (request.actor == session?.matrixUserId && request.actor == matrixUserId) {
-                    val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+                    val policy = AntintwrkWebPolicy(webController.origin)
                     webController.openMessengerProfile(policy.route(language, "hero/${request.socialId}"))
                     shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
                 }
@@ -474,7 +495,7 @@ internal fun AntintwrkNativeAppView(
                 AntintwrkSocialProfileRoutes.consume()
                 AntintwrkProfileNavigation.clear()
                 shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
-                webController.navigate(AntintwrkWebPolicy(io.element.android.appnav.BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "notifications"))
+                webController.navigate(AntintwrkWebPolicy(webController.origin).route(language, "notifications"))
             }
         }
         LaunchedEffect(session?.matrixUserId, matrixUserId, recoveryRetries[matrixUserId.orEmpty()]) {
@@ -597,7 +618,7 @@ internal fun AntintwrkNativeAppView(
             onDismiss = { pushOpen = false },
             onAuthRequired = {
                 pushStore.clear()
-                scope.launch { runRequest(revalidate = true) { client.session() } }
+                scope.launch { runRequest(revalidate = true) { readAdmission() } }
             }
         )
         val signOutRetry = stringResource(R.string.screen_ant_recovery_retry)
@@ -657,6 +678,8 @@ internal fun AntintwrkNativeAppView(
                 shellState.eventSink(AntintwrkShellEvent.Section(AntintwrkSection.Feed))
                 session = null
                 webController.destroy()
+                webController.resetRouting()
+                webController.authOrigin = AntintwrkSocialOrigins.RUSSIAN
                 scope.launch {
                     runRequest {
                     try {
@@ -671,7 +694,7 @@ internal fun AntintwrkNativeAppView(
                     } finally {
                         runCatching { credentials.clear() }
                     }
-                    client.session()
+                    AntintwrkNativeAuthClient(webController.authOrigin).session()
                 }
                 }
                 }
@@ -692,7 +715,7 @@ internal fun AntintwrkNativeAppView(
                 AntintwrkAppDestination.Support -> {
                     settingsOpen = false
                     shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
-                    webController.openFromMessenger(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "support"))
+                    webController.openFromMessenger(AntintwrkWebPolicy(webController.origin).route(language, "support"))
                 }
                 AntintwrkAppDestination.SignOut -> signOut()
             }
@@ -729,7 +752,7 @@ internal fun AntintwrkNativeAppView(
                             }
                         }
                         else -> {
-                            val url = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, path)
+                            val url = AntintwrkWebPolicy(webController.origin).route(language, path)
                             if (shellState.mode == AntintwrkMode.Messenger) webController.openFromMessenger(url) else webController.navigate(url)
                             shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
                         }
@@ -741,7 +764,7 @@ internal fun AntintwrkNativeAppView(
         @Composable
         fun RenderMessenger(contentModifier: Modifier) {
             CompositionLocalProvider(LocalEmbeddedLinkHandler provides { url ->
-                val policy = AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN)
+                val policy = AntintwrkWebPolicy(webController.origin)
                 val canonical = policy.canonical(url)
                 val embedded = policy.embedded(canonical)
                 if (policy.sameOrigin(canonical) && policy.outbound(canonical)) {
@@ -778,7 +801,7 @@ internal fun AntintwrkNativeAppView(
         } else if (sessionVerificationFailed) {
             AntintwrkBrandTheme {
                 AntintwrkServiceUnavailable(modifier, R.string.screen_ant_social_unavailable) {
-                    scope.launch { runRequest(revalidate = true) { client.session() } }
+                    scope.launch { runRequest(revalidate = true) { readAdmission() } }
                 }
             }
         } else if (session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
@@ -824,7 +847,7 @@ internal fun AntintwrkNativeAppView(
                 webController.currentUrl = returnUrl
                 session = null
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login))
-                scope.launch { runRequest(revalidate = true) { client.session() } }
+                scope.launch { runRequest(revalidate = true) { readAdmission() } }
             },
                 onOpenSettings = { settingsOpen = true },
                 onPushSettings = { pushOpen = true },
@@ -937,7 +960,7 @@ internal fun AntintwrkNativeAppView(
                     licencesOpen = false
                     settingsOpen = false
                     shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Social))
-                    webController.navigate(AntintwrkWebPolicy(BuildConfig.ANTINTWRK_SOCIAL_ORIGIN).route(language, "hero/2266620"))
+                    webController.navigate(AntintwrkWebPolicy(webController.origin).route(language, "hero/2266620"))
                 }
             } else {
                 null
