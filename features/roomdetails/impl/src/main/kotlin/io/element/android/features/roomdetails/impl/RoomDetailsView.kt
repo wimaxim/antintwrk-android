@@ -190,6 +190,7 @@ fun RoomDetailsView(
                 onShareRoom = onShareRoom,
                 onInvitePeople = invitePeople,
                 onCall = onJoinCallClick,
+                managedSocial = managedSocial,
             )
             Spacer(Modifier.height(12.dp))
 
@@ -403,7 +404,9 @@ private fun MainActionsSection(
     onShareRoom: () -> Unit,
     onInvitePeople: () -> Unit,
     onCall: (callIntent: CallIntent) -> Unit,
+    managedSocial: Boolean,
 ) {
+    val personalChat = state.roomType is RoomDetailsType.Dm || (managedSocial && state.isDm)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -431,7 +434,7 @@ private fun MainActionsSection(
         }
         if (state.roomCallState.hasPermissionToJoin()) {
             // TODO Improve the view depending on all the cases here?
-            if (state.roomType is RoomDetailsType.Dm) {
+            if (personalChat) {
                 // As per design, only show voice call in DM
                 MainActionButton(
                     title = stringResource(CommonStrings.action_call),
@@ -446,14 +449,14 @@ private fun MainActionsSection(
                 onClick = { onCall(CallIntent.VIDEO) },
             )
         }
-        if (state.canInvite && state.roomType !is RoomDetailsType.Dm) {
+        if (state.canInvite && !personalChat) {
             MainActionButton(
                 title = stringResource(CommonStrings.action_invite),
                 imageVector = CompoundIcons.UserAdd(),
                 onClick = onInvitePeople,
             )
         }
-        if (state.roomType is RoomDetailsType.Room) {
+        if (state.roomType is RoomDetailsType.Room && !personalChat) {
             // Share CTA should be hidden for DMs
             MainActionButton(
                 title = stringResource(CommonStrings.action_share),

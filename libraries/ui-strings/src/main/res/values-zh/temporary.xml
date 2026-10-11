@@ -15,4 +15,5 @@
     <string name="screen_ant_encryption_feature">端到端加密</string>
     <string name="screen_ant_encrypted_chat">端到端加密</string>
     <string name="screen_ant_group_minimum_people">请选择至少两人来创建群聊。</string>
+    <string name="screen_ant_new_group_chat">新建群聊</string>
 </resources>

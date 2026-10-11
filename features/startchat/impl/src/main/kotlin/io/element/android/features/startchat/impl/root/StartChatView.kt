@@ -189,7 +189,13 @@ private fun CreateRoomActionButtonsList(
         item {
             CreateRoomActionButton(
                 iconRes = CompoundDrawables.ic_compound_plus,
-                text = stringResource(id = R.string.screen_create_room_action_create_room),
+                text = stringResource(
+                    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                        CommonStrings.screen_ant_new_group_chat
+                    } else {
+                        R.string.screen_create_room_action_create_room
+                    }
+                ),
                 onClick = onNewRoomClick,
             )
         }

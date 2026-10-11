@@ -349,3 +349,8 @@ Common Settings owns Invite friends; DM details no longer expose SMS Invite. Acc
 Managed DM Delete chat confirms device-local hiding without SDK leave/forget, history/keys/receipt changes. Persist under the private session directory, filter before pagination with existing selected filters, exclude old hidden unread from the common badge, and restore on a new incoming message (including encrypted) or explicit ID route. Groups retain membership invitation/leave. Version is 1.0.5, without test, with existing R/G. GNU/upstream LICENSE files stay intact; PROJECT-NOTICES carries our rights/operator/founder.
 
 Shared contract, iOS parity and actual limitations: ../docs/android-final-refinements-2026-10-10.md. Android validation: 263 passes and 2 existing stock recovery-prompt cases skipped in the native variant; no failures. PHP/Twig native-profile tests and admitted HTML on both origins pass. Physical OEM contact/SMS and two-phone receive/restore remain acceptance work; no SMS/payment/publication sent. Local commits only; no push.
+
+
+## 11 October: DM actions and permission at entry
+
+See [shared contract](../../docs/direct-actions-call-permission-2026-10-11.md). Personal-chat Invite/Share/People are suppressed by direct metadata before profile load; groups retain the actions. Group menu/wizard say New group chat in9 locales. RootView checks missing Android14+ full-screen call permission before social/Matrix preparation, with entry/return/rotation guards. Server counterpart m.direct is repaired without history/key reset. 54 Android checks and10 backend checks passed; Android1.0.16 is the test build. Backend module/installer stay outside public Android source. Commit locally; push remains command-only.

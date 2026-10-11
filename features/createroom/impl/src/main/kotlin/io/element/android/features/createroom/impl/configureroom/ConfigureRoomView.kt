@@ -188,7 +188,13 @@ private fun ConfigureRoomToolbar(
     onNextClick: () -> Unit,
 ) {
     TopAppBar(
-        titleStr = stringResource(if (isSpace) R.string.screen_create_room_new_space_title else R.string.screen_create_room_new_room_title),
+        titleStr = stringResource(
+            when {
+                isSpace -> R.string.screen_create_room_new_space_title
+                io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH -> CommonStrings.screen_ant_new_group_chat
+                else -> R.string.screen_create_room_new_room_title
+            }
+        ),
         navigationIcon = { BackButton(onClick = onBackClick) },
         actions = {
             TextButton(

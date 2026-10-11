@@ -169,3 +169,8 @@ The owner's new instruction supersedes the contact picker/SMS-only invitation ru
 ## Managed group creation and DM settings — 11 October 2026
 
 New room from Chats plus is a group: select at least two distinct users other than the actor before creating anything on the server. No Skip; collect selections first, include invitations in createRoom and guard both UI and presenter. Spaces themselves retain their folder workflow. Personal chats are created through Social profile routes or messenger user search. Hide People in managed DM settings from authoritative isDm even before the other member is loaded. Explicit operator test-history resets preserve account identities/recovery and must never become automatic error recovery; document server versus device cleanup.
+
+
+## DM actions and incoming-call permission — 11 October 2026
+
+Managed personal chats hide Invite/Share/People using direct metadata even before profile loading; groups retain membership invitation/sharing. The Chats new-room action and group wizard use localized New group chat, preserving minimum two other invitees/no Skip. Do not infer DM from member count alone or reset messages/keys to correct m.direct. Full-screen incoming-call access on Android14+ is checked at app foreground entry independently of account preparation: request only when absent, do not auto-grant, do not loop on own Settings return/rotation, and never block login on refusal/platform errors. Keep corresponding iOS/backend contract in shared docs/direct-actions-call-permission-2026-10-11.md.

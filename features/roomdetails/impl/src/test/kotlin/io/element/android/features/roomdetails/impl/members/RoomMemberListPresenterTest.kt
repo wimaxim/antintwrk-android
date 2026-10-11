@@ -159,6 +159,18 @@ class RoomMemberListPresenterTest {
     }
 
     @Test
+    fun `managed DM never offers membership invite before members load`() = runTest {
+        val room = createFakeJoinedRoom().apply {
+            givenRoomInfo(aRoomInfo(joinedMembersCount = 2, isDm = true))
+        }
+        createPresenter(joinedRoom = room).test {
+            skipItems(1)
+            val loadedState = awaitItem()
+            assertThat(loadedState.canInvite).isEqualTo(!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        }
+    }
+
+    @Test
     fun `present - asynchronously sets canInvite when user has correct power level`() = runTest {
         val presenter = createPresenter()
         presenter.test {

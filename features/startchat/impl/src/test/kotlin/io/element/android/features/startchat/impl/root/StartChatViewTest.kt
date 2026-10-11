@@ -42,7 +42,16 @@ class StartChatViewTest : RobolectricTest() {
         val host: ComponentActivity = requireNotNull(activity)
         onNodeWithText(host.getString(R.string.screen_room_directory_search_title)).assertDoesNotExist()
         onNodeWithText(host.getString(R.string.screen_start_chat_join_room_by_address_action)).assertDoesNotExist()
-        onNodeWithText(host.getString(R.string.screen_create_room_action_create_room)).assertExists()
+        val groupLabel = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            CommonStrings.screen_ant_new_group_chat
+        } else {
+            R.string.screen_create_room_action_create_room
+        }
+        onNodeWithText(host.getString(groupLabel)).assertExists()
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            onNodeWithText("New room").assertDoesNotExist()
+            onNodeWithText("New group chat").assertExists()
+        }
     }
 
     @Test
@@ -77,7 +86,13 @@ class StartChatViewTest : RobolectricTest() {
                 ),
                 onNewRoomClick = it
             )
-            clickOn(R.string.screen_create_room_action_create_room)
+            clickOn(
+                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    CommonStrings.screen_ant_new_group_chat
+                } else {
+                    R.string.screen_create_room_action_create_room
+                }
+            )
         }
     }
 

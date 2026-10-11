@@ -78,6 +78,7 @@ class RoomDetailsNode(
     }
 
     private fun CoroutineScope.onShareRoom(context: Context) = launch {
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && room.roomInfoFlow.value.isDm) return@launch
         room.getPermalink()
             .onSuccess { permalink ->
                 context.startSharePlainTextIntent(
@@ -126,7 +127,9 @@ class RoomDetailsNode(
             onShareRoom = ::onShareRoom,
             openRoomMemberList = callback::navigateToRoomMemberList,
             openRoomNotificationSettings = callback::navigateToRoomNotificationSettings,
-            invitePeople = callback::navigateToInviteMembers,
+            invitePeople = {
+                if (!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH || !state.isDm) callback.navigateToInviteMembers()
+            },
             openAvatarPreview = callback::navigateToAvatarPreview,
             openPollHistory = callback::navigateToPollHistory,
             openMediaGallery = callback::navigateToMediaGallery,

@@ -369,12 +369,17 @@ class RoomDetailsViewTest : RobolectricTest() {
             managedSocial = true,
         )
         assertNoNodeWithText(CommonStrings.common_people)
+        assertNoNodeWithText(CommonStrings.action_invite)
+        assertNoNodeWithText(CommonStrings.action_share)
     }
 
     @Config(qualifiers = "h2048dp")
     @Test fun `managed group settings retains People`() = runAndroidComposeUiTest {
-        setRoomDetailView(state = aRoomDetailsState(eventSink = EventsRecorder(expectEvents = false)), managedSocial = true)
-        onNodeWithText(activity!!.getString(CommonStrings.common_people)).assertExists()
+        setRoomDetailView(state = aRoomDetailsState(eventSink = EventsRecorder(expectEvents = false), canInvite = true), managedSocial = true)
+        val host: ComponentActivity = requireNotNull(activity)
+        onNodeWithText(host.getString(CommonStrings.common_people)).assertExists()
+        onNodeWithText(host.getString(CommonStrings.action_invite)).assertExists()
+        onNodeWithText(host.getString(CommonStrings.action_share)).assertExists()
     }
 
     @Config(qualifiers = "h2048dp")
@@ -387,6 +392,8 @@ class RoomDetailsViewTest : RobolectricTest() {
         ), managedSocial = true)
         onNodeWithText(activity!!.getString(R.string.screen_room_details_invite_title)).assertDoesNotExist()
         assertNoNodeWithText(CommonStrings.action_leave_room)
+        assertNoNodeWithText(CommonStrings.action_invite)
+        assertNoNodeWithText(CommonStrings.action_share)
         clickOn(CommonStrings.screen_ant_delete_chat)
         assertNodeWithTextIsDisplayed(CommonStrings.screen_ant_delete_chat_explanation)
         clickOn(CommonStrings.action_cancel)

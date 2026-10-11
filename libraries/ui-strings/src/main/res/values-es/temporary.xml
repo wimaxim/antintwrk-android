@@ -15,4 +15,5 @@
     <string name="screen_ant_encryption_feature">Cifrado de extremo a extremo</string>
     <string name="screen_ant_encrypted_chat">Cifrado de extremo a extremo</string>
     <string name="screen_ant_group_minimum_people">Selecciona al menos a dos personas para crear un grupo.</string>
+    <string name="screen_ant_new_group_chat">Nuevo chat de grupo</string>
 </resources>

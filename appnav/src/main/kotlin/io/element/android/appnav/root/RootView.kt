@@ -31,6 +31,9 @@ fun RootView(
     modifier: Modifier = Modifier,
     children: @Composable BoxScope.() -> Unit,
 ) {
+    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+        io.element.android.appnav.antintwrk.AntintwrkCallPermissionOnEntry()
+    }
     Box(
         modifier = modifier
             .fillMaxSize(),

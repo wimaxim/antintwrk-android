@@ -144,7 +144,7 @@ class RoomMemberListPresenter(
             roomMembers = roomMembers,
             filteredRoomMembers = filteredRoomMembers,
             searchQuery = searchQuery,
-            canInvite = canInvite,
+            canInvite = canInvite && !(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && roomInfo.isDm),
             moderationState = roomModerationState,
             selectedSection = selectedSection,
             eventSink = ::handleEvent,
