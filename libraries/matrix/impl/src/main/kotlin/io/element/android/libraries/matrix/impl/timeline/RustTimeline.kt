@@ -13,6 +13,7 @@ import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.encryption.AntintwrkRecoveryStatus
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.GalleryItemInfo
@@ -71,6 +72,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import org.matrix.rustcomponents.sdk.EditedContent
 import org.matrix.rustcomponents.sdk.FormattedBody
 import org.matrix.rustcomponents.sdk.GalleryUploadParameters
@@ -97,6 +99,7 @@ class RustTimeline(
     private val coroutineScope: CoroutineScope,
     private val dispatcher: CoroutineDispatcher,
     private val roomContentForwarder: RoomContentForwarder,
+    private val fetchMissingEvent: suspend (EventId) -> Unit = {},
 ) : Timeline {
     private val _timelineItems: MutableSharedFlow<List<MatrixTimelineItem>> =
         MutableSharedFlow(replay = 1, extraBufferCapacity = Int.MAX_VALUE)
@@ -153,18 +156,25 @@ class RustTimeline(
     init {
         if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
             recoveryRetryJob = coroutineScope.launch(dispatcher) {
-                _timelineItems.map { items ->
-                    items.filterIsInstance<MatrixTimelineItem.Event>().mapNotNull {
-                        ((it.event.content as? UnableToDecryptContent)?.data as? UnableToDecryptContent.Data.MegolmV1AesSha2)?.sessionId
-                    }.distinct().take(40)
-                }.distinctUntilChanged().collectLatest { sessions ->
-                    if (sessions.isNotEmpty()) {
-                        // Include retries beyond the SDK's first missing-backup backoff,
-                        // so a late sender upload is imported without reopening the room.
-                        repeat(18) { attempt ->
-                            runCatchingExceptions { inner.retryDecryption(sessions) }
+                combine(_timelineItems, AntintwrkRecoveryStatus.phases.map { it[joinedRoom.sessionId.value] }.distinctUntilChanged()) { items, phase ->
+                    val missing = items.filterIsInstance<MatrixTimelineItem.Event>().mapNotNull {
+                        val session = ((it.event.content as? UnableToDecryptContent)?.data as? UnableToDecryptContent.Data.MegolmV1AesSha2)?.sessionId
+                        it.eventId?.let { event -> session?.let { key -> key to event } }
+                    }.distinctBy { it.first }.take(40)
+                    missing to phase
+                }.distinctUntilChanged().collectLatest { (missing, _) ->
+                    if (missing.isNotEmpty()) {
+                        // retryDecryption checks the local crypto store. An event fetch also
+                        // triggers the SDK backup downloader, including after an earlier miss.
+                        var attempt = 0
+                        while (true) {
+                            missing.forEach { (_, event) ->
+                                runCatchingExceptions { withTimeoutOrNull(10_000) { fetchMissingEvent(event) } }
+                                    .onFailure { Timber.d("Managed key download deferred (%s)", it.javaClass.simpleName) }
+                            }
+                            runCatchingExceptions { inner.retryDecryption(missing.map { it.first }) }
                                 .onFailure { Timber.d("Managed decryption retry deferred (%s)", it.javaClass.simpleName) }
-                            delay((1_000L * (attempt + 1)).coerceAtMost(10_000L))
+                            delay(if (attempt < 18) (1_000L * (++attempt)).coerceAtMost(10_000L) else 30_000L)
                         }
                     }
                 }

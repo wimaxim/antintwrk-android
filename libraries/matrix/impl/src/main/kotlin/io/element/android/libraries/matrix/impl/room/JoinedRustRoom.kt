@@ -105,6 +105,7 @@ class JoinedRustRoom(
     private val systemClock: SystemClock,
     private val roomContentForwarder: RoomContentForwarder,
     private val featureFlagService: FeatureFlagService,
+    private val refreshMissingEvent: suspend (EventId) -> Unit = {},
 ) : JoinedRoom, BaseRoom by baseRoom {
     // Create a dispatcher for all room methods...
     private val roomDispatcher = coroutineDispatchers.io.limitedParallelism(32)
@@ -584,6 +585,10 @@ class JoinedRustRoom(
             coroutineScope = timelineCoroutineScope,
             dispatcher = roomDispatcher,
             roomContentForwarder = roomContentForwarder,
+            fetchMissingEvent = { eventId ->
+                refreshMissingEvent(eventId)
+                innerRoom.loadOrFetchEvent(eventId.value).use { }
+            },
         )
     }
 }

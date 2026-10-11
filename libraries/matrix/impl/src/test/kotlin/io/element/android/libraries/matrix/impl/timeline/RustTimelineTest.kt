@@ -11,12 +11,16 @@ package io.element.android.libraries.matrix.impl.timeline
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
+import io.element.android.libraries.matrix.impl.fixtures.factories.aRustEventTimelineItem
+import io.element.android.libraries.matrix.impl.fixtures.factories.aRustTimelineItemContentMsgLike
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiRoomListService
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiTimeline
+import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiTimelineItem
 import io.element.android.libraries.matrix.impl.room.RoomContentForwarder
 import io.element.android.libraries.matrix.test.room.FakeJoinedRoom
 import io.element.android.libraries.matrix.test.room.aRoomInfo
@@ -27,15 +31,51 @@ import io.element.android.tests.testutils.testCoroutineDispatchers
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.Assume.assumeTrue
 import org.junit.Test
+import org.matrix.rustcomponents.sdk.EncryptedMessage
+import org.matrix.rustcomponents.sdk.MsgLikeKind
 import org.matrix.rustcomponents.sdk.TimelineDiff
+import org.matrix.rustcomponents.sdk.TimelineItemContent
 import uniffi.matrix_sdk.PaginationStatus
+import uniffi.matrix_sdk_crypto.UtdCause
 import org.matrix.rustcomponents.sdk.Timeline as InnerTimeline
 
 class RustTimelineTest {
+    @Test
+    fun `late backup is actively fetched and recovery cancels when the message decrypts`() = runTest {
+        assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val inner = FakeFfiTimeline()
+        val fetches = mutableListOf<EventId>()
+        val room = FakeJoinedRoom().apply { givenRoomInfo(aRoomInfo()) }
+        val sut = createRustTimeline(inner = inner, joinedRoom = room, fetchMissingEvent = { fetches += it })
+        backgroundScope.launch { sut.timelineItems.collect() }
+        runCurrent()
+        val normal = aRustTimelineItemContentMsgLike() as TimelineItemContent.MsgLike
+        val encrypted = normal.copy(content = normal.content.copy(
+            kind = MsgLikeKind.UnableToDecrypt(EncryptedMessage.MegolmV1AesSha2("missing-session", UtdCause.UNKNOWN))
+        ))
+        inner.emitDiff(listOf(TimelineDiff.Reset(listOf(FakeFfiTimelineItem(aRustEventTimelineItem(content = encrypted))))))
+        runCurrent()
+        assertThat(fetches).hasSize(1)
+        assertThat(inner.decryptionRetries).containsExactly(listOf("missing-session"))
+        advanceTimeBy(180_000)
+        runCurrent()
+        assertThat(fetches.size).isGreaterThan(18)
+        inner.emitDiff(listOf(TimelineDiff.Reset(listOf(FakeFfiTimelineItem(aRustEventTimelineItem())))))
+        runCurrent()
+        val completed = fetches.size
+        advanceTimeBy(60_000)
+        runCurrent()
+        assertThat(fetches).hasSize(completed)
+    }
+
     @Test
     fun `ensure that the timeline emits new loading item when pagination does not bring new events`() = runTest {
         val inner = FakeFfiTimeline()
@@ -97,6 +137,7 @@ private fun TestScope.createRustTimeline(
     coroutineScope: CoroutineScope = backgroundScope,
     dispatcher: CoroutineDispatcher = testCoroutineDispatchers().io,
     roomContentForwarder: RoomContentForwarder = RoomContentForwarder(FakeFfiRoomListService()),
+    fetchMissingEvent: suspend (EventId) -> Unit = {},
 ): RustTimeline {
     return RustTimeline(
         inner = inner,
@@ -106,5 +147,6 @@ private fun TestScope.createRustTimeline(
         coroutineScope = coroutineScope,
         dispatcher = dispatcher,
         roomContentForwarder = roomContentForwarder,
+        fetchMissingEvent = fetchMissingEvent,
     )
 }

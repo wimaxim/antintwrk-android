@@ -17,6 +17,10 @@ import org.matrix.rustcomponents.sdk.TimelineListener
 import uniffi.matrix_sdk.PaginationStatus
 
 class FakeFfiTimeline : Timeline(NoHandle) {
+    val decryptionRetries = mutableListOf<List<String>>()
+    override fun retryDecryption(sessionIds: List<String>) {
+        decryptionRetries += sessionIds
+    }
     private var listener: TimelineListener? = null
     override suspend fun addListener(listener: TimelineListener): TaskHandle {
         this.listener = listener

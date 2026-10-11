@@ -100,17 +100,30 @@ class AntintwrkSocialPushReceiver(@ApplicationContext private val context: Conte
             }
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) return true
-        val channel = "antintwrk-social"
-        manager.createNotificationChannel(
-            NotificationChannel(channel, context.getString(R.string.screen_ant_push_title), NotificationManager.IMPORTANCE_DEFAULT)
-        )
+        val channel = if (Build.VERSION.SDK_INT >= 26) {
+            val systemManager = context.getSystemService(NotificationManager::class.java)
+            val oldChannel = systemManager.getNotificationChannel("antintwrk-social")
+            // Do not bypass a user's explicit channel choice during the importance migration.
+            val preserveOld = oldChannel != null && (oldChannel.importance == NotificationManager.IMPORTANCE_NONE ||
+                Build.VERSION.SDK_INT >= 29 && oldChannel.hasUserSetImportance())
+            val id = if (preserveOld) "antintwrk-social" else "antintwrk-social-alerts-v2"
+            if (!preserveOld) {
+                manager.createNotificationChannel(
+                    NotificationChannel(id, context.getString(R.string.screen_ant_push_title), NotificationManager.IMPORTANCE_HIGH)
+                )
+            }
+            id
+        } else {
+            "antintwrk-social"
+        }
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return true
         intent.action = AntintwrkSocialPushRoutes.ACTION
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pending = PendingIntent.getActivity(context, 491, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, channel).setSmallIcon(R.drawable.antintwrk_notification)
             .setContentTitle("antintwrk").setContentText(context.getString(R.string.screen_ant_push_new))
-            .setContentIntent(pending).setAutoCancel(true).setOnlyAlertOnce(true)
+            .setContentIntent(pending).setAutoCancel(true).setOnlyAlertOnce(false)
+            .setPriority(NotificationCompat.PRIORITY_HIGH).setDefaults(NotificationCompat.DEFAULT_ALL)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE).build()
         runCatching { manager.notify("antintwrk-social", 1, notification) }
         return true

@@ -259,6 +259,20 @@ class RustMatrixClient(
         roomInfoMapper = roomInfoMapper,
         featureFlagService = featureFlagService,
         analyticsService = analyticsService,
+        refreshMissingEvent = { room, event ->
+            // The SDK's main downloader caches a missing backup key for a minute.
+            // A short-lived SDK notification reader shares this device's crypto store
+            // but has a fresh downloader, so a newly delivered key is imported now.
+            // No notification is posted and no receipt/account/session is changed.
+            innerClient.notificationClientWithTimeouts(
+                notificationProcessSetup,
+                innerNotificationClient.timeouts().copy(
+                    decryptionDeadline = java.time.Duration.ofSeconds(2),
+                    syncPollTimeout = java.time.Duration.ZERO,
+                    syncNetworkTimeout = java.time.Duration.ofSeconds(4),
+                ),
+            ).use { loader -> loader.getNotification(room.value, event.value).use { } }
+        },
     )
 
     override val matrixMediaLoader: MatrixMediaLoader = RustMediaLoader(

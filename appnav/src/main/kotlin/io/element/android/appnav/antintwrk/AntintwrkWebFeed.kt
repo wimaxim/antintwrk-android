@@ -4,7 +4,6 @@
 package io.element.android.appnav.antintwrk
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Message
@@ -730,6 +729,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                         }
                         override fun onPageFinished(view: WebView, url: String?) {
                             controller.pageFinished(view, url)
+                            AntintwrkWebOverlays.install(view, policy)
                             if (url != null && controller.pageSection(view) == AntintwrkSection.Feed) {
                                 view.postVisualStateCallback(0, object : WebView.VisualStateCallback() {
                                     override fun onComplete(requestId: Long) = controller.feedReady(view, url)

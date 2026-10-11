@@ -13,6 +13,7 @@ import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.core.DeviceId
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.notificationsettings.NotificationSettingsService
@@ -63,6 +64,7 @@ class RustRoomFactory(
     private val roomMembershipObserver: RoomMembershipObserver,
     private val roomInfoMapper: RoomInfoMapper,
     private val analyticsService: AnalyticsService,
+    private val refreshMissingEvent: suspend (RoomId, EventId) -> Unit = { _, _ -> },
 ) {
     private val dispatcher = dispatchers.computation.limitedParallelism(1)
     private val mutex = Mutex()
@@ -155,6 +157,7 @@ class RustRoomFactory(
                             coroutineDispatchers = dispatchers,
                             systemClock = systemClock,
                             featureFlagService = featureFlagService,
+                            refreshMissingEvent = { event -> refreshMissingEvent(roomId, event) },
                         )
                     )
                 }
