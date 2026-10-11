@@ -43,6 +43,7 @@ import org.matrix.rustcomponents.sdk.SlidingSyncVersion
 import org.matrix.rustcomponents.sdk.SlidingSyncVersionBuilder
 import org.matrix.rustcomponents.sdk.use
 import timber.log.Timber
+import uniffi.matrix_sdk.BackupDownloadStrategy
 import uniffi.matrix_sdk_base.DmRoomDefinition
 import uniffi.matrix_sdk_base.MediaRetentionPolicy
 import uniffi.matrix_sdk_crypto.CollectStrategy
@@ -169,6 +170,15 @@ class RustMatrixClientFactory(
             // Account-managed recovery creates backup and secret storage together,
             // after signing initialization, instead of racing a second backup creator.
             .autoEnableBackups(!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+            // Retry actual key downloads when a managed room lacks a session key.
+            // Retrying timeline decryption alone only checks already imported keys.
+            .run {
+                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    backupDownloadStrategy(BackupDownloadStrategy.AFTER_DECRYPTION_FAILURE)
+                } else {
+                    this
+                }
+            }
             .autoEnableCrossSigning(true)
             .roomKeyRecipientStrategy(
                 strategy = if (featureFlagService.isFeatureEnabled(FeatureFlags.OnlySignedDeviceIsolationMode)) {

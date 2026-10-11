@@ -159,10 +159,12 @@ class RustTimeline(
                     }.distinct().take(40)
                 }.distinctUntilChanged().collectLatest { sessions ->
                     if (sessions.isNotEmpty()) {
-                        repeat(10) { attempt ->
-                            delay((5_000L * (attempt + 1)).coerceAtMost(60_000L))
+                        // Include retries beyond the SDK's first missing-backup backoff,
+                        // so a late sender upload is imported without reopening the room.
+                        repeat(18) { attempt ->
                             runCatchingExceptions { inner.retryDecryption(sessions) }
                                 .onFailure { Timber.d("Managed decryption retry deferred (%s)", it.javaClass.simpleName) }
+                            delay((1_000L * (attempt + 1)).coerceAtMost(10_000L))
                         }
                     }
                 }

@@ -24,11 +24,15 @@ import uniffi.matrix_sdk_crypto.DecryptionSettings
 class FakeFfiClientBuilder(
     val buildResult: () -> Client = { FakeFfiClient(withUtdHook = {}) }
 ) : ClientBuilder(NoHandle) {
+    var configuredBackupDownloadStrategy: BackupDownloadStrategy? = null
+        private set
     override fun addRootCertificates(certificates: List<ByteArray>) = this
     override fun autoEnableBackups(autoEnableBackups: Boolean) = this
     override fun autoEnableCrossSigning(autoEnableCrossSigning: Boolean) = this
     override fun enableAutomaticBackPagination(enableAutomaticBackPagination: Boolean): ClientBuilder = this
-    override fun backupDownloadStrategy(backupDownloadStrategy: BackupDownloadStrategy) = this
+    override fun backupDownloadStrategy(backupDownloadStrategy: BackupDownloadStrategy) = apply {
+        configuredBackupDownloadStrategy = backupDownloadStrategy
+    }
     override fun disableAutomaticTokenRefresh() = this
     override fun disableBuiltInRootCertificates() = this
     override fun decryptionSettings(decryptionSettings: DecryptionSettings): ClientBuilder = this

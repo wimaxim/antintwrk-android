@@ -13,6 +13,7 @@ import io.element.android.features.enterprise.test.FakeClientBuilderEnterpriseHo
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.impl.auth.FakeProxyProvider
+import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiClientBuilder
 import io.element.android.libraries.matrix.impl.room.FakeTimelineEventFilterFactory
 import io.element.android.libraries.matrix.impl.storage.FakeSqliteStoreBuilderProvider
 import io.element.android.libraries.matrix.impl.storage.SqliteStoreBuilderProvider
@@ -29,9 +30,27 @@ import io.element.android.tests.testutils.testCoroutineDispatchers
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
+import uniffi.matrix_sdk.BackupDownloadStrategy
 import java.io.File
 
 class RustMatrixClientFactoryTest {
+    @Test
+    fun `managed client downloads missing keys instead of only retrying local decryption`() = runTest {
+        val builder = FakeFfiClientBuilder()
+        val sut = createRustMatrixClientFactory(
+            clientBuilderProvider = FakeClientBuilderProvider { builder },
+            workManagerScheduler = FakeWorkManagerScheduler(submitLambda = {}),
+        )
+        val client = sut.create(aSessionData())
+        val expected = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            BackupDownloadStrategy.AFTER_DECRYPTION_FAILURE
+        } else {
+            null
+        }
+        assertThat(builder.configuredBackupDownloadStrategy).isEqualTo(expected)
+        client.destroy()
+    }
+
     @Test
     fun test() = runTest {
         val scheduleVacuumLambda = lambdaRecorder<WorkManagerRequestBuilder, Unit> {}
