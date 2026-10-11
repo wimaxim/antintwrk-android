@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">حذف المحادثة</string>
     <string name="screen_ant_delete_chat_explanation">ستُخفى المحادثة على هذا الجهاز. ستبقى الرسائل محفوظة، وستظهر المحادثة مجددًا عندما يكتب الطرف الآخر أو تفتحها من جديد.</string>
     <string name="screen_ant_hide_chat_failed">تعذر إخفاء المحادثة. حاول مرة أخرى.</string>
+    <string name="screen_ant_encryption_feature">التشفير التام بين الطرفين</string>
+    <string name="screen_ant_encrypted_chat">مشفّر تمامًا بين الطرفين</string>
 </resources>

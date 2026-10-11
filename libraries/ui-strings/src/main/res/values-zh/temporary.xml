@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">删除聊天</string>
     <string name="screen_ant_delete_chat_explanation">聊天将在此设备上隐藏。消息将保留，对方发送新消息或您再次打开聊天时，它会重新出现。</string>
     <string name="screen_ant_hide_chat_failed">无法隐藏聊天，请重试。</string>
+    <string name="screen_ant_encryption_feature">端到端加密</string>
+    <string name="screen_ant_encrypted_chat">端到端加密</string>
 </resources>

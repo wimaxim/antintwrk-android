@@ -19,4 +19,6 @@
     <string name="screen_ant_delete_chat">Delete chat</string>
     <string name="screen_ant_delete_chat_explanation">This chat will be hidden on this device. Your messages will remain available, and the chat will return when the other person writes or you open it again.</string>
     <string name="screen_ant_hide_chat_failed">Could not hide the chat. Try again.</string>
+    <string name="screen_ant_encryption_feature">End-to-end encryption</string>
+    <string name="screen_ant_encrypted_chat">End-to-end encrypted</string>
 </resources>

@@ -373,67 +373,70 @@ private fun ThreadSummaryView(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .then(if (!isOutgoing) Modifier.padding(start = 16.dp) else Modifier)
-                .graphicsLayer {
-                    shape = RoundedCornerShape(8.dp)
-                    clip = true
-                }
-                .background(MessageEventBubbleDefaults.backgroundBubbleColor(isOutgoing))
-                .niceClickable(onClick)
-                .padding(horizontal = 12.dp, vertical = 10.dp)
-                .widthIn(max = (maxWidth - 24.dp) * MessageEventBubbleDefaults.BUBBLE_WIDTH_RATIO),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Icon(
-                modifier = Modifier.size(20.dp),
-                imageVector = CompoundIcons.ThreadsSolid(),
-                contentDescription = null,
-                tint = ElementTheme.colors.iconSecondary,
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = pluralStringResource(CommonPlurals.common_replies, threadSummary.numberOfReplies.toInt(), threadSummary.numberOfReplies),
-                style = ElementTheme.typography.fontBodySmMedium,
-                color = ElementTheme.colors.textSecondary,
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            threadSummary.latestEvent.dataOrNull()?.let { latestEvent ->
-                val avatarData = AvatarData(
-                    id = latestEvent.senderId.value,
-                    name = latestEvent.senderProfile.getDisplayName(),
-                    url = latestEvent.senderProfile.getAvatarUrl(),
-                    size = AvatarSize.TimelineThreadLatestEventSender,
+    val backgroundColor = MessageEventBubbleDefaults.backgroundBubbleColor(isOutgoing)
+    AntintwrkOutgoingBubbleContent(isMine = isOutgoing) {
+        BoxWithConstraints(modifier = modifier) {
+            Row(
+                modifier = Modifier
+                    .then(if (!isOutgoing) Modifier.padding(start = 16.dp) else Modifier)
+                    .graphicsLayer {
+                        shape = RoundedCornerShape(8.dp)
+                        clip = true
+                    }
+                    .background(backgroundColor)
+                    .niceClickable(onClick)
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                    .widthIn(max = (maxWidth - 24.dp) * MessageEventBubbleDefaults.BUBBLE_WIDTH_RATIO),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    modifier = Modifier.size(20.dp),
+                    imageVector = CompoundIcons.ThreadsSolid(),
+                    contentDescription = null,
+                    tint = ElementTheme.colors.iconSecondary,
                 )
-                Avatar(
-                    avatarData = avatarData,
-                    avatarType = AvatarType.User,
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = pluralStringResource(CommonPlurals.common_replies, threadSummary.numberOfReplies.toInt(), threadSummary.numberOfReplies),
+                    style = ElementTheme.typography.fontBodySmMedium,
+                    color = ElementTheme.colors.textSecondary,
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(
-                    text = latestEvent.senderProfile.getDisambiguatedDisplayName(latestEvent.senderId),
-                    style = ElementTheme.typography.fontBodySmMedium,
-                    color = ElementTheme.colors.textSecondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Spacer(modifier = Modifier.width(4.dp))
-
-                latestEventText?.let {
-                    Text(
-                        text = it,
-                        style = ElementTheme.typography.fontBodySmRegular,
-                        color = ElementTheme.colors.textSecondary,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
+                threadSummary.latestEvent.dataOrNull()?.let { latestEvent ->
+                    val avatarData = AvatarData(
+                        id = latestEvent.senderId.value,
+                        name = latestEvent.senderProfile.getDisplayName(),
+                        url = latestEvent.senderProfile.getAvatarUrl(),
+                        size = AvatarSize.TimelineThreadLatestEventSender,
                     )
+                    Avatar(
+                        avatarData = avatarData,
+                        avatarType = AvatarType.User,
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = latestEvent.senderProfile.getDisambiguatedDisplayName(latestEvent.senderId),
+                        style = ElementTheme.typography.fontBodySmMedium,
+                        color = ElementTheme.colors.textSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
+                    latestEventText?.let {
+                        Text(
+                            text = it,
+                            style = ElementTheme.typography.fontBodySmRegular,
+                            color = ElementTheme.colors.textSecondary,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
         }

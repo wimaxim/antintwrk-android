@@ -36,6 +36,8 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.element.android.compound.theme.ElementTheme
+import io.element.android.compound.theme.Theme
+import io.element.android.compound.tokens.generated.compoundColorsLight
 import io.element.android.features.messages.impl.timeline.model.TimelineItemGroupPosition
 import io.element.android.features.messages.impl.timeline.model.bubble.BubbleState
 import io.element.android.features.messages.impl.timeline.model.bubble.BubbleStatePreviewParam
@@ -143,8 +145,31 @@ fun MessageEventBubble(
                         .toDp()
                 )
                 .then(clickableModifier),
+        ) {
+            AntintwrkOutgoingBubbleContent(isMine = state.isMine && customBackgroundColor == null) {
+                content()
+            }
+        }
+    }
+}
+
+/** Light carrot surfaces require dark text, timestamps and icons, including rich-text links. */
+@Composable
+internal fun AntintwrkOutgoingBubbleContent(isMine: Boolean, content: @Composable () -> Unit) {
+    if (isMine && io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+        ElementTheme(
+            theme = Theme.Light,
+            applySystemBarsUpdate = false,
+            compoundLight = compoundColorsLight.copy(
+                textPrimary = Color(0xFF30251F),
+                textSecondary = Color(0xFF655044),
+                iconSecondary = Color(0xFF655044),
+                textLinkExternal = Color(0xFF873C19),
+            ),
             content = content,
         )
+    } else {
+        content()
     }
 }
 
@@ -180,7 +205,7 @@ object MessageEventBubbleDefaults {
     @Composable
     fun backgroundBubbleColor(isMine: Boolean): Color {
         return if (isMine && io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
-            if (ElementTheme.isLightTheme) Color(0xFFFCE8E2) else Color(0xFF3A2524)
+            if (ElementTheme.isLightTheme) Color(0xFFFFE0C5) else Color(0xFFF8BE9A)
         } else if (isMine) {
             ElementTheme.colors.messageFromMeBackground
         } else {

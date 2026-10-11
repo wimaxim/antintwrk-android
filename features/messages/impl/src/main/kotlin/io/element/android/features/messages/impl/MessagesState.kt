@@ -64,7 +64,8 @@ data class MessagesState(
     val threads: Threads,
     val showLiveLocationShareBanner: Boolean,
     val redactEventAction: AsyncAction<Unit>,
-    val eventSink: (MessagesEvent) -> Unit
+    val eventSink: (MessagesEvent) -> Unit,
+    val isEncrypted: Boolean? = null,
 ) {
     val isTombstoned = successorRoom != null
 

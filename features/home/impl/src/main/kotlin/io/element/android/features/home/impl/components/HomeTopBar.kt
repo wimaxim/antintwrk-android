@@ -53,6 +53,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -70,6 +72,7 @@ import io.element.android.features.home.impl.spacefilters.SpaceFiltersState
 import io.element.android.features.home.impl.spacefilters.aSelectedSpaceFiltersState
 import io.element.android.features.home.impl.spacefilters.anUnselectedSpaceFiltersState
 import io.element.android.libraries.designsystem.atomic.atoms.RedIndicatorAtom
+import io.element.android.libraries.designsystem.components.EncryptionSubtitle
 import io.element.android.libraries.designsystem.components.TopAppBarScrollBehaviorLayout
 import io.element.android.libraries.designsystem.components.avatar.Avatar
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
@@ -148,11 +151,26 @@ fun HomeTopBar(
                         // "Chats"
                         else -> ElementTheme.typography.fontHeadingLgBold
                     }
-                    AdaptativeTitle(
-                        title = displayTitle,
-                        style = style,
-                        twoLinesStyle = ElementTheme.typography.fontHeadingSmMedium,
-                    )
+                    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
+                        selectedNavigationItem == HomeNavigationBarItem.Chats && spaceFiltersState !is SpaceFiltersState.Selected
+                    ) {
+                        Column {
+                            Text(
+                                text = displayTitle,
+                                style = ElementTheme.typography.fontHeadingSmMedium.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.semantics { heading() },
+                            )
+                            EncryptionSubtitle(text = stringResource(CommonStrings.screen_ant_encryption_feature))
+                        }
+                    } else {
+                        AdaptativeTitle(
+                            title = displayTitle,
+                            style = style,
+                            twoLinesStyle = ElementTheme.typography.fontHeadingSmMedium,
+                        )
+                    }
                 }
             },
             navigationIcon = {

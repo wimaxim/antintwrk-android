@@ -135,6 +135,22 @@ class MessagesPresenterTest {
     val warmUpRule = WarmUpRule()
 
     @Test
+    fun `present - propagates confirmed room encryption after sync`() = runTest {
+        val baseRoom = FakeBaseRoom(
+            roomPermissions = roomPermissions(),
+            initialRoomInfo = aRoomInfo().copy(isEncrypted = null),
+        )
+        val presenter = createMessagesPresenter(joinedRoom = FakeJoinedRoom(baseRoom = baseRoom))
+        presenter.testWithLifecycleOwner {
+            assertThat(consumeItemsUntilTimeout().last().isEncrypted).isNull()
+            baseRoom.givenRoomInfo(aRoomInfo(isEncrypted = false))
+            assertThat(consumeItemsUntilTimeout().last().isEncrypted).isFalse()
+            baseRoom.givenRoomInfo(aRoomInfo(isEncrypted = true))
+            assertThat(consumeItemsUntilTimeout().last().isEncrypted).isTrue()
+        }
+    }
+
+    @Test
     fun `present - initial state`() = runTest {
         val presenter = createMessagesPresenter()
         presenter.testWithLifecycleOwner {

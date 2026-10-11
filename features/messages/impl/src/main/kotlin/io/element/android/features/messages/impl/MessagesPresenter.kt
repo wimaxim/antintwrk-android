@@ -317,6 +317,7 @@ class MessagesPresenter(
         return MessagesState(
             roomId = room.roomId,
             roomName = roomInfo.name,
+            isEncrypted = roomInfo.isEncrypted,
             roomAvatar = roomAvatar,
             heroes = heroes,
             userEventPermissions = userEventPermissions,

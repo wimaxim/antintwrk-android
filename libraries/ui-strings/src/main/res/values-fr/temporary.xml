@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">Supprimer le chat</string>
     <string name="screen_ant_delete_chat_explanation">Le chat sera masqué sur cet appareil. Les messages seront conservés. Il réapparaîtra lorsque votre interlocuteur écrira ou que vous le rouvrirez.</string>
     <string name="screen_ant_hide_chat_failed">Impossible de masquer le chat. Réessayez.</string>
+    <string name="screen_ant_encryption_feature">Chiffrement de bout en bout</string>
+    <string name="screen_ant_encrypted_chat">Chiffré de bout en bout</string>
 </resources>

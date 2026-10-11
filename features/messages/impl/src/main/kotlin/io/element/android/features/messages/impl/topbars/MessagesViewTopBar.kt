@@ -39,6 +39,7 @@ import io.element.android.features.messages.impl.SharedHistoryIcon
 import io.element.android.features.roomcall.api.RoomCallState
 import io.element.android.features.roomcall.api.aStandByCallState
 import io.element.android.features.roomcall.api.anOngoingCallState
+import io.element.android.libraries.designsystem.components.EncryptionSubtitle
 import io.element.android.libraries.designsystem.components.avatar.Avatar
 import io.element.android.libraries.designsystem.components.avatar.AvatarData
 import io.element.android.libraries.designsystem.components.avatar.AvatarSize
@@ -74,6 +75,7 @@ internal fun MessagesViewTopBar(
     onRoomDetailsClick: () -> Unit,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isEncrypted: Boolean? = null,
     menuActions: @Composable RowScope.() -> Unit,
 ) {
     TopAppBar(
@@ -99,6 +101,7 @@ internal fun MessagesViewTopBar(
                     isTombstoned = isTombstoned,
                     heroes = heroes,
                     dmUserStatus = dmUserStatus,
+                    showEncryption = io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && isEncrypted == true,
                     modifier = titleModifier
                 )
 
@@ -153,6 +156,7 @@ private fun RoomAvatarAndNameRow(
     heroes: ImmutableList<AvatarData>,
     isTombstoned: Boolean,
     dmUserStatus: DisplayedStatus?,
+    showEncryption: Boolean,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -166,14 +170,18 @@ private fun RoomAvatarAndNameRow(
                 isTombstoned = isTombstoned,
             ),
         )
-        DisplayNameWithStatus(
-            name = roomName ?: stringResource(CommonStrings.common_no_room_name),
-            status = dmUserStatus,
-            modifier = Modifier.padding(start = 8.dp),
-            style = ElementTheme.typography.fontBodyLgMedium,
-            nameColor = ElementTheme.colors.textPrimary,
-            nameFontStyle = FontStyle.Italic.takeIf { roomName == null },
-        )
+        Column(Modifier.padding(start = 8.dp).weight(1f, fill = false)) {
+            DisplayNameWithStatus(
+                name = roomName ?: stringResource(CommonStrings.common_no_room_name),
+                status = dmUserStatus,
+                style = ElementTheme.typography.fontBodyLgMedium,
+                nameColor = ElementTheme.colors.textPrimary,
+                nameFontStyle = FontStyle.Italic.takeIf { roomName == null },
+            )
+            if (showEncryption) {
+                EncryptionSubtitle(text = stringResource(CommonStrings.screen_ant_encrypted_chat))
+            }
+        }
     }
 }
 
@@ -194,8 +202,10 @@ internal fun MessagesViewTopBarPreview() = ElementPreview {
         sharedHistoryIcon: SharedHistoryIcon = SharedHistoryIcon.NONE,
         dmUserStatus: DisplayedStatus? = null,
         displayThreads: Boolean = false,
+        isEncrypted: Boolean? = true,
     ) = MessagesViewTopBar(
         roomName = roomName,
+        isEncrypted = isEncrypted,
         roomAvatar = roomAvatar,
         isTombstoned = isTombstoned,
         heroes = heroes,
@@ -215,6 +225,10 @@ internal fun MessagesViewTopBarPreview() = ElementPreview {
     )
     Column {
         AMessagesViewTopBar()
+        HorizontalDivider()
+        AMessagesViewTopBar(isEncrypted = false)
+        HorizontalDivider()
+        AMessagesViewTopBar(isEncrypted = null)
         HorizontalDivider()
         AMessagesViewTopBar(
             heroes = aMatrixUserList().map { it.getAvatarData(AvatarSize.TimelineRoom) }.toImmutableList(),

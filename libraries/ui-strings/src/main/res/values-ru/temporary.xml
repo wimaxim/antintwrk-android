@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">Удалить чат</string>
     <string name="screen_ant_delete_chat_explanation">Чат будет скрыт на этом устройстве. Переписка сохранится. Чат появится снова, когда собеседник напишет или вы снова откроете его.</string>
     <string name="screen_ant_hide_chat_failed">Не удалось скрыть чат. Попробуйте ещё раз.</string>
+    <string name="screen_ant_encryption_feature">Сквозное шифрование</string>
+    <string name="screen_ant_encrypted_chat">Сквозное шифрование</string>
 </resources>

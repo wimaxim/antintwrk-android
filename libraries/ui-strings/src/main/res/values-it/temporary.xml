@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">Elimina chat</string>
     <string name="screen_ant_delete_chat_explanation">La chat sarà nascosta su questo dispositivo. I messaggi resteranno disponibili. Riapparirà quando lʼaltra persona scriverà o quando la riaprirai.</string>
     <string name="screen_ant_hide_chat_failed">Impossibile nascondere la chat. Riprova.</string>
+    <string name="screen_ant_encryption_feature">Crittografia end-to-end</string>
+    <string name="screen_ant_encrypted_chat">Crittografia end-to-end</string>
 </resources>

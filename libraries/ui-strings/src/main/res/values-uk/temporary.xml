@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">Видалити чат</string>
     <string name="screen_ant_delete_chat_explanation">Чат буде приховано на цьому пристрої. Листування збережеться. Чат знову зʼявиться, коли співрозмовник напише або ви відкриєте його.</string>
     <string name="screen_ant_hide_chat_failed">Не вдалося приховати чат. Спробуйте ще раз.</string>
+    <string name="screen_ant_encryption_feature">Наскрізне шифрування</string>
+    <string name="screen_ant_encrypted_chat">Наскрізне шифрування</string>
 </resources>

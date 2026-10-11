@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">Chat löschen</string>
     <string name="screen_ant_delete_chat_explanation">Der Chat wird auf diesem Gerät ausgeblendet. Nachrichten bleiben erhalten. Er erscheint wieder, wenn die andere Person schreibt oder du ihn erneut öffnest.</string>
     <string name="screen_ant_hide_chat_failed">Der Chat konnte nicht ausgeblendet werden. Versuche es erneut.</string>
+    <string name="screen_ant_encryption_feature">Ende-zu-Ende-Verschlüsselung</string>
+    <string name="screen_ant_encrypted_chat">Ende-zu-Ende verschlüsselt</string>
 </resources>

@@ -12,4 +12,6 @@
     <string name="screen_ant_delete_chat">Eliminar chat</string>
     <string name="screen_ant_delete_chat_explanation">El chat se ocultará en este dispositivo. Los mensajes se conservarán. Volverá cuando la otra persona escriba o lo abras de nuevo.</string>
     <string name="screen_ant_hide_chat_failed">No se pudo ocultar el chat. Inténtalo de nuevo.</string>
+    <string name="screen_ant_encryption_feature">Cifrado de extremo a extremo</string>
+    <string name="screen_ant_encrypted_chat">Cifrado de extremo a extremo</string>
 </resources>
