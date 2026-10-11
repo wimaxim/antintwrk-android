@@ -33,11 +33,12 @@ class AddPeopleNode(
     private val invitePeopleRenderer: InvitePeopleRenderer,
 ) : Node(buildContext, plugins = plugins) {
     data class Inputs(
-        val roomId: RoomId,
+        val roomId: RoomId?,
     ) : NodeInputs
 
     interface Callback : Plugin {
         fun onFinish()
+        fun onPeopleSelected(users: List<io.element.android.libraries.matrix.api.user.MatrixUser>) {}
     }
 
     private val callback: Callback = callback()
@@ -53,6 +54,8 @@ class AddPeopleNode(
         AddPeopleView(
             state = state,
             onFinish = callback::onFinish,
+            onBackClick = this::navigateUp,
+            onPeopleSelected = if (roomId == null) callback::onPeopleSelected else null,
         ) {
             invitePeopleRenderer.Render(state, Modifier)
         }

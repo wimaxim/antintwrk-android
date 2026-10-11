@@ -65,6 +65,7 @@ import kotlin.time.Duration.Companion.seconds
 class ConfigureRoomPresenter(
     @Assisted private val isSpace: Boolean,
     @Assisted private val initialParentSpaceId: RoomId?,
+    @Assisted private val initialInvites: List<io.element.android.libraries.matrix.api.user.MatrixUser> = emptyList(),
     private val dataStore: CreateRoomConfigStore,
     private val matrixClient: MatrixClient,
     private val mediaPickerProvider: PickerProvider,
@@ -78,7 +79,17 @@ class ConfigureRoomPresenter(
 ) : Presenter<ConfigureRoomState> {
     @AssistedFactory
     interface Factory {
-        fun create(isSpace: Boolean, initialParentSpaceId: RoomId?): ConfigureRoomPresenter
+        fun create(
+            isSpace: Boolean,
+            initialParentSpaceId: RoomId?,
+            initialInvites: List<io.element.android.libraries.matrix.api.user.MatrixUser> = emptyList(),
+        ): ConfigureRoomPresenter
+    }
+
+    init {
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && !isSpace) {
+            dataStore.setInvites(initialInvites.filter { it.userId != matrixClient.sessionId }.distinctBy { it.userId })
+        }
     }
 
     private val cameraPermissionPresenter: PermissionsPresenter = permissionsPresenterFactory.create(android.Manifest.permission.CAMERA)
@@ -184,6 +195,8 @@ class ConfigureRoomPresenter(
         }
 
         fun createRoom(config: CreateRoomConfig) {
+            if (createRoomAction.value.isLoading()) return
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && !isSpace && config.invites.size < 2) return
             createRoomAction.value = AsyncAction.Uninitialized
             localCoroutineScope.createRoom(config, createRoomAction)
         }
@@ -235,6 +248,10 @@ class ConfigureRoomPresenter(
         createRoomAction: MutableState<AsyncAction<RoomId>>
     ) = launch {
         suspend {
+            check(
+                !io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH || isSpace ||
+                config.invites.map { it.userId }.filter { it != matrixClient.sessionId }.distinct().size >= 2
+            )
             val avatarUrl = config.avatarUri?.let { uploadAvatar(it.toUri()) }
             val params = when (config.visibilityState) {
                 is RoomVisibilityState.Public -> {

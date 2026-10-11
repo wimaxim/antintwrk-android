@@ -82,6 +82,50 @@ class ConfigureRoomPresenterTest : RobolectricTest() {
     val warmUpRule = WarmUpRule()
 
     @Test
+    fun `managed group rejects one distinct other user including duplicates and self`() = runTest {
+        val client = createMatrixClient()
+        client.createRoomResult = { error("Insufficient participants must never create a room") }
+        val user = io.element.android.libraries.matrix.api.user.MatrixUser(io.element.android.libraries.matrix.api.core.UserId("@one:antintwrk.com"))
+        val presenter = createConfigureRoomPresenter(
+            matrixClient = client,
+            initialInvites = listOf(user, user.copy(displayName = "Renamed"), io.element.android.libraries.matrix.api.user.MatrixUser(client.sessionId)),
+        )
+        presenter.test {
+            val state = initialState()
+            assertThat(state.config.invites).containsExactly(user)
+            state.eventSink(ConfigureRoomEvent.RoomNameChanged("Group"))
+            val named = awaitItem()
+            assertThat(named.isValid).isFalse()
+            named.eventSink(ConfigureRoomEvent.CreateRoom)
+            advanceUntilIdle()
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun `managed group creates with two initial invitations in one request`() = runTest {
+        val client = createMatrixClient()
+        val users = listOf("@one:antintwrk.com", "@two:antintwrk.com").map {
+            io.element.android.libraries.matrix.api.user.MatrixUser(io.element.android.libraries.matrix.api.core.UserId(it))
+        }
+        val create = lambdaRecorder<CreateRoomParameters, Result<RoomId>> { Result.success(A_ROOM_ID) }
+        client.createRoomResult = create
+        val presenter = createConfigureRoomPresenter(matrixClient = client, initialInvites = users)
+        presenter.test {
+            val state = initialState()
+            state.eventSink(ConfigureRoomEvent.RoomNameChanged("Group"))
+            val named = awaitItem()
+            assertThat(named.isValid).isTrue()
+            named.eventSink(ConfigureRoomEvent.CreateRoom)
+            assertThat(awaitItem().createRoomAction.isLoading()).isTrue()
+            assertThat(awaitItem().createRoomAction.isSuccess()).isTrue()
+            create.assertions().isCalledOnce().with(matching<CreateRoomParameters> {
+                !it.isDirect && it.isEncrypted && it.invite.orEmpty().toSet() == users.map { user -> user.userId }.toSet()
+            })
+        }
+    }
+
+    @Test
     fun `present - initial state`() = runTest {
         val presenter = createConfigureRoomPresenter()
         presenter.test {
@@ -569,6 +613,7 @@ class ConfigureRoomPresenterTest : RobolectricTest() {
 
     private fun createConfigureRoomPresenter(
         isSpace: Boolean = false,
+        initialInvites: List<io.element.android.libraries.matrix.api.user.MatrixUser> = emptyList(),
         initialParenSpaceId: RoomId? = null,
         roomAliasHelper: RoomAliasHelper = FakeRoomAliasHelper(),
         dataStore: CreateRoomConfigStore = CreateRoomConfigStore(roomAliasHelper),
@@ -582,6 +627,7 @@ class ConfigureRoomPresenterTest : RobolectricTest() {
         sessionEnterpriseService: FakeSessionEnterpriseService = FakeSessionEnterpriseService(isEncryptionDisabledResult = { false }),
     ) = ConfigureRoomPresenter(
         isSpace = isSpace,
+        initialInvites = initialInvites,
         initialParentSpaceId = initialParenSpaceId,
         dataStore = dataStore,
         matrixClient = matrixClient,

@@ -363,6 +363,21 @@ class RoomDetailsViewTest : RobolectricTest() {
         }
     }
     @Config(qualifiers = "h2048dp")
+    @Test fun `managed DM settings hides People even before member details load`() = runAndroidComposeUiTest {
+        setRoomDetailView(
+            state = aRoomDetailsState(eventSink = EventsRecorder(expectEvents = false)).copy(isDm = true),
+            managedSocial = true,
+        )
+        assertNoNodeWithText(CommonStrings.common_people)
+    }
+
+    @Config(qualifiers = "h2048dp")
+    @Test fun `managed group settings retains People`() = runAndroidComposeUiTest {
+        setRoomDetailView(state = aRoomDetailsState(eventSink = EventsRecorder(expectEvents = false)), managedSocial = true)
+        onNodeWithText(activity!!.getString(CommonStrings.common_people)).assertExists()
+    }
+
+    @Config(qualifiers = "h2048dp")
     @Test fun `managed DM has no invite or leave action and confirms hiding`() = runAndroidComposeUiTest {
         val recorder = EventsRecorder<RoomDetailsEvent>()
         setRoomDetailView(state = aRoomDetailsState(

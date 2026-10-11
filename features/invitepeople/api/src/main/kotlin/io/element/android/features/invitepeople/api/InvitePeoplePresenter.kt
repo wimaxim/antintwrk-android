@@ -19,11 +19,12 @@ interface InvitePeoplePresenter : Presenter<InvitePeopleState> {
     interface Factory {
         /**
          * @param joinedRoom the room to invite into, or `null` when the room does not exist yet, as when inviting from a direct message.
-         * @param roomId the id of the room to invite into.
+         * @param roomId the room to invite into, or `null` to select participants before creating a room.
+         * Selection-only hosts consume selectedUsers and must not send SendInvites.
          */
         fun create(
             joinedRoom: JoinedRoom?,
-            roomId: RoomId,
+            roomId: RoomId?,
         ): InvitePeoplePresenter
     }
 }

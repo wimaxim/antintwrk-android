@@ -43,11 +43,12 @@ class ConfigureRoomNode(
     data class Inputs(
         val isSpace: Boolean,
         val parentSpaceId: RoomId?,
+        val invites: List<io.element.android.libraries.matrix.api.user.MatrixUser> = emptyList(),
     ) : NodeInputs, Parcelable
 
     private val inputs = inputs<Inputs>()
 
-    private val presenter = presenterFactory.create(inputs.isSpace, inputs.parentSpaceId)
+    private val presenter = presenterFactory.create(inputs.isSpace, inputs.parentSpaceId, inputs.invites)
 
     init {
         lifecycle.subscribe(

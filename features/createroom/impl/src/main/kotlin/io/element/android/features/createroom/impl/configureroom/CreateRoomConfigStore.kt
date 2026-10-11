@@ -13,6 +13,7 @@ import dev.zacsweers.metro.Inject
 import io.element.android.libraries.androidutils.file.safeDelete
 import io.element.android.libraries.matrix.api.room.alias.RoomAliasHelper
 import io.element.android.libraries.matrix.api.spaces.SpaceRoom
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
@@ -31,6 +32,10 @@ class CreateRoomConfigStore(
         }
 
     fun getCreateRoomConfigFlow(): StateFlow<CreateRoomConfig> = createRoomConfigFlow
+
+    fun setInvites(users: List<io.element.android.libraries.matrix.api.user.MatrixUser>) {
+        createRoomConfigFlow.getAndUpdate { it.copy(invites = users.distinctBy { user -> user.userId }.toImmutableList()) }
+    }
 
     fun setRoomName(roomName: String) {
         createRoomConfigFlow.getAndUpdate { config ->

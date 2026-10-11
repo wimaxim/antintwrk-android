@@ -164,3 +164,8 @@ Display own app versions without the test marker. Managed 1:1 Delete chat only h
 ## Unified app invitations — 11 October 2026
 
 The owner's new instruction supersedes the contact picker/SMS-only invitation rule above. All invitations to install/join the app (common Settings, Chats plus menu and the messenger InviteFriendsUseCase) open the standard system text sharesheet immediately. Use the same localized screen_ant_invite_message and public https://antintwrk.com; no Matrix permalink/IDs/transport domain, forced target app, contacts lookup or automatic sending. Recipient and final send remain user-controlled. Existing-group membership invitation is a separate action. Port this contract with UIActivityViewController on iOS and document both entry paths.
+
+
+## Managed group creation and DM settings — 11 October 2026
+
+New room from Chats plus is a group: select at least two distinct users other than the actor before creating anything on the server. No Skip; collect selections first, include invitations in createRoom and guard both UI and presenter. Spaces themselves retain their folder workflow. Personal chats are created through Social profile routes or messenger user search. Hide People in managed DM settings from authoritative isDm even before the other member is loaded. Explicit operator test-history resets preserve account identities/recovery and must never become automatic error recovery; document server versus device cleanup.

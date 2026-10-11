@@ -14,4 +14,5 @@
     <string name="screen_ant_hide_chat_failed">Der Chat konnte nicht ausgeblendet werden. Versuche es erneut.</string>
     <string name="screen_ant_encryption_feature">Ende-zu-Ende-Verschlüsselung</string>
     <string name="screen_ant_encrypted_chat">Ende-zu-Ende verschlüsselt</string>
+    <string name="screen_ant_group_minimum_people">Wähle mindestens zwei Personen aus, um eine Gruppe zu erstellen.</string>
 </resources>

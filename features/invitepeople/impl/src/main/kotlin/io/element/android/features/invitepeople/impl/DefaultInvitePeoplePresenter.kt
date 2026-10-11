@@ -71,7 +71,7 @@ private const val MAX_SUGGESTIONS_COUNT = 5
 @AssistedInject
 class DefaultInvitePeoplePresenter(
     @Assisted private val joinedRoom: JoinedRoom?,
-    @Assisted private val roomId: RoomId,
+    @Assisted private val roomId: RoomId?,
     private val userRepository: UserRepository,
     private val coroutineDispatchers: CoroutineDispatchers,
     @SessionCoroutineScope private val sessionCoroutineScope: CoroutineScope,
@@ -81,12 +81,14 @@ class DefaultInvitePeoplePresenter(
     @AssistedFactory
     @ContributesBinding(SessionScope::class)
     interface Factory : InvitePeoplePresenter.Factory {
-        override fun create(joinedRoom: JoinedRoom?, roomId: RoomId): DefaultInvitePeoplePresenter
+        override fun create(joinedRoom: JoinedRoom?, roomId: RoomId?): DefaultInvitePeoplePresenter
     }
 
     @Composable
     override fun present(): InvitePeopleState {
-        val roomMembers = remember { mutableStateOf<AsyncData<ImmutableList<RoomMember>>>(AsyncData.Loading()) }
+        val roomMembers = remember {
+            mutableStateOf<AsyncData<ImmutableList<RoomMember>>>(if (roomId == null) AsyncData.Success(persistentListOf()) else AsyncData.Loading())
+        }
         val selectedUsers = remember { mutableStateOf<ImmutableList<MatrixUser>>(persistentListOf()) }
         val searchResults = remember { mutableStateOf<SearchBarResultState<ImmutableList<InvitableUser>>>(SearchBarResultState.Initial) }
         val queryState = rememberTextFieldState()
@@ -124,7 +126,7 @@ class DefaultInvitePeoplePresenter(
         }
 
         val room by produceState(if (joinedRoom != null) AsyncData.Success(joinedRoom) else AsyncData.Loading()) {
-            if (joinedRoom == null) {
+            if (joinedRoom == null && roomId != null) {
                 val result = matrixClient.getJoinedRoom(roomId)
                 value = if (result == null) {
                     AsyncData.Failure(Exception("Room not found"))
@@ -144,6 +146,7 @@ class DefaultInvitePeoplePresenter(
                 .filterKeys { it in selected }
 
             val uncached = selected
+                .filter { roomId != null }
                 .filterNot(cached::containsKey)
                 .associateWith { user ->
                     matrixClient.encryptionService
@@ -191,6 +194,7 @@ class DefaultInvitePeoplePresenter(
                     }
 
                     is DefaultInvitePeopleEvent.ToggleUser -> {
+                        if (roomId == null && event.user.userId == matrixClient.sessionId) return
                         selectedUsers.toggleUser(event.user)
                         searchResults.toggleUser(event.user)
                         // suggestions will automatically update via derivedStateOf when selectedUsers changes
@@ -208,6 +212,7 @@ class DefaultInvitePeoplePresenter(
                     }
                 }
                 is InvitePeopleEvent.SendInvites -> {
+                    if (roomId == null) return // Selection-only hosts create later with atomic initial invitations.
                     if (unknownUsers.isNotEmpty() && sendInvitesAction.value !is ConfirmingUnknownUserInvitation) {
                         sendInvitesAction.value = ConfirmingUnknownUserInvitation(
                             unknownUsers
@@ -236,7 +241,7 @@ class DefaultInvitePeoplePresenter(
         }
 
         return DefaultInvitePeopleState(
-            room = room.map { },
+            room = if (roomId == null) AsyncData.Success(Unit) else room.map { },
             canInvite = selectedUsers.value.isNotEmpty() && !sendInvitesAction.value.isLoading(),
             selectedUsers = selectedUsers.value,
             searchQuery = queryState,

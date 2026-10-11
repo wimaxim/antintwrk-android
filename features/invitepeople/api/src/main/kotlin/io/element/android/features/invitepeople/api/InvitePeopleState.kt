@@ -15,6 +15,10 @@ import io.element.android.libraries.matrix.api.core.RoomId
  * State of the invite people UI, produced by an [InvitePeoplePresenter] and consumed by an [InvitePeopleRenderer].
  */
 interface InvitePeopleState {
+    /** Selected users for hosts which collect participants before creating a room. */
+    val selectedUsers: kotlinx.collections.immutable.ImmutableList<io.element.android.libraries.matrix.api.user.MatrixUser>
+        get() = kotlinx.collections.immutable.persistentListOf()
+
     /** Whether the send button should be enabled, i.e. at least one user is selected and the user has the permission. */
     val canInvite: Boolean
 

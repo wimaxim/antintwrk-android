@@ -256,11 +256,13 @@ fun RoomDetailsView(
             when (state.roomType) {
                 is RoomDetailsType.Room -> {
                     PreferenceCategory {
-                        MembersItem(
+                        if (!managedSocial || !state.isDm) {
+                            MembersItem(
                             memberCount = state.memberCount,
                             hasVerificationViolations = state.hasMemberVerificationViolations,
                             openRoomMemberList = openRoomMemberList,
                         )
+                        }
                         if (state.canShowKnockRequests) {
                             KnockRequestsItem(
                                 knockRequestsCount = state.knockRequestsCount,

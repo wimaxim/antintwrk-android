@@ -30,5 +30,6 @@ data class ConfigureRoomState(
 ) {
     val isValid: Boolean = config.roomName?.isNotEmpty() == true &&
         (config.visibilityState is RoomVisibilityState.Private || roomAddressValidity == RoomAddressValidity.Valid) &&
-        config.visibilityState.joinRuleItem in availableJoinRules
+        config.visibilityState.joinRuleItem in availableJoinRules &&
+        (!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH || isSpace || config.invites.distinctBy { it.userId }.size >= 2)
 }

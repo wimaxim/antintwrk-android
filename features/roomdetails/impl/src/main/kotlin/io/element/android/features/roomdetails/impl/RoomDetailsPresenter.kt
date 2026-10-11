@@ -205,6 +205,7 @@ class RoomDetailsPresenter(
             canEdit = roomType == RoomDetailsType.Room && permissions.editDetailsPermissions.hasAny,
             roomCallState = roomCallState,
             roomType = roomType,
+            isDm = isDm,
             dmOtherMemberDetailsState = dmOtherMemberDetailsState,
             leaveRoomState = leaveRoomState,
             roomNotificationSettings = roomNotificationSettingsState.roomNotificationSettings(),

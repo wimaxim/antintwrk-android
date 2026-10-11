@@ -15,6 +15,7 @@ import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import com.bumble.appyx.core.plugin.Plugin
 import com.bumble.appyx.navmodel.backstack.BackStack
+import com.bumble.appyx.navmodel.backstack.operation.push
 import com.bumble.appyx.navmodel.backstack.operation.replace
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedInject
@@ -54,11 +55,26 @@ class CreateRoomFlowNode(
 
     override fun resolve(navTarget: NavTarget, buildContext: BuildContext): Node {
         return when (navTarget) {
+            is NavTarget.SelectPeople -> {
+                val inputs = AddPeopleNode.Inputs(roomId = null)
+                val callback = object : AddPeopleNode.Callback {
+                    override fun onFinish() = Unit
+                    override fun onPeopleSelected(users: List<io.element.android.libraries.matrix.api.user.MatrixUser>) {
+                        val distinct = users.distinctBy { it.userId }
+                        if (distinct.size >= 2) backstack.push(NavTarget.ConfigureRoom(false, navTarget.parentSpaceId, distinct))
+                    }
+                }
+                createNode<AddPeopleNode>(buildContext, plugins = listOf(inputs, callback))
+            }
             is NavTarget.ConfigureRoom -> {
-                val inputs = ConfigureRoomNode.Inputs(isSpace = navTarget.isSpace, parentSpaceId = navTarget.parentSpaceId)
+                val inputs = ConfigureRoomNode.Inputs(isSpace = navTarget.isSpace, parentSpaceId = navTarget.parentSpaceId, invites = navTarget.invites)
                 val callback = object : ConfigureRoomNode.Callback {
                     override fun onCreateRoomSuccess(roomId: RoomId) {
-                        backstack.replace(NavTarget.AddPeople(roomId))
+                        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && !navTarget.isSpace) {
+                            this@CreateRoomFlowNode.callback.onRoomCreated(roomId)
+                        } else {
+                            backstack.replace(NavTarget.AddPeople(roomId))
+                        }
                     }
                 }
                 createNode<ConfigureRoomNode>(buildContext, plugins = listOf(inputs, callback))
@@ -82,14 +98,26 @@ class CreateRoomFlowNode(
 
     sealed interface NavTarget : Parcelable {
         @Parcelize
-        data class ConfigureRoom(val isSpace: Boolean, val parentSpaceId: RoomId?) : NavTarget
+        data class ConfigureRoom(
+            val isSpace: Boolean,
+            val parentSpaceId: RoomId?,
+            val invites: List<io.element.android.libraries.matrix.api.user.MatrixUser> = emptyList(),
+        ) : NavTarget
+
+        @Parcelize
+        data class SelectPeople(val parentSpaceId: RoomId?) : NavTarget
 
         @Parcelize
         data class AddPeople(val roomId: RoomId) : NavTarget
     }
 }
 
-private fun initialElementFromInputs(inputs: CreateRoomFlowNode.Inputs) = CreateRoomFlowNode.NavTarget.ConfigureRoom(
-    isSpace = inputs.isSpace,
-    parentSpaceId = inputs.parentSpaceId,
-)
+private fun initialElementFromInputs(inputs: CreateRoomFlowNode.Inputs): CreateRoomFlowNode.NavTarget =
+    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && !inputs.isSpace) {
+        CreateRoomFlowNode.NavTarget.SelectPeople(inputs.parentSpaceId)
+    } else {
+        CreateRoomFlowNode.NavTarget.ConfigureRoom(
+            isSpace = inputs.isSpace,
+            parentSpaceId = inputs.parentSpaceId,
+        )
+    }

@@ -64,6 +64,24 @@ internal class DefaultInvitePeoplePresenterTest {
     val warmUpRule = WarmUpRule()
 
     @Test
+    fun `selection only collects other users without looking up a room or sending invites`() = runTest {
+        val client = FakeMatrixClient()
+        val presenter = createDefaultInvitePeoplePresenter(joinedRoom = null, roomId = null, matrixClient = client)
+        presenter.test {
+            val state = awaitLastSequentialItem() as DefaultInvitePeopleState
+            assertThat(state.room).isEqualTo(AsyncData.Success(Unit))
+            state.eventSink(DefaultInvitePeopleEvent.ToggleUser(io.element.android.libraries.matrix.api.user.MatrixUser(client.sessionId)))
+            expectNoEvents()
+            val user = aMatrixUser(id = "@other:antintwrk.com")
+            state.eventSink(DefaultInvitePeopleEvent.ToggleUser(user))
+            val selected = awaitLastSequentialItem() as DefaultInvitePeopleState
+            assertThat(selected.selectedUsers).containsExactly(user)
+            selected.eventSink(InvitePeopleEvent.SendInvites)
+            expectNoEvents()
+        }
+    }
+
+    @Test
     fun `present - initial state has no results and no search`() = runTest {
         val presenter = createDefaultInvitePeoplePresenter()
         presenter.test {
@@ -911,7 +929,7 @@ fun TestScope.createDefaultInvitePeoplePresenter(
     ).apply {
         givenRoomMembersState(roomMembersState)
     },
-    roomId: RoomId = A_ROOM_ID,
+    roomId: RoomId? = A_ROOM_ID,
     userRepository: UserRepository = FakeUserRepository(),
     coroutineDispatchers: CoroutineDispatchers = testCoroutineDispatchers(),
     appErrorStateService: AppErrorStateService = FakeAppErrorStateService(),

@@ -14,4 +14,5 @@
     <string name="screen_ant_hide_chat_failed">تعذر إخفاء المحادثة. حاول مرة أخرى.</string>
     <string name="screen_ant_encryption_feature">التشفير التام بين الطرفين</string>
     <string name="screen_ant_encrypted_chat">مشفّر تمامًا بين الطرفين</string>
+    <string name="screen_ant_group_minimum_people">اختر شخصين على الأقل لإنشاء مجموعة.</string>
 </resources>

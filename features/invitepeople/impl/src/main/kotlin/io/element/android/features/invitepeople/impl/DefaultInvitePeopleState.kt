@@ -24,7 +24,7 @@ data class DefaultInvitePeopleState(
     val searchQuery: TextFieldState,
     val showSearchLoader: Boolean,
     val searchResults: SearchBarResultState<ImmutableList<InvitableUser>>,
-    val selectedUsers: ImmutableList<MatrixUser>,
+    override val selectedUsers: ImmutableList<MatrixUser>,
     override val isSearchActive: Boolean,
     override val sendInvitesAction: AsyncAction<Unit>,
     override val createRoomFromDmAction: AsyncAction<RoomId>,
