@@ -9,6 +9,7 @@
 @file:Suppress("UnstableApiUsage")
 
 import extension.allFeaturesApi
+import extension.antintwrkVersionName
 import extension.setupDependencyInjection
 import extension.testCommonDependencies
 
@@ -35,11 +36,15 @@ android {
         )
         buildConfigField("String", "ANTINTWRK_SOCIAL_ORIGIN", "\"https://antimsg.com\"")
         buildConfigField("boolean", "ANTINTWRK_NATIVE_AUTH", providers.gradleProperty("antintwrkNativeAuth").orElse("false").get())
+        buildConfigField("String", "ANTINTWRK_APP_VERSION", "\"${antintwrkVersionName()}\"")
         buildConfigField(
             "boolean",
             "ANTINTWRK_WEB_FEED",
             providers.gradleProperty("antintwrkWebFeed").map { it.toBoolean().toString() }.orElse("false").get()
         )
+    }
+    buildTypes.matching { it.name == "nightly" }.configureEach {
+        buildConfigField("String", "ANTINTWRK_APP_VERSION", "\"${antintwrkVersionName()}-nightly\"")
     }
 }
 

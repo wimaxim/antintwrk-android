@@ -6,7 +6,7 @@ Automate technical friction for users wherever data safety and the agreed trust 
 
 ## User-Agent соцсети — 7 октября 2026
 
-Для социальных native API и встроенного веба Android/iOS User-Agent обязательно содержит `(+https://qwertynetworks.com)` — URL компании разработчика. Android: `ANTINTWRK Android native-client/1.0 (+https://qwertynetworks.com)`; iOS: `ANTINTWRK iOS native-client/1.0 (+https://qwertynetworks.com)`. Версию обновлять централизованно, URL сохранять. Владелец считает этот маркер достаточным для отнесения User-Agent к относительно доверенным на стороне веба; это классификация клиента, серверная авторизация по сессии сохраняется. Для iOS при подготовке исходников перенести правило в локальный AGENTS.md и настроить одинаковый UA в URLSession/WKWebView. Android использует одну константу для native auth API/WebView; Matrix SDK этим правилом не изменяется.
+Для социальных native API и встроенного веба Android/iOS User-Agent обязательно содержит `(+https://qwertynetworks.com)` — URL компании разработчика. Android: `ANTINTWRK Android native-client/1.0 app/<versionName> (+https://qwertynetworks.com)`; iOS: `ANTINTWRK iOS native-client/1.0 app/<CFBundleShortVersionString> (+https://qwertynetworks.com)`. `native-client/1.0` — версия протокола; app/version — версия установленного приложения из общего источника сборки, без R/G. Старые приложения без app/version сохраняют совместимость. Версию обновлять централизованно, URL сохранять. Владелец считает этот маркер достаточным для отнесения User-Agent к относительно доверенным на стороне веба; это классификация клиента, серверная авторизация по сессии сохраняется. Для iOS при подготовке исходников перенести правило в локальный AGENTS.md и настроить одинаковый UA в URLSession/WKWebView. Android использует одну константу для native auth API/WebView; Matrix SDK этим правилом не изменяется.
 
 > **Repo:** `element-hq/element-x-android` — Android Matrix client (Compose UI + `matrix-rust-sdk`).
 
@@ -179,3 +179,8 @@ Managed personal chats hide Invite/Share/People using direct metadata even befor
 ## Personal-chat actions and reciprocal reply — 11 October 2026
 
 Own SDK uses Matrix-spec direct metadata, never two-member-count alone to identify DM. Settings and long-press menus replace Leave with local Delete in personal chats before member details load, with event-level leave guards. Explicit social/search intent to write accepts a matching incoming personal invitation and opens its original ID; never auto-accept on startup or fall back to another create after join/sync failure. Both routes share validation and actor-bound create/recheck serialization. Keep iOS contract and actual validation in shared docs/personal-chat-reply-2026-10-11.md. Do not reset rooms/identities/keys as recovery.
+
+
+## Versioned social requests — 11 October 2026
+
+Keep the actual installed product version in the centralized social User-Agent for native HTTP and every embedded WebView, on both social origins. Preserve native-client/1.0 and (+https://qwertynetworks.com); never put R/G, identities or secrets in it. Build/version metadata must share one source. Explicit operator room resets preserve account identities and recovery, never become automatic client recovery. See shared docs/client-version-and-reset-2026-10-11.md and Google Play launch plan for verified release boundaries.

@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import com.google.common.truth.Truth.assertThat
+import io.element.android.appnav.BuildConfig
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.tests.testutils.robolectric.RobolectricTest
 import io.element.android.tests.testutils.setSafeContent
@@ -382,6 +383,10 @@ class AntintwrkWebFeedTest : RobolectricTest() {
             assertThat(original.url).contains("/hero-feed?app=1")
             assertThat(original.settings.javaScriptEnabled).isTrue()
             assertThat(original.settings.domStorageEnabled).isTrue()
+            if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                assertThat(original.settings.userAgentString).isEqualTo(AntintwrkNativeAuthClient.USER_AGENT)
+                assertThat(original.settings.userAgentString).contains("app/${BuildConfig.ANTINTWRK_APP_VERSION} ")
+            }
             assertThat(original.settings.useWideViewPort).isTrue()
             assertThat(original.settings.loadWithOverviewMode).isTrue()
             assertThat(original.settings.textZoom).isEqualTo(100)

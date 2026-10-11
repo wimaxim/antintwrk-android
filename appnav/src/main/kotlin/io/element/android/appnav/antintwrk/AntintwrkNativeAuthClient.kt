@@ -38,7 +38,7 @@ internal class AntintwrkNativeAuthClient(
     private val transferEpoch: Long? = null,
 ) {
     companion object {
-        const val USER_AGENT = "ANTINTWRK Android native-client/1.0 (+https://qwertynetworks.com)"
+        const val USER_AGENT = "ANTINTWRK Android native-client/1.0 app/${BuildConfig.ANTINTWRK_APP_VERSION} (+https://qwertynetworks.com)"
     }
 
     private suspend fun post(action: String, fields: Map<String, String> = emptyMap(), cookieSnapshot: String? = null): String = withContext(Dispatchers.IO) {

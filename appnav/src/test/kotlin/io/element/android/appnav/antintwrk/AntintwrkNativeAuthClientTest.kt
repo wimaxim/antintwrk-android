@@ -5,6 +5,7 @@ package io.element.android.appnav.antintwrk
 
 import android.webkit.CookieManager
 import com.google.common.truth.Truth.assertThat
+import io.element.android.appnav.BuildConfig
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
@@ -69,6 +70,8 @@ class AntintwrkNativeAuthClientTest {
             assertThat(request.method).isEqualTo("POST")
             assertThat(request.getHeader("X-Antintwrk-Client")).isEqualTo("native")
             assertThat(request.getHeader("User-Agent")).isEqualTo(AntintwrkNativeAuthClient.USER_AGENT)
+            assertThat(request.getHeader("User-Agent"))
+                .isEqualTo("ANTINTWRK Android native-client/1.0 app/${BuildConfig.ANTINTWRK_APP_VERSION} (+https://qwertynetworks.com)")
             assertThat(request.body.readUtf8()).isEqualTo("action=session")
         }
     }

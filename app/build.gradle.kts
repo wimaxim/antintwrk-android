@@ -20,6 +20,7 @@ import extension.allEnterpriseImpl
 import extension.allFeaturesImpl
 import extension.allLibrariesImpl
 import extension.allServicesImpl
+import extension.antintwrkVersionName
 import extension.buildConfigFieldStr
 import extension.locales
 import extension.setupDependencyInjection
@@ -93,7 +94,7 @@ android {
             Versions.VERSION_CODE
         }
         versionName = if (nativeSocial) {
-            providers.gradleProperty("antintwrkVersionName").orElse("1.0.5").get().replace(Regex("(?i)(?:^|[-.])test(?=[-.]|$)"), "").trim('-', '.')
+            antintwrkVersionName()
         } else {
             Versions.VERSION_NAME
         }

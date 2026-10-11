@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: AGPL-3.0-only */
+// SPDX-License-Identifier: AGPL-3.0-only
 package io.element.android.appnav.antintwrk
 
 import android.Manifest
@@ -12,14 +12,10 @@ import android.webkit.WebChromeClient
 import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.layout.Column
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import io.element.android.libraries.designsystem.preview.ElementPreview
-import io.element.android.libraries.designsystem.preview.PreviewsDayNight
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,9 +23,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import io.element.android.appnav.R
+import io.element.android.libraries.designsystem.preview.ElementPreview
+import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 import kotlinx.coroutines.Dispatchers
@@ -71,7 +71,8 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val file = capture
         val uri = captureUri
-        val accepted = result.resultCode == Activity.RESULT_OK && file != null && file.length() in 1..((if (file.extension == "jpg") 20L else 500L) * 1024 * 1024)
+        val accepted =
+            result.resultCode == Activity.RESULT_OK && file != null && file.length() in 1..((if (file.extension == "jpg") 20L else 500L) * 1024 * 1024)
         if (!accepted) file?.delete()
         if (result.resultCode == Activity.RESULT_OK && !accepted) {
             failure = true
@@ -108,8 +109,11 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
         }
     }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { allowed ->
-        if (allowed && controller.fileCallback != null && controller.view === owner && epoch == AntintwrkSocialCookieEpoch.current()) openCamera()
-        else failure = true
+        if (allowed && controller.fileCallback != null && controller.view === owner && epoch == AntintwrkSocialCookieEpoch.current()) {
+            openCamera()
+        } else {
+            failure = true
+        }
     }
     controller.launchFilePicker = { params ->
         owner = controller.view
@@ -117,14 +121,21 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
         failure = false
         if (socialCaptureKind(params.acceptTypes) == null) {
             runCatching { gallery.launch(params.createIntent()) }.onFailure { complete(null) }
-        } else request = params
+        } else {
+            request = params
+        }
     }
     request?.let { params ->
-        AntintwrkMediaSourceDialog(socialCaptureKind(params.acceptTypes) == "video", failure,
+        AntintwrkMediaSourceDialog(
+            socialCaptureKind(params.acceptTypes) == "video",
+            failure,
             onGallery = { runCatching { gallery.launch(params.createIntent()) }.onFailure { complete(null) } },
             onCamera = {
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) openCamera()
-                else permission.launch(Manifest.permission.CAMERA)
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    openCamera()
+                } else {
+                    permission.launch(Manifest.permission.CAMERA)
+                }
             },
             onCancel = { complete(null) },
         )
@@ -133,11 +144,17 @@ internal fun AntintwrkWebFilePicker(controller: AntintwrkWebFeedController) {
     val saver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/html")) { uri ->
         val document = controller.document
         controller.document = null
-        if (document != null) scope.launch {
+        if (document != null) {
+            scope.launch {
             val saved = uri != null && withContext(Dispatchers.IO) {
-                runCatching { requireNotNull(context.contentResolver.openOutputStream(uri)).use { it.write(document.content.toByteArray(Charsets.UTF_8)) } }.isSuccess
+                runCatching {
+                    requireNotNull(
+                    context.contentResolver.openOutputStream(uri)
+                ).use { it.write(document.content.toByteArray(Charsets.UTF_8)) }
+                }.isSuccess
             }
             document.complete(saved)
+        }
         }
     }
     controller.launchDocumentSave = saver::launch

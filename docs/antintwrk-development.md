@@ -359,3 +359,8 @@ See [shared contract](../../docs/direct-actions-call-permission-2026-10-11.md). 
 ## 11 October: reciprocal personal-chat reply
 
 [Shared contract and iOS port](../../docs/personal-chat-reply-2026-10-11.md). MATRIX_SPEC/direct metadata governs native DM actions, including pre-profile Settings and context menus; stale Leave events are blocked. Explicit social/search writing accepts matching incoming requests through one validation helper and reuses their ID. Account-data/lazy-room sync and acknowledgement guards prevent replacement creation in these routes. Android1.0.17;104 managed checks passed/2 stock recovery cases skipped. User messages/history/keys were not reset. Local commits only; no push.
+
+
+## 11 October: social client version
+
+[Shared version/reset contract and iOS parity](../../docs/client-version-and-reset-2026-10-11.md). Installed own version and ANTINTWRK_APP_VERSION use one Gradle helper; every social UA includes app/version while protocol1.0/company marker stay intact.48 auth/WebView/routing checks pass. Current room/history operator reset was explicitly authorized; identities and recovery preserved. Android1.0.18. [Remaining Play steps](../../docs/play-launch-plan-2026-10-11.md). Local commits only; push by command.

@@ -42,7 +42,11 @@ internal fun AntintwrkIncomingShareView(
         controller.incomingImportBusy = true
         AntintwrkIncomingShares.consume(current)
         onSocial()
-        controller.navigate(AntintwrkWebPolicy(controller.origin).route(language, "hero-compose") + "&nativeShare=${current.id}", forceAdditional = true, allowRouting = false)
+        controller.navigate(
+            AntintwrkWebPolicy(controller.origin).route(language, "hero-compose") + "&nativeShare=${current.id}",
+            forceAdditional = true,
+            allowRouting = false
+        )
     }, onCancel = AntintwrkIncomingShares::clear)
 }
 
