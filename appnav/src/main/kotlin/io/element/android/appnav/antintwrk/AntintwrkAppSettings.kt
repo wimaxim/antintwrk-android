@@ -72,7 +72,7 @@ internal fun AntintwrkAppSettings(
     socialOrigin: String = AntintwrkSocialOrigins.RUSSIAN,
 ) {
     val context = LocalAntintwrkActivity.current ?: LocalContext.current
-    val inviteFriends = rememberAntintwrkSmsInvite()
+    val inviteFriends = rememberAntintwrkInviteShare()
     var choosingLanguage by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         AntintwrkBrandTheme {

@@ -159,3 +159,8 @@ Each explicitly accepted system Share starts a fresh actor-bound UUID composer; 
 ## Managed personal-chat deletion and own version — 10 October 2026
 
 Display own app versions without the test marker. Managed 1:1 Delete chat only hides the list entry on this device/account; never call leave/forget/delete or alter history, membership, keys or receipts. Persist visibility in the private session directory, restore automatically on a new received message (including still encrypted messages) and on an explicit room route. Filter before pagination and exclude hidden old unread counts; keep background room sync and new-message notifications. Groups retain membership invitation/leave. Explain visibility and automatic return in a confirmation. Original GNU LICENSE and upstream LICENSE-COMMERCIAL stay intact; own rights belong in PROJECT-NOTICES. Document Android/iOS parity and validate failure/cancellation/account isolation.
+
+
+## Unified app invitations — 11 October 2026
+
+The owner's new instruction supersedes the contact picker/SMS-only invitation rule above. All invitations to install/join the app (common Settings, Chats plus menu and the messenger InviteFriendsUseCase) open the standard system text sharesheet immediately. Use the same localized screen_ant_invite_message and public https://antintwrk.com; no Matrix permalink/IDs/transport domain, forced target app, contacts lookup or automatic sending. Recipient and final send remain user-controlled. Existing-group membership invitation is a separate action. Port this contract with UIActivityViewController on iOS and document both entry paths.

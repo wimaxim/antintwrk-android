@@ -205,7 +205,11 @@ private fun CreateRoomActionButtonsList(
         item {
             CreateRoomActionButton(
                 iconRes = CompoundDrawables.ic_compound_share_android,
-                text = stringResource(id = CommonStrings.action_invite_friends_to_app, state.applicationName),
+                text = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    stringResource(CommonStrings.screen_ant_invite_friends)
+                } else {
+                    stringResource(id = CommonStrings.action_invite_friends_to_app, state.applicationName)
+                },
                 onClick = onInvitePeopleClick,
             )
         }

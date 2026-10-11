@@ -93,7 +93,11 @@ class StartChatViewTest : RobolectricTest() {
                 ),
                 onInviteFriendsClick = it
             )
-            val text = activity!!.getString(CommonStrings.action_invite_friends_to_app, "test")
+            val text = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                activity!!.getString(CommonStrings.screen_ant_invite_friends)
+            } else {
+                activity!!.getString(CommonStrings.action_invite_friends_to_app, "test")
+            }
             onNodeWithText(text).performClick()
         }
     }

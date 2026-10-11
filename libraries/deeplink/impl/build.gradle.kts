@@ -15,6 +15,7 @@ plugins {
 
 android {
     namespace = "io.element.android.libraries.deeplink.impl"
+    testOptions.unitTests.isIncludeAndroidResources = true
 }
 
 setupDependencyInjection()

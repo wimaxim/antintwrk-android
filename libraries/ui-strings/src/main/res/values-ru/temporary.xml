@@ -7,7 +7,7 @@
     <string name="common_media_upload_quality">Качество отправляемых медиа</string>
     <string name="common_location_sharing">Передача геолокации</string>
     <string name="common_moderation_and_safety">Безопасность переписки</string>
-    <string name="screen_ant_invite_sms">Привет! Установи себе мессенджер и соцсеть ANTINTWRK.COM: https://antintwrk.com</string>
+    <string name="screen_ant_invite_message">Привет! Установи себе мессенджер и соцсеть ANTINTWRK.COM: https://antintwrk.com</string>
     <string name="screen_ant_invite_friends">Пригласить друзей</string>
     <string name="screen_ant_delete_chat">Удалить чат</string>
     <string name="screen_ant_delete_chat_explanation">Чат будет скрыт на этом устройстве. Переписка сохранится. Чат появится снова, когда собеседник напишет или вы снова откроете его.</string>

@@ -7,7 +7,7 @@
     <string name="common_media_upload_quality">Якість надісланих медіа</string>
     <string name="common_location_sharing">Передавання геолокації</string>
     <string name="common_moderation_and_safety">Безпека листування</string>
-    <string name="screen_ant_invite_sms">Привіт! Встанови месенджер і соцмережу ANTINTWRK.COM: https://antintwrk.com</string>
+    <string name="screen_ant_invite_message">Привіт! Встанови месенджер і соцмережу ANTINTWRK.COM: https://antintwrk.com</string>
     <string name="screen_ant_invite_friends">Запросити друзів</string>
     <string name="screen_ant_delete_chat">Видалити чат</string>
     <string name="screen_ant_delete_chat_explanation">Чат буде приховано на цьому пристрої. Листування збережеться. Чат знову зʼявиться, коли співрозмовник напише або ви відкриєте його.</string>

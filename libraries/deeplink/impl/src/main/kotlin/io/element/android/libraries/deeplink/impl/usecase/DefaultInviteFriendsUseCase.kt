@@ -29,6 +29,17 @@ class DefaultInviteFriendsUseCase(
     private val permalinkBuilder: PermalinkBuilder,
 ) : InviteFriendsUseCase {
     override fun execute(activity: Activity) {
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            val title = stringProvider.getString(CommonStrings.screen_ant_invite_friends)
+            activity.startSharePlainTextIntent(
+                activityResultLauncher = null,
+                chooserTitle = title,
+                text = stringProvider.getString(CommonStrings.screen_ant_invite_message),
+                extraTitle = title,
+                noActivityFoundMessage = stringProvider.getString(AndroidUtilsR.string.error_no_compatible_app_found),
+            )
+            return
+        }
         val permalinkResult = permalinkBuilder.permalinkForUser(matrixClient.sessionId)
         permalinkResult.fold(
             onSuccess = { permalink ->
