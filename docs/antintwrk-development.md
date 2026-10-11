@@ -369,3 +369,8 @@ See [shared contract](../../docs/direct-actions-call-permission-2026-10-11.md). 
 ## 11 October: actual logout and startup minimum
 
 [Shared cause, corrected cookie cleanup/admission isolation and iOS contract](../../docs/logout-startup-2026-10-11.md). Android1.0.19 removes Domain/Path/HttpOnly/SSO cookies from its private jar and gates new auth on completion, invalidates root-owned late results and preserves another actor from a late SDK logout. Visible startup animation is at least2s, background initialization retained and permission window deferred. No room/key reset or push.
+
+
+## 11 October: pending message key indicator
+
+[Shared UX and iOS parity](../../docs/message-keys-loading-2026-10-11.md). Managed encrypted waiting bubbles use localized inline progress; decrypt updates replace them without refresh, other messages/composer stay available and explicit trust/withheld errors remain. Android1.0.20. No server/key/history reset or push.

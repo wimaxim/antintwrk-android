@@ -16,4 +16,5 @@
     <string name="screen_ant_encrypted_chat">مشفّر تمامًا بين الطرفين</string>
     <string name="screen_ant_group_minimum_people">اختر شخصين على الأقل لإنشاء مجموعة.</string>
     <string name="screen_ant_new_group_chat">محادثة جماعية جديدة</string>
+    <string name="screen_ant_message_keys_loading">جارٍ تحميل مفاتيح الرسالة…</string>
 </resources>

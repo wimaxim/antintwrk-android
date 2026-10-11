@@ -16,4 +16,5 @@
     <string name="screen_ant_encrypted_chat">Сквозное шифрование</string>
     <string name="screen_ant_group_minimum_people">Выберите минимум двух человек для создания группы.</string>
     <string name="screen_ant_new_group_chat">Новый групповой чат</string>
+    <string name="screen_ant_message_keys_loading">Получаем ключи сообщения…</string>
 </resources>

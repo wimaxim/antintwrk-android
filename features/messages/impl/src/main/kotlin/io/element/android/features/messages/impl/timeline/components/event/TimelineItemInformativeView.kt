@@ -19,12 +19,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import io.element.android.compound.theme.ElementTheme
 import io.element.android.libraries.designsystem.icons.CompoundDrawables
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
+import io.element.android.libraries.designsystem.theme.components.CircularProgressIndicator
 import io.element.android.libraries.designsystem.theme.components.Icon
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.ui.common.layout.ContentAvoidingLayoutData
@@ -35,7 +38,8 @@ fun TimelineItemInformativeView(
     iconDescription: String,
     @DrawableRes iconResourceId: Int,
     onContentLayoutChange: (ContentAvoidingLayoutData) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    loading: Boolean = false,
 ) {
     Row(
         modifier = modifier.onSizeChanged { size ->
@@ -51,12 +55,20 @@ fun TimelineItemInformativeView(
             contentAlignment = Alignment.Center,
             modifier = Modifier.height(20.dp)
         ) {
-            Icon(
+            if (loading) {
+                CircularProgressIndicator(
+                modifier = Modifier.size(16.dp).semantics { contentDescription = iconDescription },
+                color = ElementTheme.colors.iconSecondary,
+                strokeWidth = 2.dp,
+            )
+            } else {
+                Icon(
                 resourceId = iconResourceId,
                 tint = ElementTheme.colors.iconSecondary,
                 contentDescription = iconDescription,
                 modifier = Modifier.size(16.dp)
             )
+            }
         }
         Spacer(modifier = Modifier.width(4.dp))
         Text(

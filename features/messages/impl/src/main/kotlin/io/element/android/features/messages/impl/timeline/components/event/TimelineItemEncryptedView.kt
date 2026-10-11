@@ -64,13 +64,15 @@ fun TimelineItemEncryptedView(
         }
     }
     val automaticallyLoading = io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
-        textId == CommonStrings.common_waiting_for_decryption_key
+        (textId == CommonStrings.common_waiting_for_decryption_key ||
+            (content.data as? UnableToDecryptContent.Data.MegolmV1AesSha2)?.utdCause == UtdCause.SentBeforeWeJoined)
     TimelineItemInformativeView(
-        text = stringResource(id = if (automaticallyLoading) CommonStrings.common_loading else textId),
-        iconDescription = stringResource(id = if (automaticallyLoading) CommonStrings.common_loading else CommonStrings.dialog_title_warning),
+        text = stringResource(id = if (automaticallyLoading) CommonStrings.screen_ant_message_keys_loading else textId),
+        iconDescription = stringResource(id = if (automaticallyLoading) CommonStrings.screen_ant_message_keys_loading else CommonStrings.dialog_title_warning),
         iconResourceId = iconId,
         onContentLayoutChange = onContentLayoutChange,
-        modifier = modifier
+        modifier = modifier,
+        loading = automaticallyLoading,
     )
 }
 

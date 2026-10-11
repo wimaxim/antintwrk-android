@@ -16,4 +16,5 @@
     <string name="screen_ant_encrypted_chat">Ende-zu-Ende verschlüsselt</string>
     <string name="screen_ant_group_minimum_people">Wähle mindestens zwei Personen aus, um eine Gruppe zu erstellen.</string>
     <string name="screen_ant_new_group_chat">Neuer Gruppenchat</string>
+    <string name="screen_ant_message_keys_loading">Nachrichtenschlüssel werden geladen…</string>
 </resources>

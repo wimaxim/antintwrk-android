@@ -189,3 +189,8 @@ Keep the actual installed product version in the centralized social User-Agent f
 ## Logout isolation and startup animation — 11 October 2026
 
 Logout must remove every Domain/Path/HttpOnly variant in the app-private embedded cookie jar and await completion before new admission; never assume expiring a host-only cookie of the same name deletes a Domain cookie. Clear retained pages and identity hints, invalidate admission results/finally, preserve actor matching for late SDK logout, and use only old snapshots for best-effort revocation. A persisted logged-out installation must not revive old cookies on the next explicit login. Preserve histories/identities/recovery and external browser cookies. Startup animation lasts at least2 seconds of visible foreground frames while root initialization continues underneath; save elapsed time across recreation, do not repeat on warm resume, and defer permission screens until visible interval ends. Port this contract to iOS with its separate WKWebView/URLSession stores. See shared docs/logout-startup-2026-10-11.md.
+
+
+## Pending message keys — 11 October 2026
+
+Managed timeline waiting for keys shows localized inline indeterminate progress with an explanation. Remove it through SDK content updates without room refresh; keep readable history/composer available, and preserve explicit withheld/trust errors. Historical pending keys after join use the approved managed recovery contract, not a blanket denial. UI must not reset identities/history or bypass authorization. Record Android/iOS parity in shared docs/message-keys-loading-2026-10-11.md.

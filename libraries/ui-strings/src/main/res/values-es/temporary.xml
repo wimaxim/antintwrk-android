@@ -16,4 +16,5 @@
     <string name="screen_ant_encrypted_chat">Cifrado de extremo a extremo</string>
     <string name="screen_ant_group_minimum_people">Selecciona al menos a dos personas para crear un grupo.</string>
     <string name="screen_ant_new_group_chat">Nuevo chat de grupo</string>
+    <string name="screen_ant_message_keys_loading">Cargando las claves del mensaje…</string>
 </resources>
