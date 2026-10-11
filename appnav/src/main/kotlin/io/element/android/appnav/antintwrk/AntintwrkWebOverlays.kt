@@ -6,7 +6,7 @@ import android.webkit.WebView
 internal object AntintwrkWebOverlays {
     private var script: String? = null
     fun install(page: WebView, policy: AntintwrkWebPolicy) {
-        if (policy.embedded(page.url.orEmpty()) == null) return
+        if (!policy.sameOrigin(page.url.orEmpty()) || policy.embedded(page.url.orEmpty()) == null) return
         val source = script ?: page.context.assets.open("antintwrk-overlays.js").bufferedReader().use { it.readText() }.also { script = it }
         page.evaluateJavascript(source, null)
     }

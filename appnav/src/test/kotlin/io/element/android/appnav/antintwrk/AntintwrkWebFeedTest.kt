@@ -23,6 +23,31 @@ import org.junit.Test
 
 class AntintwrkWebFeedTest : RobolectricTest() {
     @Test
+    fun `legal reader keeps only localized agreement routes inside native presentation`() {
+        for ((route, canonical) in mapOf("terms" to "terms", "useragreement" to "terms", "privacy" to "privacy", "privacypolicy" to "privacy")) {
+            assertThat(policy.legalReader("https://antimsg.com/ru/$route?native_legal=0&native_legal=1&app=0#details"))
+                .isEqualTo("https://antimsg.com/ru/$canonical?native_legal=1#details")
+        }
+        for (url in listOf(
+            "https://evil.example/en/terms",
+                "https://antimsg.com/evil/en/terms",
+            "https://antimsg.com/en/profile",
+                "https://antimsg.com/zz/terms",
+                "http://antimsg.com/en/terms",
+            "https://antimsg.com:444/en/terms",
+                "https://user@antimsg.com/en/terms",
+        )) {
+            assertThat(policy.legalReader(url)).isNull()
+        }
+        assertThat(policy.embedded("https://antintwrk.com/en/useragreement"))
+            .isEqualTo("https://antimsg.com/en/terms?app=1")
+        assertThat(policy.embedded("https://antimsg.com/en/privacypolicy"))
+            .isEqualTo("https://antimsg.com/en/privacy?app=1")
+        assertThat(policy.legalReader("https://antintwrk.com/en/privacy"))
+            .isEqualTo("https://antimsg.com/en/privacy?native_legal=1")
+    }
+
+    @Test
     fun `selecting any tab returns to its root even after navigating to people`() {
         val controller = AntintwrkWebFeedController()
         val people = policy.route("en", "people")

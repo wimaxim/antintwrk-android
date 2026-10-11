@@ -41,6 +41,7 @@ internal class AntintwrkWebPolicy(val origin: String) {
         "terms",
         "useragreement",
         "privacy",
+        "privacypolicy",
         "dmca",
         "community",
         "safety",
@@ -50,12 +51,22 @@ internal class AntintwrkWebPolicy(val origin: String) {
     /** Canonicalise legacy navigation only; legacy origins never become trusted JS origins. */
     fun canonical(url: String): String {
         val uri = Uri.parse(url)
-        return if (uri.scheme == "https" && uri.host in setOf("antimsg.com", "antintwrk.com", "www.antintwrk.com") &&
+        val target = if (uri.scheme == "https" && uri.host in setOf("antimsg.com", "antintwrk.com", "www.antintwrk.com") &&
             uri.userInfo == null && uri.port in setOf(-1, 443)) {
-                uri.buildUpon().authority(base.authority).build().toString()
+                uri.buildUpon().authority(base.authority).build()
             } else {
-                url
+                uri
             }
+        val parts = target.pathSegments
+        if (sameOrigin(target.toString()) && parts.size == 2 && parts[0] in languages) {
+            val alias = when (parts[1]) {
+                "useragreement" -> "terms"
+                "privacypolicy" -> "privacy"
+                else -> null
+            }
+            if (alias != null) return target.buildUpon().path("/${parts[0]}/$alias").build().toString()
+        }
+        return target.toString()
     }
     fun sameOrigin(url: String): Boolean {
         val uri = Uri.parse(url)
@@ -76,6 +87,16 @@ internal class AntintwrkWebPolicy(val origin: String) {
     }
     fun route(language: String, path: String): String =
         "$origin/${language.takeIf { it in languages } ?: "en"}/$path?app=1"
+
+    /** A read-only registration reader accepts only our exact localized legal routes. */
+    fun legalReader(input: String): String? {
+        val url = canonical(input)
+        if (!sameOrigin(url)) return null
+        val uri = Uri.parse(url)
+        val parts = uri.pathSegments
+        if (parts.size != 2 || parts[0] !in languages || parts[1] !in setOf("terms", "useragreement", "privacy", "privacypolicy")) return null
+        return uri.buildUpon().clearQuery().appendQueryParameter("native_legal", "1").build().toString()
+    }
     fun feed(language: String): String = route(language, "hero-feed")
     fun root(language: String, section: AntintwrkSection, ownProfileIdentity: String? = null): String = route(
         language,

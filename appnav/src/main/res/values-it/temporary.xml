@@ -72,7 +72,7 @@
     <string name="screen_ant_menu_referrals">I miei invitati</string>
     <string name="screen_ant_menu_support">Assistenza</string>
     <string name="screen_ant_menu_about">Informazioni su antintwrk</string>
-    <string name="screen_ant_menu_terms">Condizioni e privacy</string>
+    <string name="screen_ant_menu_terms">Condizioni d’uso</string>
     <string name="screen_ant_auth_check_email">Controlla la posta</string>
     <string name="screen_ant_auth_email_required">Inserisci un indirizzo email valido.</string>
     <string name="screen_ant_auth_email_spam_hint">Se non trovi l’email, controlla la cartella Spam. Se è lì, contrassegnala come «Non spam».</string>

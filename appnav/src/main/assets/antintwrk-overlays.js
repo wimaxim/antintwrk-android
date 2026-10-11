@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Keep HTML dialogs within the actual WebView viewport; never inspect form contents.
 (() => {
+  document.documentElement.classList.add('antintwrk-native-surface');
   if (window.antintwrkOverlays) { window.antintwrkOverlays.update(); return; }
   const style = document.createElement('style');
-  style.textContent = `html dialog[open] {
+  style.textContent = `.antintwrk-native-surface .antintwrk-header,
+    .antintwrk-native-surface .antintwrk-footer,
+    .antintwrk-native-surface .hw-settings-sections-nav,
+    .antintwrk-native-surface .hw-settings-heading [data-public-profile-link],
+    .antintwrk-native-surface .ant-support-layout > aside { display:none!important; }
+    .antintwrk-native-surface .ant-support-layout { grid-template-columns:minmax(0,1fr)!important; }
+    html dialog[open] {
     position:fixed!important;
     inset-block-start:calc(var(--ant-native-dialog-top,0px) + 12px)!important;
     inset-block-end:auto!important;

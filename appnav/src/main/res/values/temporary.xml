@@ -72,7 +72,7 @@
     <string name="screen_ant_menu_referrals">My referrals</string>
     <string name="screen_ant_menu_support">Support</string>
     <string name="screen_ant_menu_about">About antintwrk</string>
-    <string name="screen_ant_menu_terms">Terms and privacy</string>
+    <string name="screen_ant_menu_terms">Terms</string>
     <string name="screen_ant_auth_check_email">Check your email</string>
     <string name="screen_ant_auth_email_required">Enter a valid email address.</string>
     <string name="screen_ant_auth_email_spam_hint">If the email is missing, check your Spam folder. If you find it there, mark it as “Not spam”.</string>

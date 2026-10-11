@@ -72,7 +72,7 @@
     <string name="screen_ant_menu_referrals">Mes parrainages</string>
     <string name="screen_ant_menu_support">Assistance</string>
     <string name="screen_ant_menu_about">À propos de antintwrk</string>
-    <string name="screen_ant_menu_terms">Conditions et confidentialité</string>
+    <string name="screen_ant_menu_terms">Conditions d’utilisation</string>
     <string name="screen_ant_auth_check_email">Consultez vos e-mails</string>
     <string name="screen_ant_auth_email_required">Saisissez une adresse e-mail valide.</string>
     <string name="screen_ant_auth_email_spam_hint">Si vous ne trouvez pas le message, vérifiez le dossier Spam. Si le message s’y trouve, marquez-le comme « Non spam ».</string>

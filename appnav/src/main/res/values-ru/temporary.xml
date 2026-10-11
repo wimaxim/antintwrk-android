@@ -72,7 +72,7 @@
     <string name="screen_ant_menu_referrals">Мои рефералы</string>
     <string name="screen_ant_menu_support">Поддержка</string>
     <string name="screen_ant_menu_about">Об antintwrk</string>
-    <string name="screen_ant_menu_terms">Условия и конфиденциальность</string>
+    <string name="screen_ant_menu_terms">Условия использования</string>
     <string name="screen_ant_auth_check_email">Проверьте почту</string>
     <string name="screen_ant_auth_email_required">Введите корректный адрес электронной почты.</string>
     <string name="screen_ant_auth_email_spam_hint">Если письма нет, проверьте папку «Спам». Если письмо оказалось там, пометьте его как «Не спам».</string>
