@@ -337,7 +337,15 @@ internal fun AntintwrkNativeAppView(
                 webController.authOrigin = AntintwrkSocialOrigins.PUBLIC
             })
         }
+        val admissionEpoch = retainedSurface?.admissionEpoch ?: remember { AntintwrkNavigationEpoch() }
+        var admissionPending by remember { mutableStateOf<Long?>(null) }
         suspend fun runRequest(revalidate: Boolean = false, request: suspend () -> AntintwrkAuthSession) {
+            if (revalidate && admissionPending == admissionEpoch.current) return
+            val operation = if (revalidate) admissionEpoch.current else admissionEpoch.advance()
+            admissionPending = operation
+            fun checkCurrent() {
+                if (operation != admissionEpoch.current) throw CancellationException("Admission superseded")
+            }
             // A transient background check must not destroy an already admitted page.
             var retainAdmission = antintwrkRetainAdmission(revalidate, session?.stage == AntintwrkAuthStage.AUTHENTICATED)
             backgroundValidationPending = false
@@ -347,6 +355,7 @@ internal fun AntintwrkNativeAppView(
             serverMessage = ""
             try {
                 val candidate = request()
+                checkCurrent()
                 if (candidate.stage == AntintwrkAuthStage.AUTHENTICATED) {
                     val previousActor = accountPreferences.getString("social-actor", null)
                     synchronized(io.element.android.libraries.push.api.PushAccountPolicyLock.monitor) {
@@ -380,6 +389,7 @@ internal fun AntintwrkNativeAppView(
                     }
                     AntintwrkMessengerRoutes.discardOtherActor(candidate.matrixUserId)
                     routing.prepare(AntintwrkNativeAuthClient(webController.authOrigin), candidate, webController)
+                    checkCurrent()
                 }
                 session = candidate
                 webController.ownProfileIdentity = candidate.profileIdentity
@@ -391,12 +401,14 @@ internal fun AntintwrkNativeAppView(
                 }
                 if (candidate.stage == AntintwrkAuthStage.DEVICE) client.startDevice(candidate.csrf)
             } catch (required: AntintwrkRegistrationRequired) {
+                checkCurrent()
                 googleRegistration = required.ticket
                 state.eventSink(AntintwrkWelcomeEvent.Open(AntintwrkPage.Profile))
                 state.eventSink(AntintwrkWelcomeEvent.Email(required.email))
                 state.eventSink(AntintwrkWelcomeEvent.FirstName(required.firstName))
                 state.eventSink(AntintwrkWelcomeEvent.Surname(required.surname))
             } catch (error: AntintwrkRequestError) {
+                checkCurrent()
                 retainAdmission = retainAdmission && antintwrkRetainAdmission(revalidate, true, error.code)
                 serverMessage = when (error.code) {
                     "PROFILE" -> profileError
@@ -407,6 +419,7 @@ internal fun AntintwrkNativeAppView(
                 }
                 failed = true
             } catch (error: AntintwrkAccountError) {
+                checkCurrent()
                 retainAdmission = false
                 serverMessage = error.messageForUser
                 failed = true
@@ -415,6 +428,7 @@ internal fun AntintwrkNativeAppView(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
+                checkCurrent()
                 failed = true
                 // An uncertain request never admits a user to the shell.
                 if (!retainAdmission && session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
@@ -422,6 +436,8 @@ internal fun AntintwrkNativeAppView(
                     webController.destroy()
                 }
             } finally {
+                if (operation == admissionEpoch.current) {
+                admissionPending = null
                 if (failed && !retainAdmission && session?.stage == AntintwrkAuthStage.AUTHENTICATED) {
                     session = null
                     webController.destroy()
@@ -430,6 +446,7 @@ internal fun AntintwrkNativeAppView(
                 sessionVerificationFailed = revalidate && failed && !retainAdmission
                 busy = false
                 code = ""
+                }
             }
         }
         LaunchedEffect(sessionVerificationFailed, backgroundValidationPending, foreground) {
@@ -676,6 +693,7 @@ internal fun AntintwrkNativeAppView(
         )
         val signOutRetry = stringResource(R.string.screen_ant_recovery_retry)
         fun signOut() {
+                admissionEpoch.advance()
                 if (matrixUserId != null && matrixUserId == (session?.matrixUserId ?: accountPreferences.getString("social-actor", null)) &&
                     onRequestSignOut != null) {
                     scope.launch {
@@ -718,10 +736,13 @@ internal fun AntintwrkNativeAppView(
                     return@launch
                 }
                 val pushFid = pushStore.fid
+                busy = true
+                webController.destroy()
                 val cookieSnapshot = client.clearLocalSession()
                 AntintwrkMessengerRoutes.clear()
                 AntintwrkAppNavigation.clear()
-                accountPreferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", current.matrixUserId).commit()
+                accountPreferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", current.matrixUserId)
+                    .remove("social-actor").remove("connect-messenger-for").commit()
                 AntintwrkIncomingShares.clear()
                 AntintwrkSocialPushRoutes.consume()
                 AntintwrkSocialProfileRoutes.consume()
@@ -735,8 +756,8 @@ internal fun AntintwrkNativeAppView(
                 webController.resetRouting()
                 webController.authOrigin = AntintwrkSocialOrigins.RUSSIAN
                 scope.launch {
-                    runRequest {
                     try {
+                        withTimeout(10_000) {
                         if (pushFid.isNotEmpty()) {
                             runCatching {
                             withTimeout(
@@ -745,12 +766,16 @@ internal fun AntintwrkNativeAppView(
                         }
                         }
                         client.logout(current.csrf, cookieSnapshot)
+                        }
+                    } catch (cancelled: CancellationException) {
+                        if (cancelled !is TimeoutCancellationException) throw cancelled
+                    } catch (_: Exception) {
+                        // The old server session cannot restore cookies or admission.
                     } finally {
-                        runCatching { credentials.clear() }
+                        if (accountPreferences.getBoolean("logged-out", false)) runCatching { credentials.clear() }
                     }
-                    AntintwrkNativeAuthClient(webController.authOrigin).session()
                 }
-                }
+                runRequest { AntintwrkNativeAuthClient(webController.authOrigin).session() }
                 }
                 }
         }
@@ -946,7 +971,12 @@ internal fun AntintwrkNativeAppView(
                         val email = state.email
                         val password = state.password
                         state.eventSink(AntintwrkWelcomeEvent.Password(""))
-                        scope.launch { runRequest { client.login(email, password, language, client.session().csrf) } }
+                    scope.launch {
+                        runRequest {
+                        if (accountPreferences.getBoolean("logged-out", false)) client.clearLocalSession()
+                        client.login(email, password, language, client.session().csrf)
+                    }
+                    }
                     }
                 } else if (!busy && event == AntintwrkWelcomeEvent.Continue && state.page in setOf(AntintwrkPage.Profile, AntintwrkPage.Reset)) {
                     if (state.page == AntintwrkPage.Reset && !presenter.canRequestEmail(state) ||
@@ -982,7 +1012,12 @@ internal fun AntintwrkNativeAppView(
                     event in setOf(AntintwrkWelcomeEvent.GoogleSignIn, AntintwrkWelcomeEvent.PasskeySignIn)) {
                     state.eventSink(AntintwrkWelcomeEvent.Password(""))
                     val provider = if (event == AntintwrkWelcomeEvent.GoogleSignIn) "google" else "passkey"
-                    scope.launch { runRequest { credentials.signIn(context, client, provider, (session ?: client.session()).csrf) } }
+                    scope.launch {
+                        runRequest {
+                        if (accountPreferences.getBoolean("logged-out", false)) client.clearLocalSession()
+                        credentials.signIn(context, client, provider, (session ?: client.session()).csrf)
+                    }
+                    }
                 } else if (!busy) {
                     failed = false
                     serverMessage = ""

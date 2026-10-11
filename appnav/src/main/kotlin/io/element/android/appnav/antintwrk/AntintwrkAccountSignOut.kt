@@ -20,7 +20,8 @@ internal object AntintwrkAccountSignOut {
         val fid = push.fid
         val snapshot = client.clearLocalSession()
         synchronized(io.element.android.libraries.push.api.PushAccountPolicyLock.monitor) {
-            preferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", matrixActor).remove("social-actor").commit()
+            preferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", matrixActor)
+                .remove("social-actor").remove("connect-messenger-for").commit()
             androidx.core.app.NotificationManagerCompat.from(context).cancelAll()
         }
         push.clear()

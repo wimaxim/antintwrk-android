@@ -184,3 +184,8 @@ Own SDK uses Matrix-spec direct metadata, never two-member-count alone to identi
 ## Versioned social requests — 11 October 2026
 
 Keep the actual installed product version in the centralized social User-Agent for native HTTP and every embedded WebView, on both social origins. Preserve native-client/1.0 and (+https://qwertynetworks.com); never put R/G, identities or secrets in it. Build/version metadata must share one source. Explicit operator room resets preserve account identities and recovery, never become automatic client recovery. See shared docs/client-version-and-reset-2026-10-11.md and Google Play launch plan for verified release boundaries.
+
+
+## Logout isolation and startup animation — 11 October 2026
+
+Logout must remove every Domain/Path/HttpOnly variant in the app-private embedded cookie jar and await completion before new admission; never assume expiring a host-only cookie of the same name deletes a Domain cookie. Clear retained pages and identity hints, invalidate admission results/finally, preserve actor matching for late SDK logout, and use only old snapshots for best-effort revocation. A persisted logged-out installation must not revive old cookies on the next explicit login. Preserve histories/identities/recovery and external browser cookies. Startup animation lasts at least2 seconds of visible foreground frames while root initialization continues underneath; save elapsed time across recreation, do not repeat on warm resume, and defer permission screens until visible interval ends. Port this contract to iOS with its separate WKWebView/URLSession stores. See shared docs/logout-startup-2026-10-11.md.

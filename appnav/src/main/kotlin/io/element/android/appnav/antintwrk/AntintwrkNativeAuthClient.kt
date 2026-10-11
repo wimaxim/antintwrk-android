@@ -41,7 +41,9 @@ internal class AntintwrkNativeAuthClient(
         const val USER_AGENT = "ANTINTWRK Android native-client/1.0 app/${BuildConfig.ANTINTWRK_APP_VERSION} (+https://qwertynetworks.com)"
     }
 
-    private suspend fun post(action: String, fields: Map<String, String> = emptyMap(), cookieSnapshot: String? = null): String = withContext(Dispatchers.IO) {
+    private suspend fun post(action: String, fields: Map<String, String> = emptyMap(), cookieSnapshot: String? = null): String {
+        if (cookieSnapshot == null) AntintwrkSocialCookieEpoch.awaitClear()
+        return withContext(Dispatchers.IO) {
         val epoch = transferEpoch ?: if (action in setOf("login", "passkey", "google", "google-register")) {
             AntintwrkSocialCookieEpoch.advance()
         } else {
@@ -75,6 +77,7 @@ internal class AntintwrkNativeAuthClient(
             val result = source.buffer.readUtf8()
             if (!response.isSuccessful) throw AntintwrkRequestError(runCatching { JSONObject(result).optString("error") }.getOrDefault(""), response.code)
             result
+        }
         }
     }
 
@@ -258,24 +261,23 @@ internal class AntintwrkNativeAuthClient(
 
     /** Clear immediately; return only an in-memory snapshot for bounded server cleanup. */
     fun clearLocalSession(): String = synchronized(AntintwrkSocialCookieEpoch.monitor) {
-        AntintwrkSocialCookieEpoch.advance()
+        val clearing = AntintwrkSocialCookieEpoch.beginClear()
         val cookies = CookieManager.getInstance()
         val snapshot = cookies.getCookie(origin).orEmpty()
-        snapshot.split(';').map { it.substringBefore('=').trim() }
-            .filter { it.matches(Regex("[A-Za-z0-9_-]+")) }.forEach { name ->
-                cookies.setCookie(origin, "$name=; Max-Age=0; Path=/; Secure; HttpOnly")
+        // This is the app-private WebView jar, not Chrome's browser cookies. Cookie
+        // names alone cannot delete Domain/Path/HttpOnly variants or MAS SSO state.
+        try {
+            android.webkit.WebStorage.getInstance().deleteAllData()
+            cookies.removeAllCookies {
+                runCatching { cookies.flush() }.fold(
+                    onSuccess = { clearing.complete(Unit) },
+                    onFailure = { clearing.completeExceptionally(it) },
+                )
             }
-        cookies.flush()
-        android.webkit.WebStorage.getInstance().deleteOrigin(origin)
-        // Both social transports may hold host-only cookies for this app's actor.
-        AntintwrkSocialOrigins.allowed.filter { it != origin }.forEach { target ->
-            val other = cookies.getCookie(target).orEmpty()
-            other.split(';').map { it.substringBefore('=').trim() }.filter { it.matches(Regex("[A-Za-z0-9_-]+")) }.forEach { name ->
-                cookies.setCookie(target, "$name=; Max-Age=0; Path=/; Secure; HttpOnly")
-            }
-            android.webkit.WebStorage.getInstance().deleteOrigin(target)
+        } catch (failure: Exception) {
+            clearing.completeExceptionally(failure)
+            throw failure
         }
-        cookies.flush()
         snapshot
     }
 

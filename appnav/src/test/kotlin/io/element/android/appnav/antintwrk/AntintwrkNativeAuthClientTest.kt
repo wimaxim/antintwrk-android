@@ -224,21 +224,53 @@ class AntintwrkNativeAuthClientTest {
     }
 
     @Test
-    fun `logout clears both social origins without touching messenger cookies`() {
+    fun `logout clears the whole private cookie jar including both domains and SSO`() {
         val cookies = mockk<CookieManager>(relaxed = true)
         every { cookies.getCookie("https://antimsg.com") } returns "fixture_source=ru"
         every { cookies.getCookie("https://antintwrk.com") } returns "fixture_target=public"
         mockkStatic(CookieManager::class)
         every { CookieManager.getInstance() } returns cookies
+        every { cookies.removeAllCookies(any()) } answers {
+            firstArg<android.webkit.ValueCallback<Boolean>>().onReceiveValue(true)
+        }
         try {
             AntintwrkNativeAuthClient().clearLocalSession()
-            verify { cookies.setCookie("https://antimsg.com", match { it.startsWith("fixture_source=;") && it.contains("Max-Age=0") }) }
-            verify { cookies.setCookie("https://antintwrk.com", match { it.startsWith("fixture_target=;") && it.contains("Max-Age=0") }) }
-            verify(exactly = 0) { cookies.getCookie("https://auth.antimsg.com") }
-            verify(exactly = 0) { cookies.setCookie("https://auth.antimsg.com", any()) }
+            verify(exactly = 1) { cookies.removeAllCookies(any()) }
+            verify(exactly = 0) { cookies.setCookie(any(), any()) }
         } finally {
             unmockkStatic(CookieManager::class)
         }
+    }
+
+    @Test
+    fun `new admission waits for the asynchronous cookie removal callback`() = runTest {
+        val cookies = mockk<CookieManager>(relaxed = true)
+        var callback: android.webkit.ValueCallback<Boolean>? = null
+        every { cookies.removeAllCookies(any()) } answers { callback = firstArg() }
+        mockkStatic(CookieManager::class)
+        every { CookieManager.getInstance() } returns cookies
+        try {
+            client.clearLocalSession()
+            server.enqueue(session("LOGIN"))
+            val pending = async(start = CoroutineStart.UNDISPATCHED) { client.session() }
+            assertThat(server.requestCount).isEqualTo(0)
+            requireNotNull(callback).onReceiveValue(true)
+            assertThat(pending.await().stage).isEqualTo(AntintwrkAuthStage.LOGIN)
+            assertThat(server.takeRequest().getHeader("Cookie").orEmpty()).isEmpty()
+        } finally {
+            callback?.onReceiveValue(true)
+            unmockkStatic(CookieManager::class)
+        }
+    }
+
+    @Test
+    fun `old server logout response cannot replace the next account cookies`() = runTest {
+        val origin = server.url("/").toString()
+        CookieManager.getInstance().setCookie(origin, "fixture_actor=B; Path=/")
+        server.enqueue(MockResponse().setBody("OK").setHeader("Set-Cookie", "fixture_actor=A; Path=/"))
+        client.logout(csrf, "fixture_actor=A")
+        assertThat(server.takeRequest().getHeader("Cookie")).isEqualTo("fixture_actor=A")
+        assertThat(CookieManager.getInstance().getCookie(origin)).contains("fixture_actor=B")
     }
 
     @Test

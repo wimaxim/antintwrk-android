@@ -180,8 +180,11 @@ class RootFlowNode(
                     sessionStore.getAllSessions().none { it.userId == previousMatrixActor }) {
                     // Removing our session may activate a different stored Matrix account.
                     // Close its matching social admission even without a NotLoggedIn emission.
-                    AntintwrkAccountSignOut.afterMatrixLogout(context, previousMatrixActor, true, appCoroutineScope)
-                    socialSurface.clear()
+                    val sourceActor = context.getSharedPreferences("antintwrk-account", Context.MODE_PRIVATE).getString("social-actor", null)
+                    if (AntintwrkAccountSignOut.matches(previousMatrixActor, sourceActor, true)) {
+                        socialSurface.clear()
+                        AntintwrkAccountSignOut.afterMatrixLogout(context, previousMatrixActor, true, appCoroutineScope)
+                    }
                     previousMatrixValid = false
                 }
                 when (navState.loggedInState) {

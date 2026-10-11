@@ -11,13 +11,16 @@ internal class AntintwrkSocialSurface(initialBusy: Boolean = true) {
     val chatsRequested = mutableStateOf(false)
     val web = AntintwrkWebFeedController()
     val shell = mutableStateOf(AntintwrkShellState())
+    val admissionEpoch = AntintwrkNavigationEpoch()
 
     fun clear() {
+        admissionEpoch.advance()
         admission.value = null
         busy.value = false
         chatsRequested.value = false
         web.destroy()
         web.resetRouting()
+        web.ownProfileIdentity = null
         web.authOrigin = io.element.android.appnav.BuildConfig.ANTINTWRK_SOCIAL_ORIGIN
         shell.value = AntintwrkShellState()
     }

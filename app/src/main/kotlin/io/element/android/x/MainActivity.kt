@@ -74,7 +74,11 @@ class MainActivity : NodeActivity() {
         setupLockManagement(appBindings.lockScreenService(), appBindings.lockScreenEntryPoint())
         enableEdgeToEdge()
         setContent {
-            MainContent(appBindings)
+            if (AppNavBuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                io.element.android.appnav.antintwrk.AntintwrkStartupSplash { MainContent(appBindings) }
+            } else {
+                MainContent(appBindings)
+            }
         }
 
         val activity = this

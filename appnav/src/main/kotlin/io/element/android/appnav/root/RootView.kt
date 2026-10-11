@@ -31,7 +31,8 @@ fun RootView(
     modifier: Modifier = Modifier,
     children: @Composable BoxScope.() -> Unit,
 ) {
-    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
+        io.element.android.appnav.antintwrk.LocalAntintwrkStartupReady.current) {
         io.element.android.appnav.antintwrk.AntintwrkCallPermissionOnEntry()
     }
     Box(

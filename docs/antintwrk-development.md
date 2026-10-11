@@ -364,3 +364,8 @@ See [shared contract](../../docs/direct-actions-call-permission-2026-10-11.md). 
 ## 11 October: social client version
 
 [Shared version/reset contract and iOS parity](../../docs/client-version-and-reset-2026-10-11.md). Installed own version and ANTINTWRK_APP_VERSION use one Gradle helper; every social UA includes app/version while protocol1.0/company marker stay intact.48 auth/WebView/routing checks pass. Current room/history operator reset was explicitly authorized; identities and recovery preserved. Android1.0.18. [Remaining Play steps](../../docs/play-launch-plan-2026-10-11.md). Local commits only; push by command.
+
+
+## 11 October: actual logout and startup minimum
+
+[Shared cause, corrected cookie cleanup/admission isolation and iOS contract](../../docs/logout-startup-2026-10-11.md). Android1.0.19 removes Domain/Path/HttpOnly/SSO cookies from its private jar and gates new auth on completion, invalidates root-owned late results and preserves another actor from a late SDK logout. Visible startup animation is at least2s, background initialization retained and permission window deferred. No room/key reset or push.
