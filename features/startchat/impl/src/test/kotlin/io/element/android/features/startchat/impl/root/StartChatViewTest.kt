@@ -37,6 +37,15 @@ import org.robolectric.annotation.Config
 
 class StartChatViewTest : RobolectricTest() {
     @Test
+    fun `managed chat creation keeps new room and hides directory and address actions`() = runAndroidComposeUiTest {
+        setStartChatView(aCreateRoomRootState().copy(showRoomDiscovery = false))
+        val host: ComponentActivity = requireNotNull(activity)
+        onNodeWithText(host.getString(R.string.screen_room_directory_search_title)).assertDoesNotExist()
+        onNodeWithText(host.getString(R.string.screen_start_chat_join_room_by_address_action)).assertDoesNotExist()
+        onNodeWithText(host.getString(R.string.screen_create_room_action_create_room)).assertExists()
+    }
+
+    @Test
     fun `source privacy denial explains the restriction without retry`() = runAndroidComposeUiTest {
         setStartChatView(aCreateRoomRootState(startDmAction = AsyncAction.Failure(AntintwrkContactDeniedException())))
         val testActivity: ComponentActivity = requireNotNull(activity)

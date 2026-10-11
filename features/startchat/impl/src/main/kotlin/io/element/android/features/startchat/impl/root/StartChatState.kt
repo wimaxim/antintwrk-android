@@ -17,4 +17,5 @@ data class StartChatState(
     val userListState: UserListState,
     val startDmAction: AsyncAction<RoomId>,
     val eventSink: (StartChatEvent) -> Unit,
+    val showRoomDiscovery: Boolean = true,
 )

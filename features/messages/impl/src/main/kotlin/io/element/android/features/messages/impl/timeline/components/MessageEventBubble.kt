@@ -179,7 +179,9 @@ object MessageEventBubbleDefaults {
 
     @Composable
     fun backgroundBubbleColor(isMine: Boolean): Color {
-        return if (isMine) {
+        return if (isMine && io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            if (ElementTheme.isLightTheme) Color(0xFFFCE8E2) else Color(0xFF3A2524)
+        } else if (isMine) {
             ElementTheme.colors.messageFromMeBackground
         } else {
             ElementTheme.colors.messageFromOtherBackground

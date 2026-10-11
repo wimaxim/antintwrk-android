@@ -142,6 +142,17 @@ class MessageComposerPresenterTest : RobolectricTest() {
     private val notificationConversationService = FakeNotificationConversationService()
 
     @Test
+    fun `poll availability follows direct room metadata`() = runTest {
+        val room = FakeJoinedRoom(typingNoticeResult = { Result.success(Unit) })
+        room.givenRoomInfo(aRoomInfo(isDm = false))
+        createPresenter(room).test {
+            assertThat(awaitFirstItem().canCreatePoll).isTrue()
+            room.givenRoomInfo(aRoomInfo(isDm = true))
+            assertThat(awaitItem().canCreatePoll).isEqualTo(!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        }
+    }
+
+    @Test
     fun `present - initial state`() = runTest {
         val presenter = createPresenter()
         presenter.test {

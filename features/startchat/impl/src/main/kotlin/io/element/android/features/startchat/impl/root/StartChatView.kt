@@ -193,12 +193,14 @@ private fun CreateRoomActionButtonsList(
                 onClick = onNewRoomClick,
             )
         }
-        item {
-            CreateRoomActionButton(
-                iconRes = CompoundDrawables.ic_compound_list_bulleted,
-                text = stringResource(id = R.string.screen_room_directory_search_title),
-                onClick = onRoomDirectorySearchClick,
-            )
+        if (state.showRoomDiscovery) {
+            item {
+                CreateRoomActionButton(
+                    iconRes = CompoundDrawables.ic_compound_list_bulleted,
+                    text = stringResource(id = R.string.screen_room_directory_search_title),
+                    onClick = onRoomDirectorySearchClick,
+                )
+            }
         }
         item {
             CreateRoomActionButton(
@@ -207,12 +209,14 @@ private fun CreateRoomActionButtonsList(
                 onClick = onInvitePeopleClick,
             )
         }
-        item {
-            CreateRoomActionButton(
-                iconRes = CompoundDrawables.ic_compound_room,
-                text = stringResource(R.string.screen_start_chat_join_room_by_address_action),
-                onClick = onJoinByAddressClick,
-            )
+        if (state.showRoomDiscovery) {
+            item {
+                CreateRoomActionButton(
+                    iconRes = CompoundDrawables.ic_compound_room,
+                    text = stringResource(R.string.screen_start_chat_join_room_by_address_action),
+                    onClick = onJoinByAddressClick,
+                )
+            }
         }
         if (state.userListState.recentDirectRooms.isNotEmpty()) {
             item {

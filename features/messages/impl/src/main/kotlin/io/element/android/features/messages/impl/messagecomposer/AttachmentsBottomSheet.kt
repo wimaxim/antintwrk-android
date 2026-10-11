@@ -91,7 +91,7 @@ internal fun AttachmentsBottomSheet(
 }
 
 @Composable
-private fun AttachmentSourcePickerMenu(
+internal fun AttachmentSourcePickerMenu(
     state: MessageComposerState,
     onSendLocationClick: () -> Unit,
     onCreatePollClick: () -> Unit,
@@ -133,14 +133,16 @@ private fun AttachmentSourcePickerMenu(
                 content = { Text(stringResource(R.string.screen_room_attachment_source_location)) },
             )
         }
-        ListItem(
-            modifier = Modifier.clickable {
-                state.eventSink(MessageComposerEvent.PickAttachmentSource.Poll)
-                onCreatePollClick()
-            },
-            leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Polls())),
-            content = { Text(stringResource(R.string.screen_room_attachment_source_poll)) },
-        )
+        if (state.canCreatePoll) {
+            ListItem(
+                modifier = Modifier.clickable {
+                    state.eventSink(MessageComposerEvent.PickAttachmentSource.Poll)
+                    onCreatePollClick()
+                },
+                leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Polls())),
+                content = { Text(stringResource(R.string.screen_room_attachment_source_poll)) },
+            )
+        }
         if (enableTextFormatting) {
             ListItem(
                 modifier = Modifier.clickable { state.eventSink(MessageComposerEvent.ToggleTextFormatting(enabled = true)) },
@@ -159,6 +161,17 @@ internal fun AttachmentsBottomSheetPreview() = ElementPreview(fillMaxSize = true
             canShareLocation = true,
             showAttachmentSourcePicker = true,
         ),
+        onSendLocationClick = {},
+        onCreatePollClick = {},
+        enableTextFormatting = true,
+    )
+}
+
+@PreviewsDayNight
+@Composable
+internal fun AttachmentsBottomSheetDirectChatPreview() = ElementPreview(fillMaxSize = true) {
+    AttachmentsBottomSheet(
+        state = aMessageComposerState(showAttachmentSourcePicker = true).copy(canCreatePoll = false),
         onSendLocationClick = {},
         onCreatePollClick = {},
         enableTextFormatting = true,

@@ -67,6 +67,7 @@ class StartChatPresenter(
             userListState = userListState,
             startDmAction = startDmActionState.value,
             eventSink = ::handleEvent,
+            showRoomDiscovery = !io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH,
         )
     }
 }

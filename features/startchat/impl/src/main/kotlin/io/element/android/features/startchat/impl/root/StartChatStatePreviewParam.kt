@@ -25,6 +25,7 @@ open class StartChatStatePreviewParam : PreviewParameterProvider<StartChatState>
     override val values: Sequence<StartChatState>
         get() = sequenceOf(
             aCreateRoomRootState(),
+            aCreateRoomRootState(applicationName = "antintwrk").copy(showRoomDiscovery = false),
             aCreateRoomRootState(
                 startDmAction = AsyncAction.Loading,
                 userListState = aMatrixUser().let {

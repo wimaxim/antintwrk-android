@@ -51,7 +51,7 @@ import java.util.Locale
 
 @Composable
 fun AntintwrkLoadingView(modifier: Modifier = Modifier) = AntintwrkBrandTheme {
-    AntintwrkAuthBackdrop(modifier) {
+    AntintwrkAuthBackdrop(modifier, animated = true) {
         Column(
             Modifier.align(Alignment.Center).safeDrawingPadding().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -128,7 +128,12 @@ fun AntintwrkWelcomeView(
                 )
             } else if (state.page in setOf(AntintwrkPage.RegisterSent, AntintwrkPage.ResetSent)) {
                 if (state.email.isNotBlank()) Text(state.email)
-                Text(stringResource(if (state.page == AntintwrkPage.RegisterSent) R.string.screen_ant_auth_register_sent else R.string.screen_ant_auth_reset_sent))
+                Text(stringResource(if (state.page ==
+                    AntintwrkPage.RegisterSent) {
+                        R.string.screen_ant_auth_register_sent
+                    } else {
+                        R.string.screen_ant_auth_reset_sent
+                    }))
                 Text(stringResource(R.string.screen_ant_auth_email_spam_hint), color = ElementTheme.colors.textSecondary)
                 AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_login), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) })
             } else {

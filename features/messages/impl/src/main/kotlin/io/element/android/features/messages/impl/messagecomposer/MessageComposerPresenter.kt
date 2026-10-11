@@ -432,6 +432,7 @@ class MessageComposerPresenter(
             showAttachmentSourcePicker = showAttachmentSourcePicker,
             showTextFormatting = showTextFormatting,
             canShareLocation = canShareLocation.value,
+            canCreatePoll = !io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH || !roomInfo.isDm,
             suggestions = suggestions.toImmutableList(),
             resolveMentionDisplay = resolveMentionDisplay,
             resolveAtRoomMentionDisplay = resolveAtRoomMentionDisplay,
