@@ -84,7 +84,10 @@ internal fun AntintwrkNativeAppView(
         val unreadFlow = remember(messengerRooms, hiddenRooms) {
             messengerRooms?.summaries?.let { rooms ->
                 kotlinx.coroutines.flow.combine(rooms, hiddenRooms ?: kotlinx.coroutines.flow.MutableStateFlow(emptyMap())) { entries, hidden ->
-                    antintwrkUnreadMessages(entries.filter { it.roomId.value !in hidden })
+                    antintwrkUnreadMessages(entries.filter {
+                        it.info.currentUserMembership == io.element.android.libraries.matrix.api.room.CurrentUserMembership.INVITED ||
+                            it.roomId.value !in hidden
+                    })
                 }.distinctUntilChanged()
             } ?: kotlinx.coroutines.flow.flowOf(0L)
         }
