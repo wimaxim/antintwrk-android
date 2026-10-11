@@ -48,6 +48,12 @@ class RustMatrixClientFactoryTest {
             null
         }
         assertThat(builder.configuredBackupDownloadStrategy).isEqualTo(expected)
+        val expectedDm = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            uniffi.matrix_sdk_base.DmRoomDefinition.MATRIX_SPEC
+        } else {
+            uniffi.matrix_sdk_base.DmRoomDefinition.TWO_MEMBERS
+        }
+        assertThat(builder.configuredDmRoomDefinition).isEqualTo(expectedDm)
         client.destroy()
     }
 

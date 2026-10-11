@@ -51,6 +51,7 @@ import io.element.android.libraries.fullscreenintent.api.FullScreenIntentPermiss
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.encryption.RecoveryState
+import io.element.android.libraries.matrix.api.room.isManagedPersonalChat
 import io.element.android.libraries.matrix.api.roomlist.RoomList
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.ui.safety.rememberHideInvitesAvatar
@@ -145,7 +146,11 @@ class RoomListPresenter(
                         }
                     }
                 }
-                is RoomListEvent.LeaveRoom -> {
+                is RoomListEvent.LeaveRoom -> coroutineScope.launch {
+                    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                        val info = client.getRoomInfo(event.roomId).getOrNull() ?: return@launch
+                        if (info.isManagedPersonalChat()) return@launch
+                    }
                     leaveRoomState.eventSink(LeaveRoomEvent.LeaveRoom(event.roomId, needsConfirmation = event.needsConfirmation))
                 }
                 is RoomListEvent.SetRoomIsFavorite -> coroutineScope.setRoomIsFavorite(event.roomId, event.isFavorite)

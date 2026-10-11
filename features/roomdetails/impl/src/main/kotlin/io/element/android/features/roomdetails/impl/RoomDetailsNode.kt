@@ -31,6 +31,7 @@ import io.element.android.libraries.di.RoomScope
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.CallIntent
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.isManagedPersonalChat
 import io.element.android.services.analytics.api.AnalyticsService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -78,7 +79,7 @@ class RoomDetailsNode(
     }
 
     private fun CoroutineScope.onShareRoom(context: Context) = launch {
-        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && room.roomInfoFlow.value.isDm) return@launch
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && room.roomInfoFlow.value.isManagedPersonalChat()) return@launch
         room.getPermalink()
             .onSuccess { permalink ->
                 context.startSharePlainTextIntent(

@@ -43,6 +43,7 @@ import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.notificationsettings.NotificationSettingsService
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomMember
+import io.element.android.libraries.matrix.api.room.isManagedPersonalChat
 import io.element.android.libraries.matrix.api.room.join.JoinRule
 import io.element.android.libraries.matrix.api.room.powerlevels.canEditRolesAndPermissions
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsAsState
@@ -112,14 +113,14 @@ class RoomDetailsPresenter(
             observeNotificationSettings()
         }
 
-        val isDm = roomInfo.isDm
+        val isDm = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) roomInfo.isManagedPersonalChat() else roomInfo.isDm
         val membersState by room.membersStateFlow.collectAsState()
         val permissions by getPermissions()
         val canonicalAlias by remember { derivedStateOf { roomInfo.canonicalAlias } }
         val isEncrypted by remember { derivedStateOf { roomInfo.isEncrypted == true } }
         val dmMember by room.getDirectRoomMember(membersState)
         val roomMemberDetailsPresenter = roomMemberDetailsPresenter(dmMember?.userId)
-        val roomType = getRoomType(dmMember)
+        val roomType = getRoomType(if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && !isDm) null else dmMember)
         val roomCallState = roomCallStatePresenter.present()
         val joinedMemberCount by remember { derivedStateOf { roomInfo.joinedMembersCount } }
 
@@ -161,7 +162,9 @@ class RoomDetailsPresenter(
                     }
                 }
                 is RoomDetailsEvent.LeaveRoom -> {
-                    leaveRoomState.eventSink(LeaveRoomEvent.LeaveRoom(room.roomId, needsConfirmation = event.needsConfirmation))
+                    if (!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH || !room.roomInfoFlow.value.isManagedPersonalChat()) {
+                        leaveRoomState.eventSink(LeaveRoomEvent.LeaveRoom(room.roomId, needsConfirmation = event.needsConfirmation))
+                    }
                 }
                 RoomDetailsEvent.MuteNotification -> {
                     scope.launch(dispatchers.io) {

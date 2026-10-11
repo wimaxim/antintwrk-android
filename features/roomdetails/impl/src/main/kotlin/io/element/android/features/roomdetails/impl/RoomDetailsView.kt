@@ -335,7 +335,7 @@ fun RoomDetailsView(
                 canReportRoom = state.canReportRoom,
                 onReportRoomClick = onReportRoomClick,
                 onLeaveRoomClick = { state.eventSink(RoomDetailsEvent.LeaveRoom(needsConfirmation = true)) },
-                hidePersonalChat = managedSocial && state.roomType is RoomDetailsType.Dm,
+                hidePersonalChat = managedSocial && (state.isDm || state.roomType is RoomDetailsType.Dm),
                 onHideChat = { state.eventSink(RoomDetailsEvent.HideChat) }
             )
             if (state.showDebugInfo && !managedSocial) {

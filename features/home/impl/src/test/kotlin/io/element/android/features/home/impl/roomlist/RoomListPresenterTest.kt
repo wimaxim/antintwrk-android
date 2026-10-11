@@ -294,9 +294,25 @@ class RoomListPresenterTest {
     }
 
     @Test
+    fun `managed room list refuses leaving a direct room or unknown room`() = runTest {
+        org.junit.Assume.assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        for (info in listOf(aRoomInfo(isDm = true), aRoomInfo(isDirect = true, isDm = false, activeMembersCount = 1), null)) {
+            val recorder = EventsRecorder<LeaveRoomEvent>(expectEvents = false)
+            val client = FakeMatrixClient().apply { getRoomInfoLambda = { Result.success(info) } }
+            createRoomListPresenter(client = client, leaveRoomState = aLeaveRoomState(eventSink = recorder)).test {
+                awaitItem().eventSink(RoomListEvent.LeaveRoom(A_ROOM_ID, needsConfirmation = true))
+                recorder.assertList(emptyList())
+                cancelAndIgnoreRemainingEvents()
+            }
+        }
+    }
+
+    @Test
     fun `present - leave room calls into leave room presenter`() = runTest {
         val leaveRoomEventsRecorder = EventsRecorder<LeaveRoomEvent>()
+        val client = FakeMatrixClient().apply { getRoomInfoLambda = { Result.success(aRoomInfo()) } }
         val presenter = createRoomListPresenter(
+            client = client,
             leaveRoomState = aLeaveRoomState(eventSink = leaveRoomEventsRecorder),
         )
         presenter.test {

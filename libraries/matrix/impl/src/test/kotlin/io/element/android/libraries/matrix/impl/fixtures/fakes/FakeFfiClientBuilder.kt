@@ -53,6 +53,10 @@ class FakeFfiClientBuilder(
     override fun sqliteStore(config: SqliteStoreBuilder): ClientBuilder = this
     override fun inMemoryStore(): ClientBuilder = this
     override fun crossProcessLockConfig(crossProcessLockConfig: CrossProcessLockConfig): ClientBuilder = this
-    override fun dmRoomDefinition(dmRoomDefinition: DmRoomDefinition): ClientBuilder = this
+    var configuredDmRoomDefinition: DmRoomDefinition? = null
+        private set
+    override fun dmRoomDefinition(dmRoomDefinition: DmRoomDefinition): ClientBuilder = apply {
+        configuredDmRoomDefinition = dmRoomDefinition
+    }
     override suspend fun build() = buildResult()
 }

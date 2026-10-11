@@ -24,7 +24,24 @@ suspend fun MatrixClient.startDM(
         .fold(
             onSuccess = { existingDM ->
                 if (existingDM != null) {
-                    StartDMResult.Success(existingDM, isNew = false)
+                    try {
+                        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && !prepareDirectConversation(existingDM, userId)) {
+                            if (createIfDmDoesNotExist) {
+                                createDM(userId, isEncryped).fold(
+                                { StartDMResult.Success(it, isNew = true) },
+                                    { StartDMResult.Failure(it) }
+                            )
+                            } else {
+                                StartDMResult.DmDoesNotExist
+                            }
+                        } else {
+                            StartDMResult.Success(existingDM, isNew = false)
+                        }
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        throw cancelled
+                    } catch (error: Exception) {
+                        StartDMResult.Failure(error)
+                    }
                 } else if (createIfDmDoesNotExist) {
                     createDM(userId, isEncryped).fold(
                         { StartDMResult.Success(it, isNew = true) },

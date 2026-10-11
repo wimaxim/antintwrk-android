@@ -371,6 +371,8 @@ class RoomDetailsViewTest : RobolectricTest() {
         assertNoNodeWithText(CommonStrings.common_people)
         assertNoNodeWithText(CommonStrings.action_invite)
         assertNoNodeWithText(CommonStrings.action_share)
+        assertNoNodeWithText(CommonStrings.action_leave_room)
+        onNodeWithText(activity!!.getString(CommonStrings.screen_ant_delete_chat)).assertExists()
     }
 
     @Config(qualifiers = "h2048dp")
@@ -380,6 +382,7 @@ class RoomDetailsViewTest : RobolectricTest() {
         onNodeWithText(host.getString(CommonStrings.common_people)).assertExists()
         onNodeWithText(host.getString(CommonStrings.action_invite)).assertExists()
         onNodeWithText(host.getString(CommonStrings.action_share)).assertExists()
+        onNodeWithText(host.getString(CommonStrings.action_leave_room)).assertExists()
     }
 
     @Config(qualifiers = "h2048dp")

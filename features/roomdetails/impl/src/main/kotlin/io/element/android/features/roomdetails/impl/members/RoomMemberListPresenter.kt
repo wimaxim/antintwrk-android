@@ -32,6 +32,7 @@ import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembersState
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
+import io.element.android.libraries.matrix.api.room.isManagedPersonalChat
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsAsState
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.room.toMatrixUser
@@ -144,7 +145,7 @@ class RoomMemberListPresenter(
             roomMembers = roomMembers,
             filteredRoomMembers = filteredRoomMembers,
             searchQuery = searchQuery,
-            canInvite = canInvite && !(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && roomInfo.isDm),
+            canInvite = canInvite && !(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && roomInfo.isManagedPersonalChat()),
             moderationState = roomModerationState,
             selectedSection = selectedSection,
             eventSink = ::handleEvent,

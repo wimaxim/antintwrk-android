@@ -43,6 +43,7 @@ import io.element.android.libraries.matrix.api.room.RoomMembershipObserver
 import io.element.android.libraries.matrix.api.room.alias.ResolvedRoomAlias
 import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
 import io.element.android.libraries.matrix.api.room.join.JoinRule
+import io.element.android.libraries.matrix.api.room.prepareDirectConversation
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.scanner.ContentScanner
@@ -114,8 +115,14 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.matrix.rustcomponents.sdk.AuthData
 import org.matrix.rustcomponents.sdk.AuthDataPasswordDetails
 import org.matrix.rustcomponents.sdk.BeaconInfoListener
@@ -409,12 +416,37 @@ class RustMatrixClient(
 
     override suspend fun findDM(userId: UserId): Result<RoomId?> = withContext(sessionDispatcher) {
         runCatchingExceptions {
-            innerClient.getDmRoom(userId.value)?.use {
-                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && it.membership() != Membership.JOINED) {
-                    null
-                } else {
-                    RoomId(it.id())
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                // SDK getDmRoom searches joined rooms only. A reciprocal social route
+                // must prefer a matching incoming request, even before membership sync.
+                val rooms = innerClient.rooms()
+                try {
+                    val invitation = rooms.filter { it.membership() == Membership.INVITED }
+                        .sortedBy { it.id() }
+                        .firstOrNull { room ->
+                            val info = room.roomInfo()
+                            (info.isDirect || info.isDm) && !info.isSpace && info.inviter?.userId == userId.value
+                        }
+                    if (invitation != null) {
+                        RoomId(invitation.id())
+                    } else {
+                        val joined = innerClient.getDmRoom(userId.value)?.use {
+                            if (it.membership() == Membership.JOINED) RoomId(it.id()) else null
+                        }
+                        joined ?: innerClient.accountData("m.direct")?.let { data ->
+                            Json.parseToJsonElement(data).jsonObject[userId.value]?.jsonArray
+                                ?.map { RoomId(it.jsonPrimitive.content) }?.distinct()?.sortedBy { it.value }
+                                ?.firstOrNull { id ->
+                                    val known = rooms.find { it.id() == id.value }
+                                    known == null || known.membership() in listOf(Membership.JOINED, Membership.INVITED)
+                                }
+                        }
+                    }
+                } finally {
+                    rooms.forEach { it.close() }
                 }
+            } else {
+                innerClient.getDmRoom(userId.value)?.use { RoomId(it.id()) }
             }
         }
     }
@@ -482,7 +514,27 @@ class RustMatrixClient(
         }
     }
 
+    private val managedDmCreateMutex = Mutex()
+    private val managedDmAwaitingSync = mutableMapOf<UserId, RoomId>()
+
     override suspend fun createDM(userId: UserId, isEncrypted: Boolean): Result<RoomId> {
+        if (!io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) return createNewDM(userId, isEncrypted)
+        return managedDmCreateMutex.withLock {
+            runCatchingExceptions {
+                require(userId != sessionId)
+                val existing = findDM(userId).getOrThrow()
+                if (existing != null && prepareDirectConversation(existing, userId)) return@runCatchingExceptions existing
+                // A successful create followed by a slow local sync is not evidence
+                // that no room exists. Never issue a second create during this window.
+                managedDmAwaitingSync[userId]?.let { pending ->
+                    if (pending != existing && prepareDirectConversation(pending, userId)) return@runCatchingExceptions pending
+                }
+                createNewDM(userId, isEncrypted).getOrThrow().also { managedDmAwaitingSync[userId] = it }
+            }
+        }
+    }
+
+    private suspend fun createNewDM(userId: UserId, isEncrypted: Boolean): Result<RoomId> {
         if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
             io.element.android.libraries.matrix.api.user.AntintwrkMatrixIdentity.socialId(userId.value) != null) {
             val permitted = runCatchingExceptions {

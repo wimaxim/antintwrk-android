@@ -13,7 +13,11 @@ package io.element.android.libraries.matrix.impl
 import com.google.common.truth.Truth.assertThat
 import io.element.android.libraries.core.data.bytes
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.paths.SessionPaths
+import io.element.android.libraries.matrix.impl.fixtures.factories.aRustRoomInfo
+import io.element.android.libraries.matrix.impl.fixtures.factories.aRustRoomMember
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiClient
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiRoom
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiSyncService
@@ -22,6 +26,7 @@ import io.element.android.libraries.matrix.test.AN_AVATAR_URL
 import io.element.android.libraries.matrix.test.A_DEVICE_ID
 import io.element.android.libraries.matrix.test.A_ROOM_ID
 import io.element.android.libraries.matrix.test.A_USER_ID
+import io.element.android.libraries.matrix.test.A_USER_ID_2
 import io.element.android.libraries.matrix.test.A_USER_NAME
 import io.element.android.libraries.matrix.test.scanner.FakeContentScanner
 import io.element.android.libraries.sessionstorage.api.SessionStore
@@ -139,7 +144,7 @@ class RustMatrixClientTest {
             client = FakeFfiClient(createRoomResult = createRoomLambda)
         )
 
-        client.createDM(userId = A_USER_ID, isEncrypted = true)
+        client.createDM(userId = A_USER_ID_2, isEncrypted = true)
 
         createRoomLambda.assertions().isCalledOnce()
         assertThat(createParameters?.historyVisibilityOverride).isEqualTo(RoomHistoryVisibility.Invited)
@@ -204,6 +209,56 @@ class RustMatrixClientTest {
             }
             client.destroy()
         }
+    }
+
+    @Test
+    fun `managed lookup finds a matching pending invite before a joined DM`() = runTest {
+        assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val request = RoomId("!pending:example.org")
+        val client = createRustMatrixClient(client = FakeFfiClient(
+            getDmRoomResult = { FakeFfiRoom() },
+            roomsResult = {
+                listOf(FakeFfiRoom(
+                    roomId = request,
+                    currentMembership = Membership.INVITED,
+                roomInfo = aRustRoomInfo(id = request.value, isDirect = true, inviter = aRustRoomMember(A_USER_ID))
+                ))
+            },
+        ))
+        assertThat(client.findDM(A_USER_ID).getOrThrow()).isEqualTo(request)
+        client.destroy()
+    }
+
+    @Test
+    fun `managed lookup ignores unrelated group and non-direct requests`() = runTest {
+        assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        for (scenario in 0..2) {
+            val client = createRustMatrixClient(client = FakeFfiClient(
+                roomsResult = {
+                    listOf(FakeFfiRoom(
+                        currentMembership = Membership.INVITED,
+                    roomInfo = aRustRoomInfo(
+                        isDirect = scenario != 2,
+                        isSpace = scenario == 1,
+                        inviter = aRustRoomMember(if (scenario == 0) UserId("@other:example.org") else A_USER_ID)
+                    )
+                    ))
+                },
+            ))
+            assertThat(client.findDM(A_USER_ID).getOrThrow()).isNull()
+            client.destroy()
+        }
+    }
+
+    @Test
+    fun `direct account metadata prevents duplicate before room sync arrives`() = runTest {
+        assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val request = RoomId("!pending:example.org")
+        val client = createRustMatrixClient(client = FakeFfiClient(
+            accountDataResult = { "{\"${A_USER_ID.value}\":[\"${request.value}\"]}" },
+        ))
+        assertThat(client.findDM(A_USER_ID).getOrThrow()).isEqualTo(request)
+        client.destroy()
     }
 
     private fun TestScope.createRustMatrixClient(

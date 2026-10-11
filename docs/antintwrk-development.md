@@ -354,3 +354,8 @@ Shared contract, iOS parity and actual limitations: ../docs/android-final-refine
 ## 11 October: DM actions and permission at entry
 
 See [shared contract](../../docs/direct-actions-call-permission-2026-10-11.md). Personal-chat Invite/Share/People are suppressed by direct metadata before profile load; groups retain the actions. Group menu/wizard say New group chat in9 locales. RootView checks missing Android14+ full-screen call permission before social/Matrix preparation, with entry/return/rotation guards. Server counterpart m.direct is repaired without history/key reset. 54 Android checks and10 backend checks passed; Android1.0.16 is the test build. Backend module/installer stay outside public Android source. Commit locally; push remains command-only.
+
+
+## 11 October: reciprocal personal-chat reply
+
+[Shared contract and iOS port](../../docs/personal-chat-reply-2026-10-11.md). MATRIX_SPEC/direct metadata governs native DM actions, including pre-profile Settings and context menus; stale Leave events are blocked. Explicit social/search writing accepts matching incoming requests through one validation helper and reuses their ID. Account-data/lazy-room sync and acknowledgement guards prevent replacement creation in these routes. Android1.0.17;104 managed checks passed/2 stock recovery cases skipped. User messages/history/keys were not reset. Local commits only; no push.

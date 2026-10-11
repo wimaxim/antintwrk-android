@@ -66,9 +66,10 @@ class FakeFfiClient(
     private val newLoginWithQrCodeHandlerResult: () -> LoginWithQrCodeHandler = { lambdaError() },
     private val getStoreSizesResult: () -> StoreSizes = { lambdaError() },
     private val getDmRoomResult: (String) -> Room? = { null },
+    private val roomsResult: () -> List<Room> = { emptyList() },
     private val createRoomResult: (CreateRoomParameters) -> String = { lambdaError() },
     private val homeserverCapabilities: HomeserverCapabilities = FakeFfiHomeserverCapabilities(),
-    private val accountDataResult: (String) -> String? = { lambdaError() },
+    private val accountDataResult: (String) -> String? = { if (it == "m.direct") null else lambdaError() },
     private val setAccountDataResult: (String, String) -> Unit = { _, _ -> lambdaError() },
     private val isUserStatusSupportedResult: () -> Boolean = { false },
     private val isProfilesSlidingSyncExtensionSupportedResult: () -> Boolean = { false },
@@ -149,6 +150,8 @@ class FakeFfiClient(
     }
 
     override fun getDmRoom(userId: String): Room? = getDmRoomResult(userId)
+
+    override fun rooms(): List<Room> = roomsResult()
 
     override suspend fun createRoom(request: CreateRoomParameters): String {
         return createRoomResult(request)

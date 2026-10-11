@@ -21,8 +21,12 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.test.AN_EXCEPTION
 import io.element.android.libraries.matrix.test.A_ROOM_ID
+import io.element.android.libraries.matrix.test.A_USER_ID_2
 import io.element.android.libraries.matrix.test.FakeMatrixClient
 import io.element.android.libraries.matrix.test.encryption.FakeEncryptionService
+import io.element.android.libraries.matrix.test.room.FakeBaseRoom
+import io.element.android.libraries.matrix.test.room.FakeJoinedRoom
+import io.element.android.libraries.matrix.test.room.aRoomMember
 import io.element.android.libraries.matrix.ui.components.aMatrixUser
 import io.element.android.services.analytics.api.AnalyticsService
 import io.element.android.services.analytics.test.FakeAnalyticsService
@@ -34,8 +38,13 @@ import org.junit.Test
 class DefaultStartDMActionTest {
     @Test
     fun `when dm is found, assert state is updated with given room id`() = runTest {
-        val matrixClient = FakeMatrixClient().apply {
+        val matrixClient = FakeMatrixClient(sessionId = A_USER_ID_2).apply {
             givenFindDmResult(Result.success(A_ROOM_ID))
+            val base = FakeBaseRoom(
+                getUpdatedMemberResult = { Result.success(aRoomMember(it)) },
+                getMembersResult = { Result.success(listOf(aRoomMember(sessionId), aRoomMember(aMatrixUser().userId))) }
+            ).apply { givenRoomInfo(info().copy(isEncrypted = true)) }
+            givenGetRoomResult(A_ROOM_ID, FakeJoinedRoom(baseRoom = base))
         }
         val analyticsService = FakeAnalyticsService()
         val action = createStartDMAction(matrixClient, analyticsService)
@@ -43,6 +52,40 @@ class DefaultStartDMActionTest {
         action.execute(aMatrixUser(), true, state)
         assertThat(state.value).isEqualTo(AsyncAction.Success(A_ROOM_ID))
         assertThat(analyticsService.capturedEvents).isEmpty()
+    }
+
+    @Test
+    fun `matching invitation from messenger search is accepted without creating a room`() = runTest {
+        org.junit.Assume.assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val peer = aMatrixUser()
+        val client = FakeMatrixClient(sessionId = A_USER_ID_2)
+        val invite = FakeBaseRoom().apply {
+            givenRoomInfo(info().copy(
+                currentUserMembership = io.element.android.libraries.matrix.api.room.CurrentUserMembership.INVITED,
+                isDirect = true,
+                isEncrypted = true,
+                inviter = aRoomMember(peer.userId)
+            ))
+        }
+        val joined = FakeBaseRoom(
+            getUpdatedMemberResult = { Result.success(aRoomMember(it)) },
+            getMembersResult = { Result.success(listOf(aRoomMember(client.sessionId), aRoomMember(peer.userId))) },
+        ).apply { givenRoomInfo(info().copy(isEncrypted = true)) }
+        client.givenGetRoomResult(A_ROOM_ID, invite)
+        client.givenFindDmResult(Result.success(A_ROOM_ID))
+        var accepted = 0
+        client.joinRoomLambda = {
+            accepted++
+            client.givenGetRoomResult(A_ROOM_ID, FakeJoinedRoom(baseRoom = joined))
+            Result.success(joined.info())
+        }
+        client.createDmResult = { _, _ -> error("Duplicate create is forbidden") }
+        val analytics = FakeAnalyticsService()
+        val state = mutableStateOf<AsyncAction<RoomId>>(AsyncAction.Uninitialized)
+        createStartDMAction(client, analytics).execute(peer, false, state)
+        assertThat(state.value).isEqualTo(AsyncAction.Success(A_ROOM_ID))
+        assertThat(accepted).isEqualTo(1)
+        assertThat(analytics.capturedEvents).isEmpty()
     }
 
     @Test

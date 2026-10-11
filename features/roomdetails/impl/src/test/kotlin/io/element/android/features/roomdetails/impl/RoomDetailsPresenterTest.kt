@@ -421,6 +421,28 @@ class RoomDetailsPresenterTest {
     }
 
     @Test
+    fun `managed personal room refuses a stale Leave event`() = runTest {
+        val recorder = EventsRecorder<LeaveRoomEvent>(expectEvents = false)
+        val room = aJoinedRoom(roomPermissions = roomPermissions()).apply {
+            givenRoomInfo(info().copy(isDm = true))
+        }
+        val presenter = createRoomDetailsPresenter(
+            room = room,
+            leaveRoomState = aLeaveRoomState(eventSink = recorder),
+            dispatchers = testCoroutineDispatchers()
+        )
+        presenter.testWithLifecycleOwner(lifecycleOwner = fakeLifecycleOwner) {
+            awaitItem().eventSink(RoomDetailsEvent.LeaveRoom(needsConfirmation = true))
+            if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                recorder.assertList(emptyList())
+            } else {
+                recorder.assertSingle(LeaveRoomEvent.LeaveRoom(room.roomId, needsConfirmation = true))
+            }
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `present - leave room event is passed on to leave room presenter`() = runTest {
         val leaveRoomEventRecorder = EventsRecorder<LeaveRoomEvent>()
         val room = aJoinedRoom(

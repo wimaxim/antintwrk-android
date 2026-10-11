@@ -174,3 +174,8 @@ New room from Chats plus is a group: select at least two distinct users other th
 ## DM actions and incoming-call permission — 11 October 2026
 
 Managed personal chats hide Invite/Share/People using direct metadata even before profile loading; groups retain membership invitation/sharing. The Chats new-room action and group wizard use localized New group chat, preserving minimum two other invitees/no Skip. Do not infer DM from member count alone or reset messages/keys to correct m.direct. Full-screen incoming-call access on Android14+ is checked at app foreground entry independently of account preparation: request only when absent, do not auto-grant, do not loop on own Settings return/rotation, and never block login on refusal/platform errors. Keep corresponding iOS/backend contract in shared docs/direct-actions-call-permission-2026-10-11.md.
+
+
+## Personal-chat actions and reciprocal reply — 11 October 2026
+
+Own SDK uses Matrix-spec direct metadata, never two-member-count alone to identify DM. Settings and long-press menus replace Leave with local Delete in personal chats before member details load, with event-level leave guards. Explicit social/search intent to write accepts a matching incoming personal invitation and opens its original ID; never auto-accept on startup or fall back to another create after join/sync failure. Both routes share validation and actor-bound create/recheck serialization. Keep iOS contract and actual validation in shared docs/personal-chat-reply-2026-10-11.md. Do not reset rooms/identities/keys as recovery.

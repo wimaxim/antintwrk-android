@@ -210,7 +210,13 @@ class RustMatrixClientFactory(
                     this
                 }
             }
-            .dmRoomDefinition(DmRoomDefinition.TWO_MEMBERS)
+            .dmRoomDefinition(
+                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    DmRoomDefinition.MATRIX_SPEC
+                } else {
+                    DmRoomDefinition.TWO_MEMBERS
+                }
+            )
             .requestConfig(
                 RequestConfig(
                     timeout = 30_000uL,
