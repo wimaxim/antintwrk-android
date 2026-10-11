@@ -260,6 +260,35 @@ class RoomListDataSourceTest {
         }
     }
 
+    @Test fun `hidden DM exclusion is applied before pagination and combines with the selected filter`() = runTest {
+        org.junit.Assume.assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val base = aRoomSummary(roomId = A_ROOM_ID, activeMembersCount = 2)
+        val dm = base.copy(info = base.info.copy(isDm = true))
+        val allRooms = FakeDynamicRoomList(summaries = MutableStateFlow(listOf(dm, aRoomSummary(roomId = A_ROOM_ID_2))))
+        val dynamic = FakeDynamicRoomList()
+        val service = FakeRoomListService(allRooms = allRooms, createRoomListLambda = { dynamic })
+        val directory = java.nio.file.Files.createTempDirectory("ant-hidden-filter").toFile()
+        try {
+            val client = io.element.android.libraries.matrix.test.FakeMatrixClient(
+                roomListService = service,
+                sessionPaths = io.element.android.libraries.matrix.api.paths.SessionPaths(directory, directory),
+            )
+            val source = RoomListDataSource(service, client, aRoomListRoomSummaryFactory(), testCoroutineDispatchers(),
+                FakeNotificationSettingsService(), backgroundScope, FakeDateTimeObserver(), FakeAnalyticsService())
+            val selected = io.element.android.libraries.matrix.api.roomlist.RoomListFilter.Favorite
+            source.updateFilter(selected)
+            val visibility = io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.forClient(client)
+            visibility.hide(A_ROOM_ID).getOrThrow()
+            testScheduler.runCurrent()
+            assertThat(dynamic.currentFilter.value).isEqualTo(io.element.android.libraries.matrix.api.roomlist.RoomListFilter.all(
+                selected, io.element.android.libraries.matrix.api.roomlist.RoomListFilter.Identifiers(listOf(A_ROOM_ID_2))
+            ))
+            visibility.reveal(A_ROOM_ID)
+            testScheduler.runCurrent()
+            assertThat(dynamic.currentFilter.value).isEqualTo(selected)
+        } finally { directory.deleteRecursively() }
+    }
+
     private fun TestScope.createRoomListDataSource(
         roomListService: FakeRoomListService = FakeRoomListService(),
         roomListRoomSummaryFactory: RoomListRoomSummaryFactory = aRoomListRoomSummaryFactory(),
@@ -267,6 +296,7 @@ class RoomListDataSourceTest {
         dateTimeObserver: FakeDateTimeObserver = FakeDateTimeObserver(),
         analyticsService: FakeAnalyticsService = FakeAnalyticsService(),
     ) = RoomListDataSource(
+        client = io.element.android.libraries.matrix.test.FakeMatrixClient(roomListService = roomListService),
         roomListService = roomListService,
         roomListRoomSummaryFactory = roomListRoomSummaryFactory,
         coroutineDispatchers = testCoroutineDispatchers(),

@@ -8,4 +8,8 @@
     <string name="common_location_sharing">مشاركة الموقع</string>
     <string name="common_moderation_and_safety">الإشراف والسلامة</string>
     <string name="screen_ant_invite_sms">مرحبًا! ثبّت تطبيق المراسلة والشبكة الاجتماعية ANTINTWRK.COM: https://antintwrk.com</string>
+    <string name="screen_ant_invite_friends">دعوة الأصدقاء</string>
+    <string name="screen_ant_delete_chat">حذف المحادثة</string>
+    <string name="screen_ant_delete_chat_explanation">ستُخفى المحادثة على هذا الجهاز. ستبقى الرسائل محفوظة، وستظهر المحادثة مجددًا عندما يكتب الطرف الآخر أو تفتحها من جديد.</string>
+    <string name="screen_ant_hide_chat_failed">تعذر إخفاء المحادثة. حاول مرة أخرى.</string>
 </resources>

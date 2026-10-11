@@ -277,7 +277,7 @@ fun RoomDetailsView(
                     }
                 }
                 is RoomDetailsType.Dm -> {
-                    if (state.canInvite) {
+                    if (state.canInvite && !managedSocial) {
                         // Note: for rooms the invite action is a Main action
                         PreferenceCategory {
                             InviteItem(onClick = invitePeople)
@@ -331,7 +331,9 @@ fun RoomDetailsView(
                 dmOtherMemberDetailsState = state.dmOtherMemberDetailsState,
                 canReportRoom = state.canReportRoom,
                 onReportRoomClick = onReportRoomClick,
-                onLeaveRoomClick = { state.eventSink(RoomDetailsEvent.LeaveRoom(needsConfirmation = true)) }
+                onLeaveRoomClick = { state.eventSink(RoomDetailsEvent.LeaveRoom(needsConfirmation = true)) },
+                hidePersonalChat = managedSocial && state.roomType is RoomDetailsType.Dm,
+                onHideChat = { state.eventSink(RoomDetailsEvent.HideChat) }
             )
             if (state.showDebugInfo && !managedSocial) {
                 DebugInfoSection(
@@ -833,7 +835,19 @@ private fun OtherActionsSection(
     onReportRoomClick: () -> Unit,
     onLeaveRoomClick: () -> Unit,
     dmOtherMemberDetailsState: UserProfileState?,
+    hidePersonalChat: Boolean,
+    onHideChat: () -> Unit,
 ) {
+    var confirmingHide by remember { mutableStateOf(false) }
+    if (confirmingHide) {
+        io.element.android.libraries.designsystem.components.dialogs.AntintwrkHideChatDialog(
+        onConfirm = {
+            confirmingHide = false
+            onHideChat()
+        },
+        onDismiss = { confirmingHide = false },
+    )
+    }
     PreferenceCategory {
         if (dmOtherMemberDetailsState != null) {
             BlockUserSection(dmOtherMemberDetailsState)
@@ -851,11 +865,11 @@ private fun OtherActionsSection(
         }
         ListItem(
             content = {
-                Text(stringResource(CommonStrings.action_leave_room))
+                Text(stringResource(if (hidePersonalChat) CommonStrings.screen_ant_delete_chat else CommonStrings.action_leave_room))
             },
             leadingContent = ListItemContent.Icon(IconSource.Vector(CompoundIcons.Leave())),
             style = ListItemStyle.Destructive,
-            onClick = onLeaveRoomClick,
+            onClick = { if (hidePersonalChat) confirmingHide = true else onLeaveRoomClick() },
         )
     }
 }

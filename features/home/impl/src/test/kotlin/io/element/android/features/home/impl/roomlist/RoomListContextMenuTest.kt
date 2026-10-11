@@ -13,6 +13,9 @@ package io.element.android.features.home.impl.roomlist
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.AndroidComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onLast
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import io.element.android.features.home.impl.R
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -127,6 +130,20 @@ class RoomListContextMenuTest : RobolectricTest() {
         )
     }
 
+    @Test fun `managed DM confirms delete without leaving the room`() = runAndroidComposeUiTest {
+        val recorder = EventsRecorder<RoomListEvent>()
+        val menu = aContextMenuShown(isDm = true)
+        setSafeContent {
+            RoomListContextMenu(menu, false, recorder, {}, {}, managedSocial = true)
+        }
+        clickOn(CommonStrings.screen_ant_delete_chat)
+        clickOn(CommonStrings.action_cancel)
+        recorder.assertList(emptyList())
+        clickOn(CommonStrings.screen_ant_delete_chat)
+        onAllNodesWithText("Delete chat").onLast().performClick()
+        recorder.assertList(listOf(RoomListEvent.HideContextMenu, RoomListEvent.HideChat(menu.roomId)))
+    }
+
     private fun AndroidComposeUiTest<ComponentActivity>.setRoomListContextMenu(
         contextMenu: RoomListState.ContextMenu.Shown,
         canReportRoom: Boolean = false,
@@ -141,6 +158,7 @@ class RoomListContextMenuTest : RobolectricTest() {
                 onRoomSettingsClick = onRoomSettingsClick,
                 onReportRoomClick = onReportRoomClick,
                 eventSink = eventSink,
+                managedSocial = false,
             )
         }
     }

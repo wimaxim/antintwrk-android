@@ -17,8 +17,10 @@ import io.element.android.libraries.androidutils.system.DateTimeObserver
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.di.SessionScope
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.notificationsettings.NotificationSettingsService
+import io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats
 import io.element.android.libraries.matrix.api.roomlist.RoomList
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
@@ -34,7 +36,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -53,6 +58,7 @@ private const val PAGINATION_THRESHOLD = 3 * PAGE_SIZE
 @SingleIn(SessionScope::class)
 class RoomListDataSource(
     private val roomListService: RoomListService,
+    private val client: MatrixClient,
     private val roomListRoomSummaryFactory: RoomListRoomSummaryFactory,
     private val coroutineDispatchers: CoroutineDispatchers,
     private val notificationSettingsService: NotificationSettingsService,
@@ -71,6 +77,22 @@ class RoomListDataSource(
         source = RoomList.Source.All,
         coroutineScope = sessionCoroutineScope
     )
+    private val selectedFilter = MutableStateFlow<RoomListFilter>(RoomListFilter.All(emptyList()))
+    private val hiddenChats = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) AntintwrkHiddenChats.forClient(client) else null
+    init {
+        hiddenChats?.let { visibility ->
+            visibility.observe(sessionCoroutineScope)
+            combine(roomListService.allRooms.summaries, visibility.state, selectedFilter) { rooms, hidden, filter ->
+                if (hidden.isEmpty()) {
+                    filter
+                } else {
+                    RoomListFilter.all(filter, RoomListFilter.Identifiers(
+                    rooms.filter { it.roomId.value !in hidden }.map { it.roomId }
+                ))
+                }
+            }.distinctUntilChanged().onEach { roomList.updateFilter(it) }.launchIn(sessionCoroutineScope)
+        }
+    }
     private val _roomSummariesFlow = MutableSharedFlow<ImmutableList<RoomListRoomSummary>>(replay = 1)
 
     private val lock = Mutex()
@@ -93,7 +115,7 @@ class RoomListDataSource(
     }
 
     suspend fun updateFilter(filter: RoomListFilter) {
-        roomList.updateFilter(filter)
+        if (hiddenChats == null) roomList.updateFilter(filter) else selectedFilter.value = filter
     }
 
     suspend fun updateVisibleRange(visibleRange: IntRange) = coroutineScope {

@@ -93,7 +93,7 @@ android {
             Versions.VERSION_CODE
         }
         versionName = if (nativeSocial) {
-            providers.gradleProperty("antintwrkVersionName").orElse(Versions.VERSION_NAME).get()
+            providers.gradleProperty("antintwrkVersionName").orElse("1.0.5").get().replace(Regex("(?i)(?:^|[-.])test(?=[-.]|$)"), "").trim('-', '.')
         } else {
             Versions.VERSION_NAME
         }

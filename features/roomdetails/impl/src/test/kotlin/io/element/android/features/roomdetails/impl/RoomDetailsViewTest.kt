@@ -13,11 +13,11 @@ package io.element.android.features.roomdetails.impl
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.AndroidComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
 import io.element.android.features.roomdetails.impl.members.aRoomMember
@@ -33,6 +33,8 @@ import io.element.android.tests.testutils.EnsureNeverCalled
 import io.element.android.tests.testutils.EnsureNeverCalledWithParam
 import io.element.android.tests.testutils.EnsureNeverCalledWithTwoParams
 import io.element.android.tests.testutils.EventsRecorder
+import io.element.android.tests.testutils.assertNoNodeWithText
+import io.element.android.tests.testutils.assertNodeWithTextIsDisplayed
 import io.element.android.tests.testutils.clickOn
 import io.element.android.tests.testutils.ensureCalledOnce
 import io.element.android.tests.testutils.ensureCalledOnceWithParam
@@ -360,6 +362,25 @@ class RoomDetailsViewTest : RobolectricTest() {
             onAllNodesWithText(activity!!.getString(R.string.screen_room_details_invite_title)).onLast().performClick()
         }
     }
+    @Config(qualifiers = "h2048dp")
+    @Test fun `managed DM has no invite or leave action and confirms hiding`() = runAndroidComposeUiTest {
+        val recorder = EventsRecorder<RoomDetailsEvent>()
+        setRoomDetailView(state = aRoomDetailsState(
+            eventSink = recorder,
+            canInvite = true,
+            roomType = RoomDetailsType.Dm(aRoomMember(UserId("@other:antintwrk.com"))),
+        ), managedSocial = true)
+        onNodeWithText(activity!!.getString(R.string.screen_room_details_invite_title)).assertDoesNotExist()
+        assertNoNodeWithText(CommonStrings.action_leave_room)
+        clickOn(CommonStrings.screen_ant_delete_chat)
+        assertNodeWithTextIsDisplayed(CommonStrings.screen_ant_delete_chat_explanation)
+        clickOn(CommonStrings.action_cancel)
+        recorder.assertList(emptyList())
+        clickOn(CommonStrings.screen_ant_delete_chat)
+        onAllNodesWithText("Delete chat").onLast().performClick()
+        recorder.assertSingle(RoomDetailsEvent.HideChat)
+    }
+
     @Test
     fun `managed social chat hides polls and technical room details`() = runAndroidComposeUiTest {
         setRoomDetailView(state = aRoomDetailsState(eventSink = EventsRecorder(expectEvents = false), showDebugInfo = true), managedSocial = true)
@@ -367,7 +388,6 @@ class RoomDetailsViewTest : RobolectricTest() {
         onNodeWithText("Internal room ID").assertDoesNotExist()
         onNodeWithText("Room version").assertDoesNotExist()
     }
-
 }
 
 private fun AndroidComposeUiTest<ComponentActivity>.setRoomDetailView(

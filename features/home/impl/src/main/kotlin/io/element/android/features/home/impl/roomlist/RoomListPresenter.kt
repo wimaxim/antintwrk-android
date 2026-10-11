@@ -118,6 +118,7 @@ class RoomListPresenter(
         val contextMenu = remember { mutableStateOf<RoomListState.ContextMenu>(RoomListState.ContextMenu.Hidden) }
         val declineInviteMenu = remember { mutableStateOf<RoomListState.DeclineInviteMenu>(RoomListState.DeclineInviteMenu.Hidden) }
 
+        val snackbarDispatcher = io.element.android.libraries.designsystem.utils.snackbar.LocalSnackbarDispatcher.current
         fun handleEvent(event: RoomListEvent) {
             when (event) {
                 is RoomListEvent.UpdateVisibleRange -> coroutineScope.launch {
@@ -134,6 +135,15 @@ class RoomListPresenter(
                 }
                 is RoomListEvent.HideContextMenu -> {
                     contextMenu.value = RoomListState.ContextMenu.Hidden
+                }
+                is RoomListEvent.HideChat -> coroutineScope.launch {
+                    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                        io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.forClient(client).hide(event.roomId).onFailure {
+                            snackbarDispatcher.post(io.element.android.libraries.designsystem.utils.snackbar.SnackbarMessage(
+                                io.element.android.libraries.ui.strings.CommonStrings.screen_ant_hide_chat_failed
+                            ))
+                        }
+                    }
                 }
                 is RoomListEvent.LeaveRoom -> {
                     leaveRoomState.eventSink(LeaveRoomEvent.LeaveRoom(event.roomId, needsConfirmation = event.needsConfirmation))

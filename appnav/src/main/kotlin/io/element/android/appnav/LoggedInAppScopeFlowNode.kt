@@ -159,10 +159,16 @@ class LoggedInAppScopeFlowNode(
     @Composable
     override fun View(modifier: Modifier) {
         if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            androidx.compose.runtime.LaunchedEffect(inputs.matrixClient) {
+                io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.openChats.collect { actor ->
+                    if (actor == inputs.matrixClient.sessionId) attachSession().openAppChats()
+                }
+            }
             AntintwrkNativeAppView(
                 modifier,
                 matrixUserId = inputs.matrixClient.sessionId.value,
                 messengerRooms = inputs.matrixClient.roomListService.allRooms,
+                hiddenRooms = io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.forClient(inputs.matrixClient).state,
                 onRequestSignOut = ::requestManagedSignOut,
                 onPrepareRecovery = { accountRecovery.prepare() && attachSession().completeAppRecovery() },
                 recoveryStates = inputs.matrixClient.encryptionService.recoveryStateStateFlow,

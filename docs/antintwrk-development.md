@@ -340,3 +340,12 @@ Own managed client adds gallery/system camera with bounded private capture outpu
 Managed chat details hide Polls/Internal room ID/Room version even in debug. DM Profile opens the social resolver directly; DM Invite selects one phone contact then opens a translated system SMS draft with public antintwrk.com only. No contact upload, READ_CONTACTS or SEND_SMS, and no automatic send. Group member invitation keeps messenger user search. Monetization is above Settings in the social overflow; Referrals/extra participation category removed from common settings. Camera strings and SMS cover all nine social languages. iOS must reproduce this contract when implemented.
 
 Validation: 169 appnav Antintwrk tests + 90 roomdetails tests; 11 final share/picker boundary checks; one actual API36 Chromium media-import instrumentation test; own signed APK upgrade. Full cross-platform contract and exact delivery evidence live in the owner's shared mobile documentation, docs/mobile-tz-2026-10-10.md. No push without the owner's explicit command; APK/runtime and physical camera/SMS acceptance are distinguished.
+
+
+## Version 1.0.5, shared invitation and hidden personal chats — 10 October 2026
+
+Common Settings owns Invite friends; DM details no longer expose SMS Invite. Accept the system-selected content URI rather than one fixed OEM authority; selected-number/SMS errors fall back to the share chooser. The human sends the SMS/share, with public antintwrk.com only and no contacts/SMS permissions.
+
+Managed DM Delete chat confirms device-local hiding without SDK leave/forget, history/keys/receipt changes. Persist under the private session directory, filter before pagination with existing selected filters, exclude old hidden unread from the common badge, and restore on a new incoming message (including encrypted) or explicit ID route. Groups retain membership invitation/leave. Version is 1.0.5, without test, with existing R/G. GNU/upstream LICENSE files stay intact; PROJECT-NOTICES carries our rights/operator/founder.
+
+Shared contract, iOS parity and actual limitations: ../docs/android-final-refinements-2026-10-10.md. Android validation: 263 passes and 2 existing stock recovery-prompt cases skipped in the native variant; no failures. PHP/Twig native-profile tests and admitted HTML on both origins pass. Physical OEM contact/SMS and two-phone receive/restore remain acceptance work; no SMS/payment/publication sent. Local commits only; no push.

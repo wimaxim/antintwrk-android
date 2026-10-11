@@ -70,6 +70,7 @@ internal fun AntintwrkNativeAppView(
     modifier: Modifier = Modifier,
     matrixUserId: String? = null,
     messengerRooms: io.element.android.libraries.matrix.api.roomlist.RoomList? = null,
+    hiddenRooms: kotlinx.coroutines.flow.StateFlow<Map<String, Long>>? = null,
     onRequestSignOut: (() -> Unit)? = null,
     onPrepareRecovery: (suspend () -> Boolean)? = null,
     recoveryStates: kotlinx.coroutines.flow.StateFlow<io.element.android.libraries.matrix.api.encryption.RecoveryState>? = null,
@@ -80,9 +81,11 @@ internal fun AntintwrkNativeAppView(
     onOpenMessage: (suspend (String) -> Unit)? = null,
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
 ) {
-        val unreadFlow = remember(messengerRooms) {
+        val unreadFlow = remember(messengerRooms, hiddenRooms) {
             messengerRooms?.summaries?.let { rooms ->
-                rooms.map { antintwrkUnreadMessages(it) }.distinctUntilChanged()
+                kotlinx.coroutines.flow.combine(rooms, hiddenRooms ?: kotlinx.coroutines.flow.MutableStateFlow(emptyMap())) { entries, hidden ->
+                    antintwrkUnreadMessages(entries.filter { it.roomId.value !in hidden })
+                }.distinctUntilChanged()
             } ?: kotlinx.coroutines.flow.flowOf(0L)
         }
         val unreadMessages by androidx.compose.runtime.key(matrixUserId) { unreadFlow.collectAsState(initial = 0L) }

@@ -152,6 +152,14 @@ class RoomDetailsPresenter(
 
         fun handleEvent(event: RoomDetailsEvent) {
             when (event) {
+                RoomDetailsEvent.HideChat -> scope.launch {
+                    if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && isDm) {
+                        val visibility = io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.forClient(client)
+                        visibility.hide(room.roomId).onSuccess {
+                            io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.returnToChats(client.sessionId)
+                        }.onFailure { snackbarDispatcher.post(SnackbarMessage(CommonStrings.screen_ant_hide_chat_failed)) }
+                    }
+                }
                 is RoomDetailsEvent.LeaveRoom -> {
                     leaveRoomState.eventSink(LeaveRoomEvent.LeaveRoom(room.roomId, needsConfirmation = event.needsConfirmation))
                 }

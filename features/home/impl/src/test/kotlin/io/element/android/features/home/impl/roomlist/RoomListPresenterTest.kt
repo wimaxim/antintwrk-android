@@ -678,6 +678,7 @@ class RoomListPresenterTest {
         client = client,
         leaveRoomPresenter = { leaveRoomState },
         roomListDataSource = RoomListDataSource(
+            client = client,
             roomListService = client.roomListService,
             roomListRoomSummaryFactory = aRoomListRoomSummaryFactory(
                 dateFormatter = dateFormatter,

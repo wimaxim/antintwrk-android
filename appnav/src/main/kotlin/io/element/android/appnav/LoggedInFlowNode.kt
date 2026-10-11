@@ -710,6 +710,9 @@ class LoggedInFlowNode(
         initialElement: RoomNavigationTarget = RoomNavigationTarget.Root(),
         clearBackstack: Boolean = false,
     ): RoomFlowNode {
+        if (BuildConfig.ANTINTWRK_NATIVE_AUTH && roomIdOrAlias is RoomIdOrAlias.Id) {
+            io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.forClient(matrixClient).reveal(roomIdOrAlias.roomId)
+        }
         waitForNavTargetAttached { navTarget ->
             navTarget is NavTarget.Home
         }

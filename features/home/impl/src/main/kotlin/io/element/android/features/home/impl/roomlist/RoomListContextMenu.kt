@@ -16,6 +16,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
@@ -41,14 +45,28 @@ fun RoomListContextMenu(
     canReportRoom: Boolean,
     eventSink: (RoomListEvent.ContextMenuEvent) -> Unit,
     onRoomSettingsClick: (roomId: RoomId) -> Unit,
-    onReportRoomClick: (roomId: RoomId) -> Unit
+    onReportRoomClick: (roomId: RoomId) -> Unit,
+    managedSocial: Boolean = io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH,
 ) {
+    var confirmingHide by remember(contextMenu.roomId) { mutableStateOf(false) }
+    val hidePersonalChat = managedSocial && contextMenu.isDm
+    if (confirmingHide) {
+        io.element.android.libraries.designsystem.components.dialogs.AntintwrkHideChatDialog(
+        onConfirm = {
+            confirmingHide = false
+            eventSink(RoomListEvent.HideContextMenu)
+            eventSink(RoomListEvent.HideChat(contextMenu.roomId))
+        },
+        onDismiss = { confirmingHide = false },
+    )
+    }
     ModalBottomSheet(
         onDismissRequest = { eventSink(RoomListEvent.HideContextMenu) },
         scrollable = false,
     ) {
         RoomListModalBottomSheetContent(
             contextMenu = contextMenu,
+            hidePersonalChat = hidePersonalChat,
             canReportRoom = canReportRoom,
             onRoomMarkReadClick = {
                 eventSink(RoomListEvent.HideContextMenu)
@@ -63,8 +81,12 @@ fun RoomListContextMenu(
                 onRoomSettingsClick(contextMenu.roomId)
             },
             onLeaveRoomClick = {
-                eventSink(RoomListEvent.HideContextMenu)
-                eventSink(RoomListEvent.LeaveRoom(contextMenu.roomId, needsConfirmation = true))
+                if (hidePersonalChat) {
+                    confirmingHide = true
+                } else {
+                    eventSink(RoomListEvent.HideContextMenu)
+                    eventSink(RoomListEvent.LeaveRoom(contextMenu.roomId, needsConfirmation = true))
+                }
             },
             onFavoriteChange = { isFavorite ->
                 eventSink(RoomListEvent.SetRoomIsFavorite(contextMenu.roomId, isFavorite))
@@ -80,6 +102,7 @@ fun RoomListContextMenu(
 @Composable
 private fun RoomListModalBottomSheetContent(
     contextMenu: RoomListState.ContextMenu.Shown,
+    hidePersonalChat: Boolean,
     canReportRoom: Boolean,
     onRoomSettingsClick: () -> Unit,
     onLeaveRoomClick: () -> Unit,
@@ -183,7 +206,7 @@ private fun RoomListModalBottomSheetContent(
         }
         ListItem(
             content = {
-                Text(text = stringResource(CommonStrings.action_leave_room))
+                Text(text = stringResource(if (hidePersonalChat) CommonStrings.screen_ant_delete_chat else CommonStrings.action_leave_room))
             },
             modifier = Modifier.clickable { onLeaveRoomClick() },
             leadingContent = ListItemContent.Icon(

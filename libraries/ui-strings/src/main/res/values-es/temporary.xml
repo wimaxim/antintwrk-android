@@ -8,4 +8,8 @@
     <string name="common_location_sharing">Compartir ubicación</string>
     <string name="common_moderation_and_safety">Moderación y seguridad</string>
     <string name="screen_ant_invite_sms">¡Hola! Instala el mensajero y la red social ANTINTWRK.COM: https://antintwrk.com</string>
+    <string name="screen_ant_invite_friends">Invitar amigos</string>
+    <string name="screen_ant_delete_chat">Eliminar chat</string>
+    <string name="screen_ant_delete_chat_explanation">El chat se ocultará en este dispositivo. Los mensajes se conservarán. Volverá cuando la otra persona escriba o lo abras de nuevo.</string>
+    <string name="screen_ant_hide_chat_failed">No se pudo ocultar el chat. Inténtalo de nuevo.</string>
 </resources>

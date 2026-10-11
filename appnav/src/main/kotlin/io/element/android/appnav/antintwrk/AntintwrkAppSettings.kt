@@ -72,6 +72,7 @@ internal fun AntintwrkAppSettings(
     socialOrigin: String = AntintwrkSocialOrigins.RUSSIAN,
 ) {
     val context = LocalAntintwrkActivity.current ?: LocalContext.current
+    val inviteFriends = rememberAntintwrkSmsInvite()
     var choosingLanguage by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         AntintwrkBrandTheme {
@@ -96,6 +97,8 @@ internal fun AntintwrkAppSettings(
                     "profile" to R.string.screen_ant_settings_profile,
                     "native-push" to R.string.screen_ant_push_title,
                 ), onRoute)
+                HorizontalDivider(Modifier.padding(vertical = 12.dp))
+                TextButton(stringResource(CommonStrings.screen_ant_invite_friends), inviteFriends)
                 SettingsGroup(CommonStrings.common_app_settings, listOf(
                     "native-media" to CommonStrings.common_media_upload_quality,
                     "native-screen-lock" to CommonStrings.common_screen_lock,
@@ -117,7 +120,7 @@ internal fun AntintwrkAppSettings(
                 Text(
                     stringResource(
                         CommonStrings.settings_version_number,
-                        "${version.versionName.orEmpty()} ${antintwrkServerLabel(socialOrigin)}",
+                        "${antintwrkDisplayedVersion(version.versionName.orEmpty())} ${antintwrkServerLabel(socialOrigin)}",
                         code.toString()
                     ),
                     color = ElementTheme.colors.textSecondary,
@@ -142,3 +145,5 @@ internal fun antintwrkServerLabel(origin: String): String = when (origin) {
     AntintwrkSocialOrigins.PUBLIC -> "G"
     else -> "?"
 }
+
+internal fun antintwrkDisplayedVersion(version: String): String = version.replace(Regex("(?i)(?:^|[-.])test(?=[-.]|$)"), "").trim('-', '.')

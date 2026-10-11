@@ -8,4 +8,8 @@
     <string name="common_location_sharing">Standortfreigabe</string>
     <string name="common_moderation_and_safety">Moderation und Sicherheit</string>
     <string name="screen_ant_invite_sms">Hallo! Installiere den Messenger und das soziale Netzwerk ANTINTWRK.COM: https://antintwrk.com</string>
+    <string name="screen_ant_invite_friends">Freunde einladen</string>
+    <string name="screen_ant_delete_chat">Chat löschen</string>
+    <string name="screen_ant_delete_chat_explanation">Der Chat wird auf diesem Gerät ausgeblendet. Nachrichten bleiben erhalten. Er erscheint wieder, wenn die andere Person schreibt oder du ihn erneut öffnest.</string>
+    <string name="screen_ant_hide_chat_failed">Der Chat konnte nicht ausgeblendet werden. Versuche es erneut.</string>
 </resources>

@@ -118,7 +118,6 @@ class RoomDetailsNode(
             }
         }
 
-        val nativeInvite = rememberAntintwrkSmsInvite()
         RoomDetailsView(
             state = state,
             modifier = modifier,
@@ -127,11 +126,7 @@ class RoomDetailsNode(
             onShareRoom = ::onShareRoom,
             openRoomMemberList = callback::navigateToRoomMemberList,
             openRoomNotificationSettings = callback::navigateToRoomNotificationSettings,
-            invitePeople = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH && state.roomType is RoomDetailsType.Dm) {
-                nativeInvite
-            } else {
-                callback::navigateToInviteMembers
-            },
+            invitePeople = callback::navigateToInviteMembers,
             openAvatarPreview = callback::navigateToAvatarPreview,
             openPollHistory = callback::navigateToPollHistory,
             openMediaGallery = callback::navigateToMediaGallery,
@@ -143,7 +138,9 @@ class RoomDetailsNode(
             onProfileClick = { userId ->
                 if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
                     io.element.android.features.userprofile.api.AntintwrkProfileNavigation.open(room.sessionId.value, userId.value)
-                } else callback.navigateToRoomMemberDetails(userId)
+                } else {
+                    callback.navigateToRoomMemberDetails(userId)
+                }
             },
             onReportRoomClick = callback::navigateToReportRoom,
             leaveRoomView = {
