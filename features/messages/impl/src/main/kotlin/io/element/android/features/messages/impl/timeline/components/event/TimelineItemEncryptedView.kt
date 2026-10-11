@@ -63,9 +63,11 @@ fun TimelineItemEncryptedView(
             CommonStrings.common_waiting_for_decryption_key to CompoundDrawables.ic_compound_time
         }
     }
+    val automaticallyLoading = io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
+        textId == CommonStrings.common_waiting_for_decryption_key
     TimelineItemInformativeView(
-        text = stringResource(id = textId),
-        iconDescription = stringResource(id = CommonStrings.dialog_title_warning),
+        text = stringResource(id = if (automaticallyLoading) CommonStrings.common_loading else textId),
+        iconDescription = stringResource(id = if (automaticallyLoading) CommonStrings.common_loading else CommonStrings.dialog_title_warning),
         iconResourceId = iconId,
         onContentLayoutChange = onContentLayoutChange,
         modifier = modifier
