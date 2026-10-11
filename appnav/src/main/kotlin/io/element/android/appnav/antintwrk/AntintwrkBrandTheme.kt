@@ -120,13 +120,14 @@ internal fun AntintwrkBrandMark(size: Dp, modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun AntintwrkWordmark() {
+internal fun AntintwrkWordmark(modifier: Modifier = Modifier) {
     Text(
         buildAnnotatedString {
             append("anti")
             withStyle(SpanStyle(color = AntintwrkCoral)) { append("·") }
             append("ntwrk")
         },
+        modifier = modifier,
         style = ElementTheme.typography.fontHeadingLgBold,
     )
 }

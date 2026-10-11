@@ -7,16 +7,20 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.element.android.appnav.R
 import io.element.android.compound.theme.ElementTheme
@@ -38,31 +42,36 @@ internal fun AntintwrkAuthChallengeView(
     modifier: Modifier = Modifier,
 ) = AntintwrkBrandTheme {
     BackHandler { if (!busy) onBack() }
-    Column(
-        modifier.fillMaxSize().safeDrawingPadding().imePadding().verticalScroll(rememberScrollState()).padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        AntintwrkBrandMark(40.dp)
-        Text(stringResource(
-            when (stage) {
-            AntintwrkAuthStage.DEVICE -> R.string.screen_ant_auth_device
-            AntintwrkAuthStage.TOTP -> R.string.screen_ant_auth_totp
-            else -> R.string.screen_ant_auth_setup
+    AntintwrkAuthBackdrop(modifier) {
+        Column(
+            Modifier.align(Alignment.TopCenter).widthIn(max = 480.dp).fillMaxSize().safeDrawingPadding().imePadding()
+                .verticalScroll(rememberScrollState()).padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            AntintwrkBrandMark(56.dp, Modifier.align(Alignment.CenterHorizontally))
+            AntintwrkWordmark(Modifier.align(Alignment.CenterHorizontally))
+            Text(stringResource(
+                when (stage) {
+                AntintwrkAuthStage.DEVICE -> R.string.screen_ant_auth_device
+                AntintwrkAuthStage.TOTP -> R.string.screen_ant_auth_totp
+                else -> R.string.screen_ant_auth_setup
+            }
+            ), modifier = Modifier.fillMaxWidth(), style = ElementTheme.typography.fontHeadingMdBold, textAlign = TextAlign.Center)
+            if (stage != AntintwrkAuthStage.SETUP_REQUIRED) {
+                AntintwrkTextField(
+                    code,
+                    onCode,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = stringResource(R.string.screen_ant_auth_code),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                )
+                AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_continue), { if (!busy) onConfirm() }, enabled = !busy)
+            }
+            if (busy) CircularProgressIndicator()
+            if (failed) Text(stringResource(R.string.screen_ant_auth_error), color = ElementTheme.colors.textCriticalPrimary)
+            TextButton(stringResource(R.string.screen_antintwrk_back), { if (!busy) onBack() })
         }
-        ), style = ElementTheme.typography.fontHeadingMdBold)
-        if (stage != AntintwrkAuthStage.SETUP_REQUIRED) {
-            AntintwrkTextField(
-                code,
-                onCode,
-                label = stringResource(R.string.screen_ant_auth_code),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
-            )
-            AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_continue), { if (!busy) onConfirm() }, enabled = !busy)
-        }
-        if (busy) CircularProgressIndicator()
-        if (failed) Text(stringResource(R.string.screen_ant_auth_error), color = ElementTheme.colors.textCriticalPrimary)
-        TextButton(stringResource(R.string.screen_antintwrk_back), { if (!busy) onBack() })
     }
 }
 
