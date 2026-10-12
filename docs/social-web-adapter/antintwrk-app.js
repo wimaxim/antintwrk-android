@@ -81,6 +81,31 @@ if (window.top === window && document.body.classList.contains('antintwrk-app-vie
       return result;
     };
   }
+  document.addEventListener('submit', async event => {
+    const form=event.target;
+    if (!form?.matches?.('[data-app-support]')) return;
+    event.preventDefault();
+    const button=form.querySelector('button[type="submit"]');
+    if (!button || button.disabled) return;
+    const status=form.querySelector('[data-app-support-status]') || document.querySelector('[data-kindness-load-status]');
+    button.disabled=true;
+    try {
+      const endpoint=new URL(form.action,window.location.href);
+      if (endpoint.origin!==window.location.origin || !/^\/(en|ru|uk|de|es|fr|it|ar|zh)\/(ukraine|foundation|david)-start$/.test(endpoint.pathname)) throw new Error('UNAVAILABLE');
+      const body=new FormData(form);body.set('native','1');
+      const response=await fetch(endpoint.href,{method:'POST',credentials:'same-origin',body});
+      const result=await response.json();
+      if(!response.ok||!result.ok||!window.antintwrkOpenExternal)throw new Error('UNAVAILABLE');
+      let target=result.url;
+      if(result.ref){
+        if(result.publicOrigin!=='https://antintwrk.com'||!/^\/(en|ru|uk|de|es|fr|it|ar|zh)\/ukraine$/.test(result.path))throw new Error('UNAVAILABLE');
+        const publicPage=new URL(result.path,result.publicOrigin);publicPage.searchParams.set('app_ref',result.ref);target=publicPage.href;
+      }
+      await window.antintwrkOpenExternal(target);
+      if(status)status.textContent='';
+    }catch(_){if(status)status.textContent=status.dataset.error||'';}
+    finally{button.disabled=false;}
+  });
   window.addEventListener('popstate', navigation);
   window.addEventListener('hashchange', navigation);
   document.addEventListener('antintwrk:auth-open', (event) => {

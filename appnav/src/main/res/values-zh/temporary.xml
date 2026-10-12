@@ -142,4 +142,5 @@
     <string name="screen_ant_media_photo">拍摄照片</string>
     <string name="screen_ant_media_video">录制视频</string>
     <string name="screen_ant_camera_unavailable">相机不可用。请允许相机访问或从相册选择文件。</string>
+    <string name="screen_ant_settings_kindness">Kindness 与项目支持</string>
 </resources>

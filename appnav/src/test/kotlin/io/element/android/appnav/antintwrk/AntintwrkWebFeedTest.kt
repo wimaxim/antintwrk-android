@@ -24,6 +24,20 @@ import org.junit.Test
 
 class AntintwrkWebFeedTest : RobolectricTest() {
     @Test
+    fun `Ukraine gift referral stays in the public external browser for either social origin`() {
+        val target = "https://antintwrk.com/ru/ukraine?app_ref=payload." + "a".repeat(43)
+        for (origin in listOf("https://antimsg.com", "https://antintwrk.com")) {
+            val rules = AntintwrkWebPolicy(origin)
+            assertThat(rules.canonical(target)).isEqualTo(target)
+            assertThat(rules.embedded(target)).isNull()
+            assertThat(rules.external(target)).isTrue()
+            assertThat(rules.publicAssistance("$target&app_ref=other")).isFalse()
+            assertThat(rules.publicAssistance(target.replace("antintwrk.com", "antimsg.com"))).isFalse()
+            assertThat(rules.publicAssistance(target.replace("ukraine", "kindness"))).isFalse()
+        }
+    }
+
+    @Test
     fun `legal reader keeps only localized agreement routes inside native presentation`() {
         for ((route, canonical) in mapOf("terms" to "terms", "useragreement" to "terms", "privacy" to "privacy", "privacypolicy" to "privacy")) {
             assertThat(policy.legalReader("https://antimsg.com/ru/$route?native_legal=0&native_legal=1&app=0#details"))

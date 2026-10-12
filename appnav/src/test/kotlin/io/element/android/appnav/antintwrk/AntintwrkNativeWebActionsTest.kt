@@ -12,10 +12,10 @@ class AntintwrkNativeWebActionsTest : RobolectricTest() {
     private val referral = "synthetic_payload." + "a".repeat(43)
 
     @Test
-    fun `assistance opens external browser with explicit signed no reward referral`() {
+    fun `assistance opens external browser with scoped signed gift referral`() {
         for (path in listOf("cerebralpalsycommunity.org/ru/give", "helpcp.org/en/help/davidnewman")) {
             val controller = AntintwrkWebFeedController()
-            val target = "https://$path?source=heroworld&ref=$referral&donation_only=1"
+            val target = "https://$path?source=heroworld&ref=$referral"
             var opened: String? = null
             var completed = false
             controller.onExternalLink = { opened = it }
@@ -26,16 +26,16 @@ class AntintwrkNativeWebActionsTest : RobolectricTest() {
     }
 
     @Test
-    fun `missing or ambiguous reward attribution and other payment destinations are rejected`() {
+    fun `ambiguous referrals and other payment destinations are rejected`() {
         val base = "https://helpcp.org/en/help/davidnewman?source=heroworld&ref=$referral"
         for (target in listOf(
-            base,
-            "$base&donation_only=0",
-            "$base&donation_only=1&donation_only=0",
-            "$base&donation_only=1&ref=other",
-            "$base&donation_only=1&amount=20",
-            "https://helpcp.org/en/help/davidnewman?source=heroworld&ref=invalid&donation_only=1",
-            "https://helpcp.org.evil.example/en/help/davidnewman?source=heroworld&ref=$referral&donation_only=1",
+            "$base&source=other",
+            "$base&ref=another",
+            "$base#fragment",
+            "$base&fragment=1",
+            "$base&amount=20",
+            "https://helpcp.org/en/help/davidnewman?source=heroworld&ref=invalid",
+            "https://helpcp.org.evil.example/en/help/davidnewman?source=heroworld&ref=$referral",
             "https://checkout.stripe.com/pay/test",
             "https://antimsg.com/en/ukraine",
             "https://antintwrk.com/en/kindness",

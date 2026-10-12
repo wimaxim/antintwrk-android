@@ -142,4 +142,5 @@
     <string name="screen_ant_media_photo">Prendre une photo</string>
     <string name="screen_ant_media_video">Enregistrer une vidéo</string>
     <string name="screen_ant_camera_unavailable">Caméra indisponible. Autorisez son accès ou choisissez un fichier dans la galerie.</string>
+    <string name="screen_ant_settings_kindness">Kindness et soutien au projet</string>
 </resources>

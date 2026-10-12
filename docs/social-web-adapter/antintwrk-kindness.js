@@ -118,29 +118,33 @@ if (root) {
   if (config.play) {
     const storeStatus = root.querySelector('[data-store-status]');
     const productsNode = root.querySelector('[data-store-products]');
+    const supportNode = root.querySelector('[data-store-support-products]');
+    const productNodes = [productsNode,supportNode].filter(Boolean);
     let storeBusy = false;
     const storeError = error => error?.message === 'STORE_CANCELLED' ? '' : error?.message === 'STORE_ALREADY_OWNED' ? labels.owned : labels.unavailable;
     const prices = async () => {
       if (!storeStatus || !productsNode || storeBusy) return;
       if (!config.playReady) { storeStatus.textContent = labels.unavailable; return; }
       if (!window.antintwrkStoreRequest) return;
-      storeBusy = true; productsNode.replaceChildren();
+      storeBusy = true; productNodes.forEach(node=>node.replaceChildren());
       try {
         const catalog = await window.antintwrkStoreRequest({type:'store-catalog'});
-        for (const product of catalog.products.filter(item => item.purpose === 'kindness')) {
+        for (const product of catalog.products.filter(item => ['kindness','support'].includes(item.purpose))) {
+          const targetNode = product.purpose === 'support' ? supportNode : productsNode;
+          if (!targetNode) continue;
           const button = document.createElement('button');
           button.type = 'button'; button.className = 'hw-button hw-button-primary';
           button.textContent = `${format(product.points)} · ${product.price}`;
           button.addEventListener('click', async () => {
             if (storeBusy) return; storeBusy = true;
-            productsNode.querySelectorAll('button').forEach(item => item.disabled = true);
+            productNodes.flatMap(node=>[...node.querySelectorAll('button')]).forEach(item => item.disabled = true);
             try { await window.antintwrkStoreRequest({type:'store-purchase',key:product.key}); storeStatus.textContent = labels.pending; }
             catch (error) { storeStatus.textContent = storeError(error); }
-            finally { storeBusy = false; productsNode.querySelectorAll('button').forEach(item => item.disabled = false); }
+            finally { storeBusy = false; productNodes.flatMap(node=>[...node.querySelectorAll('button')]).forEach(item => item.disabled = false); }
           });
-          productsNode.appendChild(button);
+          targetNode.appendChild(button);
         }
-        storeStatus.textContent = productsNode.childElementCount ? '' : labels.unavailable;
+        storeStatus.textContent = productNodes.some(node=>node.childElementCount) ? '' : labels.unavailable;
       } catch (error) { storeStatus.textContent = storeError(error); }
       finally { storeBusy = false; }
     };
@@ -153,15 +157,7 @@ if (root) {
     window.addEventListener('antintwrk-native-ready',prices);
     window.addEventListener('antintwrk-store-updated',()=>{load();if(storeStatus)storeStatus.textContent='';});
     prices();
-    root.querySelectorAll('[data-app-support]').forEach(support => support.addEventListener('submit', async event => {
-      event.preventDefault();const button=support.querySelector('button');if(button.disabled)return;button.disabled=true;
-      try {
-        const body=new FormData(support);body.set('native','1');
-        const response=await fetch(support.action,{method:'POST',credentials:'same-origin',body});const result=await response.json();
-        if(!response.ok||!result.ok||!window.antintwrkOpenExternal)throw new Error('UNAVAILABLE');
-        await window.antintwrkOpenExternal(result.url);
-      } catch(_){status.textContent=labels.failed;}finally{button.disabled=false;}
-    }));
   }
+  window.addEventListener('antintwrk-native-active',load);
   load();
 }

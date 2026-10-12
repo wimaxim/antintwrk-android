@@ -142,4 +142,5 @@
     <string name="screen_ant_media_photo">Hacer foto</string>
     <string name="screen_ant_media_video">Grabar vídeo</string>
     <string name="screen_ant_camera_unavailable">Cámara no disponible. Permite el acceso o elige un archivo de la galería.</string>
+    <string name="screen_ant_settings_kindness">Kindness y apoyo al proyecto</string>
 </resources>

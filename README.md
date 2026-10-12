@@ -12,7 +12,7 @@ Install Git LFS, JDK 21+, and the Android SDK (platform/build tools specified in
 
 ```sh
 git lfs pull
-bash tools/build-antintwrk.sh -PantintwrkVersionName=1.0.23 -PantintwrkVersionCode=20261047 --no-configuration-cache
+bash tools/build-antintwrk.sh -PantintwrkVersionName=1.0.25 -PantintwrkVersionCode=20261049 --no-configuration-cache
 ```
 
 `JAVA_HOME` and `ANDROID_HOME` can override the local runtime paths. The script creates a local development key in ignored `.antintwrk-local/`; it is not the project's private signing key. Set `ANTINTWRK_NATIVE_KEYSTORE` to an existing private debug keystore to use that signature. The server only admits registered Android signatures to native Google/passkey routes. A locally signed build must have its signature registered for those services; it does not impersonate the official build.

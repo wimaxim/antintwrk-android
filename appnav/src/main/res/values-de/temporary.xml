@@ -142,4 +142,5 @@
     <string name="screen_ant_media_photo">Foto aufnehmen</string>
     <string name="screen_ant_media_video">Video aufnehmen</string>
     <string name="screen_ant_camera_unavailable">Kamera nicht verfügbar. Erlaube den Kamerazugriff oder wähle eine Datei aus der Galerie.</string>
+    <string name="screen_ant_settings_kindness">Kindness und Projektunterstützung</string>
 </resources>

@@ -91,14 +91,21 @@ class AntintwrkStoreCoordinatorTest {
     }
     @Test
     fun `charity and unsupported product types cannot enter native checkout`() = runTest {
-        for ((purpose, type) in listOf("ukraine" to "inapp", "david" to "inapp", "foundation" to "inapp", "kindness" to "subs", "verification" to "unknown")) {
+        for ((purpose, type) in listOf(
+            "ukraine" to "inapp",
+            "david" to "inapp",
+            "foundation" to "inapp",
+            "kindness" to "subs",
+            "support" to "subs",
+            "verification" to "unknown",
+        )) {
             enqueue(""""accountId":"$account","products":[{"key":"forbidden","productId":"foreign","type":"$type","purpose":"$purpose"}]""")
             assertThat(runCatching { coordinator.catalog() }.isFailure).isTrue()
             server.takeRequest()
             assertThat(runCatching { coordinator.purchase(JSONObject().put("key", "forbidden")) }.isFailure).isTrue()
         }
         assertThat(fake.launches).isEqualTo(0)
-        assertThat(server.requestCount).isEqualTo(5)
+        assertThat(server.requestCount).isEqualTo(6)
     }
     @Test
     fun `failed catalog refresh cannot launch an old offer`() = runTest {
@@ -110,6 +117,21 @@ class AntintwrkStoreCoordinatorTest {
         assertThat(runCatching { coordinator.purchase(JSONObject().put("key", "points")) }.isFailure).isTrue()
         assertThat(fake.launches).isEqualTo(0)
         assertThat(server.requestCount).isEqualTo(2)
+    }
+    @Test
+    fun `project support exposes gift points and starts only its own Play product`() = runTest {
+        enqueue(
+            """"accountId":"$account","products":[
+            {"key":"support","productId":"support_1000","type":"inapp","purpose":"support","points":1000,"purchaseOptionId":"buy"}]"""
+        )
+        val result = coordinator.catalog()
+        assertThat(result.getJSONArray("products").getJSONObject(0).getString("purpose")).isEqualTo("support")
+        assertThat(result.getJSONArray("products").getJSONObject(0).getInt("points")).isEqualTo(1000)
+        server.takeRequest()
+        enqueue(""""accountId":"$account","profileId":"$profile"""")
+        assertThat(coordinator.purchase(JSONObject().put("key", "support")).getBoolean("pending")).isTrue()
+        assertThat(fake.launches).isEqualTo(1)
+        assertThat(server.takeRequest().body.readUtf8()).contains("key=support")
     }
     @Test
     fun `other social account purchase is ignored without any verification request`() = runTest {

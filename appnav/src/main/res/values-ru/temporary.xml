@@ -142,4 +142,5 @@
     <string name="screen_ant_media_photo">Снять фото</string>
     <string name="screen_ant_media_video">Записать видео</string>
     <string name="screen_ant_camera_unavailable">Камера недоступна. Разрешите доступ к камере или выберите файл из галереи.</string>
+    <string name="screen_ant_settings_kindness">Добро и поддержка проекта</string>
 </resources>

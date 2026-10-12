@@ -50,6 +50,7 @@ internal class AntintwrkWebPolicy(val origin: String) {
 
     /** Canonicalise legacy navigation only; legacy origins never become trusted JS origins. */
     fun canonical(url: String): String {
+        if (publicAssistance(url)) return url
         val uri = Uri.parse(url)
         val target = if (uri.scheme == "https" && uri.host in setOf("antimsg.com", "antintwrk.com", "www.antintwrk.com") &&
             uri.userInfo == null && uri.port in setOf(-1, 443)) {
@@ -119,6 +120,7 @@ internal class AntintwrkWebPolicy(val origin: String) {
         val url = canonical(input)
         if (!sameOrigin(url) || outbound(url) || needsAuth(url)) return null
         val uri = Uri.parse(url)
+        if (uri.queryParameterNames.contains("app_ref")) return null
         if (uri.path == "/_firstvisit.html") {
             val destination = uri.getQueryParameter("url") ?: return null
             if (Uri.parse(destination).path == "/_firstvisit.html" || embedded(destination) == null) return null
@@ -145,7 +147,13 @@ internal class AntintwrkWebPolicy(val origin: String) {
             else -> null // All other pages use the separate additional screen.
         }
     }
-    fun external(url: String): Boolean = Uri.parse(url).let { uri ->
+    fun publicAssistance(url: String): Boolean = Uri.parse(url).let { uri ->
+        uri.scheme == "https" && uri.host == "antintwrk.com" && uri.port == -1 && uri.userInfo == null && uri.fragment == null &&
+            uri.pathSegments.size == 2 && uri.pathSegments[0] in languages && uri.pathSegments[1] == "ukraine" &&
+            uri.queryParameterNames == setOf("app_ref") &&
+            uri.getQueryParameters("app_ref").singleOrNull()?.matches(Regex("[A-Za-z0-9_-]{1,1456}\\.[A-Za-z0-9_-]{43}")) == true
+    }
+    fun external(url: String): Boolean = publicAssistance(url) || Uri.parse(url).let { uri ->
         uri.scheme in setOf("https", "http", "mailto", "tel") && uri.userInfo == null &&
             uri.host !in setOf(base.host, "antimsg.com", "antintwrk.com", "www.antintwrk.com")
     }

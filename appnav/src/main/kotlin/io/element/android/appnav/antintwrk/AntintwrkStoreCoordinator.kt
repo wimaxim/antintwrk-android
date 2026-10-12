@@ -28,15 +28,15 @@ internal class AntintwrkStoreCoordinator(
         // A failed refresh must not leave a previously offered checkout launchable.
         products = emptyList()
         accountId = null
-        val result = request("store-catalog")
+        val result = request("store-catalog", mapOf("support_v1" to "1"))
         val binding = result.getString("accountId").also { require(it.matches(Regex("[a-f0-9]{64}"))) }
         val items = result.getJSONArray("products")
         require(items.length() <= 20)
         products = (0 until items.length()).map { index ->
             val item = items.getJSONObject(index)
-            require(item.getString("purpose") in setOf("verification", "kindness"))
+            require(item.getString("purpose") in setOf("verification", "kindness", "support"))
             require(item.getString("type") in setOf("inapp", "subs"))
-            require(item.getString("purpose") != "kindness" || item.getString("type") == "inapp")
+            require(item.getString("purpose") !in setOf("kindness", "support") || item.getString("type") == "inapp")
             AntintwrkStoreProduct(
                 item.getString("key"),
                 item.getString("productId"),

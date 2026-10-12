@@ -14,6 +14,21 @@ internal data class AntintwrkWebDocument(val content: String, val complete: (Boo
 
 /** Called only after exact-origin/main-frame validation; never reads session or clipboard data. */
 internal object AntintwrkNativeWebActions {
+    private val privateLinkParameters = setOf(
+        "app",
+        "app_ref",
+        "native_legal",
+        "token",
+        "csrf",
+        "ticket",
+        "code",
+        "access_token",
+        "id_token",
+        "refresh_token",
+        "state",
+        "session",
+    )
+
     private fun publicSocialLink(url: String): String {
         val uri = Uri.parse(url)
         if (uri.scheme != "https" || uri.host !in setOf("antimsg.com", "antintwrk.com") || uri.userInfo != null) return url
@@ -21,7 +36,20 @@ internal object AntintwrkNativeWebActions {
         return uri.buildUpon().authority("antintwrk.com").clearQuery().apply {
             uri.queryParameterNames.filter {
                 it !in
-                setOf("app", "native_legal", "token", "csrf", "ticket", "code", "access_token", "id_token", "refresh_token", "state", "session")
+                setOf(
+                    "app",
+                    "app_ref",
+                    "native_legal",
+                    "token",
+                    "csrf",
+                    "ticket",
+                    "code",
+                    "access_token",
+                    "id_token",
+                    "refresh_token",
+                    "state",
+                    "session",
+                )
             }.forEach { name ->
                 uri.getQueryParameters(name).forEach { appendQueryParameter(name, it) }
             }
@@ -38,6 +66,7 @@ internal object AntintwrkNativeWebActions {
                             uri.getQueryParameter("package") == context.packageName && uri.queryParameterNames.all { it in setOf("package", "sku") }
                         "cerebralpalsycommunity.org" -> uri.path?.matches(Regex("/[a-z]{2}/give")) == true && assistanceReferral(uri)
                         "helpcp.org" -> uri.path?.matches(Regex("/[a-z]{2}/help/davidnewman")) == true && assistanceReferral(uri)
+                        "antintwrk.com" -> AntintwrkWebPolicy(controller.origin).publicAssistance(uri.toString())
                         else -> false
                     }
                     require(allowed && uri.toString().length <= 1800)
@@ -63,7 +92,20 @@ internal object AntintwrkNativeWebActions {
                     val url = Uri.parse(publicSocialLink(uri.toString())).buildUpon().clearQuery().apply {
                         uri.queryParameterNames.filter {
                             it !in
-                            setOf("app", "native_legal", "token", "csrf", "ticket", "code", "access_token", "id_token", "refresh_token", "state", "session")
+                            setOf(
+                    "app",
+                                "app_ref",
+                                "native_legal",
+                                "token",
+                                "csrf",
+                                "ticket",
+                                "code",
+                    "access_token",
+                                "id_token",
+                                "refresh_token",
+                                "state",
+                                "session",
+                )
                         }.forEach { name ->
                             uri.getQueryParameters(name).forEach { appendQueryParameter(name, it) }
                         }
@@ -90,10 +132,9 @@ internal object AntintwrkNativeWebActions {
         }
     }
 
-    /** Signature authority stays with the beneficiary server; native links require the no-reward contract. */
+    /** The beneficiary verifies signature/actor/gift policy; the app only restricts the destination and shape. */
     private fun assistanceReferral(uri: Uri): Boolean =
-        uri.queryParameterNames == setOf("source", "ref", "donation_only") &&
+        uri.queryParameterNames == setOf("source", "ref") &&
             uri.getQueryParameters("source") == listOf("heroworld") &&
-            uri.getQueryParameters("donation_only") == listOf("1") &&
             uri.getQueryParameters("ref").singleOrNull()?.matches(Regex("[A-Za-z0-9_-]{1,1456}\\.[A-Za-z0-9_-]{43}")) == true
 }

@@ -1,3 +1,5 @@
+> Superseded scope: the owner confirmed gifted Kindness for charitable assistance as well as Play-funded project support. New signed gift referrals replace new no-reward referrals. Existing immutable payment snapshots remain. See shared gift-points-and-support-2026-10-11.md; do not claim policy approval from naming alone.
+
 # Managed payment routing — 11 October 2026
 
 Google Play Billing is connected for verified identity applications and Kindness. The native catalog rejects charity purposes and unsupported types; catalog refresh failures invalidate checkout. Server receipts, immutable actor/order bindings and durable delivery before acknowledgement remain authoritative. Never grant from a launch result or put purchase tokens in WebView.

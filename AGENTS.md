@@ -209,3 +209,7 @@ Clearing app data on the same phone creates a fresh crypto session and is an ord
 ## Account-recovery informational shields — 11 October 2026
 
 For managed same-realm social actors/senders without explicit third-party forwarding, omit only the noncritical AuthenticityNotGuaranteed notice from ordinary bubble/dialog/action-summary UI. This is presentation under the approved custodial recovery model, not proof of original device authenticity or a fake Verified. Preserve raw SDK provenance/strict inspection and all critical, mismatch, identity, device and cleartext warnings. Refresh UI shield metadata without resetting history or recreating the chat. Same policy is required for iOS; see shared docs/account-recovery-notice-2026-10-11.md.
+
+## Подарочное Добро и выпускные материалы — 11 октября 2026
+
+Добро — подарочные баллы. Поддержка ANTINTWRK через store Billing дарит Добро; внешняя благотворительность также сохраняет подарок после verified receipt. Не отключать эти направления/начисления самостоятельно. Signed gift policy и scoped campaign actor сохраняются при выходе в browser без глобального social login; pending/replay/refund и account isolation обязательны. Исторические уже оплаченные snapshots не переписывать. Store title/descriptions на9 языках и сначала EN-screenshot сценарий обязательно согласовать с владельцем до внесения/публикации; не создавать локализованные серии до EN approval. AAB/APK upload в Google Play только по отдельной команде. См. ../docs/gift-points-and-support-2026-10-11.md и ../docs/play-store-marketing-draft-2026-10-11.md.

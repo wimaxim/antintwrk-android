@@ -47,6 +47,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.webkit.WebSettingsCompat
 import androidx.webkit.WebViewFeature
@@ -512,6 +513,13 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
         }
     }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        controller.view?.let { page ->
+            if (policy.embedded(page.url.orEmpty()) != null) {
+                page.evaluateJavascript("window.dispatchEvent(new Event('antintwrk-native-active'))", null)
+            }
+        }
+    }
     LaunchedEffect(controller.failed, controller.activePage) {
         if (controller.failed) {
             while (controller.failed) {
