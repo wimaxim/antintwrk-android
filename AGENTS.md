@@ -194,3 +194,8 @@ Logout must remove every Domain/Path/HttpOnly variant in the app-private embedde
 ## Pending message keys — 11 October 2026
 
 Managed timeline waiting for keys shows localized inline indeterminate progress with an explanation. Remove it through SDK content updates without room refresh; keep readable history/composer available, and preserve explicit withheld/trust errors. Historical pending keys after join use the approved managed recovery contract, not a blanket denial. UI must not reset identities/history or bypass authorization. Record Android/iOS parity in shared docs/message-keys-loading-2026-10-11.md.
+
+
+## Signed-device key sharing — 11 October 2026
+
+Managed SDK clients always use IDENTITY_BASED_STRATEGY regardless of the hidden isolation feature flag. Unsigned devices must not block signed devices and must not receive room keys through an automatic trust override. Preserve current-device verification, changed-identity checks and actor-bound custody restore. Never auto-ignore trust, sign arbitrary other devices, reset keys/history or switch to AllDevices to suppress a warning. iOS must carry the same contract; see shared docs/signed-device-sharing-2026-10-11.md.

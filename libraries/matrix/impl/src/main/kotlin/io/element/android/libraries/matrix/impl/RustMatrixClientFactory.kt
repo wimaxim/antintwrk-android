@@ -181,7 +181,11 @@ class RustMatrixClientFactory(
             }
             .autoEnableCrossSigning(true)
             .roomKeyRecipientStrategy(
-                strategy = if (featureFlagService.isFeatureEnabled(FeatureFlags.OnlySignedDeviceIsolationMode)) {
+                // Account recovery signs each admitted device. Leftover unsigned devices must
+                // neither block other devices nor receive keys through an automatic trust override.
+                strategy = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH ||
+                    featureFlagService.isFeatureEnabled(FeatureFlags.OnlySignedDeviceIsolationMode)
+                ) {
                     CollectStrategy.IDENTITY_BASED_STRATEGY
                 } else {
                     CollectStrategy.ERROR_ON_VERIFIED_USER_PROBLEM

@@ -10,6 +10,7 @@ package io.element.android.libraries.matrix.impl
 
 import com.google.common.truth.Truth.assertThat
 import io.element.android.features.enterprise.test.FakeClientBuilderEnterpriseHook
+import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.impl.auth.FakeProxyProvider
@@ -31,9 +32,41 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import uniffi.matrix_sdk.BackupDownloadStrategy
+import uniffi.matrix_sdk_crypto.CollectStrategy
 import java.io.File
 
 class RustMatrixClientFactoryTest {
+    @Test
+    fun `managed key sharing excludes unsigned devices without blocking signed devices`() = runTest {
+        val builder = FakeFfiClientBuilder()
+        val sut = createRustMatrixClientFactory(
+            clientBuilderProvider = FakeClientBuilderProvider { builder },
+            featureFlagService = FakeFeatureFlagService(mapOf(FeatureFlags.OnlySignedDeviceIsolationMode.key to false)),
+            workManagerScheduler = FakeWorkManagerScheduler(submitLambda = {}),
+        )
+        val client = sut.create(aSessionData())
+        val expected = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            CollectStrategy.IDENTITY_BASED_STRATEGY
+        } else {
+            CollectStrategy.ERROR_ON_VERIFIED_USER_PROBLEM
+        }
+        assertThat(builder.configuredRoomKeyRecipientStrategy).isEqualTo(expected)
+        client.destroy()
+    }
+
+    @Test
+    fun `explicit isolation retains identity based sharing in every build`() = runTest {
+        val builder = FakeFfiClientBuilder()
+        val sut = createRustMatrixClientFactory(
+            clientBuilderProvider = FakeClientBuilderProvider { builder },
+            featureFlagService = FakeFeatureFlagService(mapOf(FeatureFlags.OnlySignedDeviceIsolationMode.key to true)),
+            workManagerScheduler = FakeWorkManagerScheduler(submitLambda = {}),
+        )
+        val client = sut.create(aSessionData())
+        assertThat(builder.configuredRoomKeyRecipientStrategy).isEqualTo(CollectStrategy.IDENTITY_BASED_STRATEGY)
+        client.destroy()
+    }
+
     @Test
     fun `managed client downloads missing keys instead of only retrying local decryption`() = runTest {
         val builder = FakeFfiClientBuilder()
@@ -79,6 +112,7 @@ fun TestScope.createRustMatrixClientFactory(
     clientBuilderProvider: ClientBuilderProvider = FakeClientBuilderProvider(),
     workManagerScheduler: FakeWorkManagerScheduler = FakeWorkManagerScheduler(),
     sqliteStoreBuilderProvider: SqliteStoreBuilderProvider = FakeSqliteStoreBuilderProvider(),
+    featureFlagService: FakeFeatureFlagService = FakeFeatureFlagService(),
 ) = RustMatrixClientFactory(
     cacheDirectory = cacheDirectory,
     appCoroutineScope = backgroundScope,
@@ -88,7 +122,7 @@ fun TestScope.createRustMatrixClientFactory(
     proxyProvider = FakeProxyProvider(),
     clock = FakeSystemClock(),
     analyticsService = FakeAnalyticsService(),
-    featureFlagService = FakeFeatureFlagService(),
+    featureFlagService = featureFlagService,
     timelineEventFilterFactory = FakeTimelineEventFilterFactory(),
     clientBuilderProvider = clientBuilderProvider,
     sqliteStoreBuilderProvider = sqliteStoreBuilderProvider,

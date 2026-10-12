@@ -26,6 +26,8 @@ class FakeFfiClientBuilder(
 ) : ClientBuilder(NoHandle) {
     var configuredBackupDownloadStrategy: BackupDownloadStrategy? = null
         private set
+    var configuredRoomKeyRecipientStrategy: CollectStrategy? = null
+        private set
     override fun addRootCertificates(certificates: List<ByteArray>) = this
     override fun autoEnableBackups(autoEnableBackups: Boolean) = this
     override fun autoEnableCrossSigning(autoEnableCrossSigning: Boolean) = this
@@ -40,7 +42,9 @@ class FakeFfiClientBuilder(
     override fun homeserverUrl(url: String) = this
     override fun proxy(url: String) = this
     override fun requestConfig(config: RequestConfig) = this
-    override fun roomKeyRecipientStrategy(strategy: CollectStrategy) = this
+    override fun roomKeyRecipientStrategy(strategy: CollectStrategy) = apply {
+        configuredRoomKeyRecipientStrategy = strategy
+    }
     override fun serverName(serverName: String) = this
     override fun serverNameOrHomeserverUrl(serverNameOrUrl: String) = this
     override fun sessionPaths(dataPath: String, cachePath: String) = this

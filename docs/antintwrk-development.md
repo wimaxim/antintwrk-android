@@ -374,3 +374,8 @@ See [shared contract](../../docs/direct-actions-call-permission-2026-10-11.md). 
 ## 11 October: pending message key indicator
 
 [Shared UX and iOS parity](../../docs/message-keys-loading-2026-10-11.md). Managed encrypted waiting bubbles use localized inline progress; decrypt updates replace them without refresh, other messages/composer stay available and explicit trust/withheld errors remain. Android1.0.20. No server/key/history reset or push.
+
+
+## Отправка и неподписанные устройства — 11 октября 2026
+
+[Причина предупреждения, безопасный SDK-режим, Android проверки и перенос на iOS](../../docs/signed-device-sharing-2026-10-11.md). Managed client использует identity-based sharing: неподписанные устройства не получают ключи и не блокируют подписанные. Account recovery и gate собственной подписи сохранены; changed identity не обходится. История/vault/ключи/сервер не сбрасываются. Android1.0.21; результаты поставки в связанном документе.
