@@ -106,7 +106,17 @@ jobs:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         # One scan of the shipped application and all transitive runtime dependencies.
         # Aggregate attempts unsafe cross-project resolution on Gradle 9.
-        run: ./gradlew :app:dependencyCheckAnalyze $CI_GRADLE_ARG_PROPERTIES
+        run: |
+          if [[ "$GITHUB_REPOSITORY" == "wimaxim/antintwrk-android" ]]; then
+            # Resolve the shipped antintwrk variant, which disables upstream analytics.
+            # This scan does not sign an APK or need any private production keystore.
+            ./gradlew :app:dependencyCheckAnalyze $CI_GRADLE_ARG_PROPERTIES \
+              -PantintwrkOnboarding=true -PantintwrkWebFeed=true -PantintwrkNativeAuth=true \
+              -PantintwrkNativeKeystore=signature/debug.keystore \
+              -PantintwrkFirebaseResources="$GITHUB_WORKSPACE/config/antintwrk-firebase-release"
+          else
+            ./gradlew :app:dependencyCheckAnalyze $CI_GRADLE_ARG_PROPERTIES
+          fi
       - name: Upload dependency analysis
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
