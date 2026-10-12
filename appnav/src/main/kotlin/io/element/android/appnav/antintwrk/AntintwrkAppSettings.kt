@@ -97,6 +97,7 @@ internal fun AntintwrkAppSettings(
                     "profile" to R.string.screen_ant_settings_profile,
                     "native-push" to R.string.screen_ant_push_title,
                     "kindness" to R.string.screen_ant_settings_kindness,
+                    "deleteaccount" to CommonStrings.action_delete_account,
                 ), onRoute)
                 HorizontalDivider(Modifier.padding(vertical = 12.dp))
                 TextButton(stringResource(CommonStrings.screen_ant_invite_friends), inviteFriends)

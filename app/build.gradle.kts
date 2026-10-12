@@ -42,8 +42,9 @@ plugins {
 android {
     namespace = "io.element.android.x"
 
-    // Own FCM resources override upstream values only in the native social build.
+    // Own FCM resources and the managed permission overlay apply only in the native social build.
     if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) {
+        sourceSets.configureEach { if (name == "gplay") manifest.srcFile("src/antintwrk/AndroidManifest.xml") }
         val firebaseResources = providers.gradleProperty("antintwrkFirebaseResources").orNull
         if (gradle.startParameter.taskNames.any {
                 it.contains("Gplay", ignoreCase = true) ||
