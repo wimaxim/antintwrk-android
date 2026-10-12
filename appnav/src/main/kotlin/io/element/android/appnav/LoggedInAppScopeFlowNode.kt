@@ -11,8 +11,10 @@
 package io.element.android.appnav
 
 import android.os.Parcelable
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -159,6 +161,8 @@ class LoggedInAppScopeFlowNode(
     @Composable
     override fun View(modifier: Modifier) {
         if (BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            val sessionStatus by inputs.matrixClient.sessionVerificationService.sessionVerifiedStatus.collectAsState()
+            val recoveryPhases by io.element.android.libraries.matrix.api.encryption.AntintwrkRecoveryStatus.phases.collectAsState()
             androidx.compose.runtime.LaunchedEffect(inputs.matrixClient) {
                 io.element.android.libraries.matrix.api.roomlist.AntintwrkHiddenChats.openChats.collect { actor ->
                     if (actor == inputs.matrixClient.sessionId) attachSession().openAppChats()
@@ -182,7 +186,16 @@ class LoggedInAppScopeFlowNode(
                     kotlinx.coroutines.currentCoroutineContext().ensureActive()
                     attachSession().attachRoom(room.toRoomIdOrAlias())
                 },
-                messengerContent = { contentModifier -> Children(navModel = navModel, modifier = contentModifier) }
+                messengerContent = { contentModifier ->
+                    io.element.android.appnav.antintwrk.AntintwrkMessengerSessionContent(
+                        status = sessionStatus,
+                        phase = recoveryPhases[inputs.matrixClient.sessionId.value],
+                        onRetry = { io.element.android.libraries.matrix.api.encryption.AntintwrkRecoveryStatus.retry(inputs.matrixClient.sessionId.value) },
+                        modifier = contentModifier,
+                    ) {
+                        Children(navModel = navModel, modifier = Modifier.fillMaxSize())
+                    }
+                }
             )
         } else {
             Children(navModel = navModel, modifier = modifier)

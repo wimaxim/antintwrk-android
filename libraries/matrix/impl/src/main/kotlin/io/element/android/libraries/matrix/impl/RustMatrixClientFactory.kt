@@ -108,6 +108,12 @@ class RustMatrixClientFactory(
             }
             .use { it.build() }
 
+        if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+            // Freeze the outbox before restoring rooms or exposing the client to the UI.
+            // SendQueues resumes it only after the real session verification succeeds.
+            client.enableAllSendQueues(false)
+        }
+
         client.setMediaRetentionPolicy(
             MediaRetentionPolicy(
                 // Make this 500MB instead of 400MB

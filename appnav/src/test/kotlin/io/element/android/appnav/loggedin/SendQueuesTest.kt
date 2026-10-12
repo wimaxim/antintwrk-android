@@ -40,7 +40,7 @@ class SendQueuesTest {
             setSendQueueEnabledResult = setRoomSendQueueEnabledLambda
         )
         matrixClient.givenGetRoomResult(room.roomId, room)
-        sut.launchIn(backgroundScope)
+        sut.launchIn(backgroundScope, managed = false)
 
         sendQueueDisabledFlow.emit(room.roomId)
         advanceTimeBy(SEND_QUEUES_RETRY_DELAY_MILLIS)
@@ -67,7 +67,7 @@ class SendQueuesTest {
         )
         matrixClient.givenGetRoomResult(room.roomId, room)
 
-        sut.launchIn(backgroundScope)
+        sut.launchIn(backgroundScope, managed = false)
 
         sendQueueDisabledFlow.emit(room.roomId)
         advanceTimeBy(SEND_QUEUES_RETRY_DELAY_MILLIS)

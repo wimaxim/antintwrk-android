@@ -88,7 +88,16 @@ class FakeFfiClient(
     override fun session(): Session = session
     override fun setDelegate(delegate: ClientDelegate?): TaskHandle = FakeFfiTaskHandle()
     override suspend fun cachedAvatarUrl(): String? = null
-    override suspend fun restoreSession(session: Session) = Unit
+    var configuredSendQueuesEnabled: Boolean? = null
+        private set
+    var sendQueuesEnabledWhenRestored: Boolean? = null
+        private set
+    override suspend fun enableAllSendQueues(enable: Boolean) {
+        configuredSendQueuesEnabled = enable
+    }
+    override suspend fun restoreSession(session: Session) {
+        sendQueuesEnabledWhenRestored = configuredSendQueuesEnabled
+    }
     override fun syncService(): SyncServiceBuilder = FakeFfiSyncServiceBuilder()
     override suspend fun spaceService(): SpaceService = FakeFfiSpaceService()
     override fun roomDirectorySearch(): RoomDirectorySearch = FakeFfiRoomDirectorySearch()

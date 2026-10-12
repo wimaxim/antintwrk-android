@@ -199,3 +199,8 @@ Managed timeline waiting for keys shows localized inline indeterminate progress 
 ## Signed-device key sharing — 11 October 2026
 
 Managed SDK clients always use IDENTITY_BASED_STRATEGY regardless of the hidden isolation feature flag. Unsigned devices must not block signed devices and must not receive room keys through an automatic trust override. Preserve current-device verification, changed-identity checks and actor-bound custody restore. Never auto-ignore trust, sign arbitrary other devices, reset keys/history or switch to AllDevices to suppress a warning. iOS must carry the same contract; see shared docs/signed-device-sharing-2026-10-11.md.
+
+
+## Fresh-session sending readiness — 11 October 2026
+
+Clearing app data on the same phone creates a fresh crypto session and is an ordinary supported scenario. Freeze managed SDK send queues before restore/UI exposure. Resume only with actual SDK Verified and Running sync, observing initial readiness without waiting for a failed send; pause immediately on loss and cancel delayed enables with the session scope. Keep mounted chat content/drafts and show a small localized preparing/retry row; never fake Verified, reset identity/history, or require manual trust overrides. A vault retry must not disable an already verified working device. See shared docs/fresh-login-send-gate-2026-10-11.md and port the same queue gate to iOS.

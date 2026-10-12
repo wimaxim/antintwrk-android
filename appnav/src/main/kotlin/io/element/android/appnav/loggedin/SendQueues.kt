@@ -18,10 +18,15 @@ import io.element.android.libraries.matrix.api.sync.SyncService
 import io.element.android.libraries.matrix.api.sync.SyncState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @VisibleForTesting
@@ -38,7 +43,27 @@ class SendQueues(
      * Makes sure to re-enable all send queues when the network status is [NetworkStatus.Connected].
      */
     @OptIn(FlowPreview::class)
-    fun launchIn(coroutineScope: CoroutineScope) {
+    fun launchIn(coroutineScope: CoroutineScope, managed: Boolean = io.element.android.appnav.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+        if (managed) {
+            coroutineScope.launch {
+                combine(
+                    syncService.syncState,
+                    matrixClient.sessionVerificationService.sessionVerifiedStatus,
+                    matrixClient.sendQueueDisabledFlow().map { Unit }.onStart { emit(Unit) },
+                ) { sync, verified, _ -> sync == SyncState.Running && verified.isVerified() }
+                    .collectLatest { ready ->
+                        if (ready) {
+                            // Keep the existing network retry delay; losing verification pauses immediately.
+                            delay(SEND_QUEUES_RETRY_DELAY_MILLIS)
+                            matrixClient.setAllSendQueuesEnabled(enabled = true)
+                        } else {
+                            // Reassert the pause even if a prior enable was cancelled after its SDK side effect.
+                            matrixClient.setAllSendQueuesEnabled(enabled = false)
+                        }
+                    }
+            }
+            return
+        }
         combine(
             syncService.syncState,
             matrixClient.sendQueueDisabledFlow(),

@@ -14,6 +14,7 @@ import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.featureflag.test.FakeFeatureFlagService
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.impl.auth.FakeProxyProvider
+import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiClient
 import io.element.android.libraries.matrix.impl.fixtures.fakes.FakeFfiClientBuilder
 import io.element.android.libraries.matrix.impl.room.FakeTimelineEventFilterFactory
 import io.element.android.libraries.matrix.impl.storage.FakeSqliteStoreBuilderProvider
@@ -36,6 +37,20 @@ import uniffi.matrix_sdk_crypto.CollectStrategy
 import java.io.File
 
 class RustMatrixClientFactoryTest {
+    @Test
+    fun `managed outbox is paused before restoring a session`() = runTest {
+        val ffi = FakeFfiClient(withUtdHook = {})
+        val sut = createRustMatrixClientFactory(
+            clientBuilderProvider = FakeClientBuilderProvider { FakeFfiClientBuilder { ffi } },
+            workManagerScheduler = FakeWorkManagerScheduler(submitLambda = {}),
+        )
+        val client = sut.create(aSessionData())
+        val expected = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) false else null
+        assertThat(ffi.configuredSendQueuesEnabled).isEqualTo(expected)
+        assertThat(ffi.sendQueuesEnabledWhenRestored).isEqualTo(expected)
+        client.destroy()
+    }
+
     @Test
     fun `managed key sharing excludes unsigned devices without blocking signed devices`() = runTest {
         val builder = FakeFfiClientBuilder()
