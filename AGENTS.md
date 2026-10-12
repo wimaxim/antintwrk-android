@@ -204,3 +204,8 @@ Managed SDK clients always use IDENTITY_BASED_STRATEGY regardless of the hidden 
 ## Fresh-session sending readiness — 11 October 2026
 
 Clearing app data on the same phone creates a fresh crypto session and is an ordinary supported scenario. Freeze managed SDK send queues before restore/UI exposure. Resume only with actual SDK Verified and Running sync, observing initial readiness without waiting for a failed send; pause immediately on loss and cancel delayed enables with the session scope. Keep mounted chat content/drafts and show a small localized preparing/retry row; never fake Verified, reset identity/history, or require manual trust overrides. A vault retry must not disable an already verified working device. See shared docs/fresh-login-send-gate-2026-10-11.md and port the same queue gate to iOS.
+
+
+## Account-recovery informational shields — 11 October 2026
+
+For managed same-realm social actors/senders without explicit third-party forwarding, omit only the noncritical AuthenticityNotGuaranteed notice from ordinary bubble/dialog/action-summary UI. This is presentation under the approved custodial recovery model, not proof of original device authenticity or a fake Verified. Preserve raw SDK provenance/strict inspection and all critical, mismatch, identity, device and cleartext warnings. Refresh UI shield metadata without resetting history or recreating the chat. Same policy is required for iOS; see shared docs/account-recovery-notice-2026-10-11.md.

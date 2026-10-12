@@ -384,3 +384,8 @@ See [shared contract](../../docs/direct-actions-call-permission-2026-10-11.md). 
 ## Повторный вход после очистки данных — 11 октября 2026
 
 [Уточнение владельца, пробел ранней отправки, SDK verification gate и перенос на iOS](../../docs/fresh-login-send-gate-2026-10-11.md). Очистка данных на том же телефоне создаёт новую crypto session. Managed SDK outbox ставится на паузу до restore/UI, включается только после настоящего Verified и Running sync; соцсеть/история/recovery не сбрасываются. Не путать это с ручным добавлением физического устройства. Android1.0.22; результаты и ограничения проверок в связанном документе.
+
+
+## Информационная подсказка восстановленных ключей — 11 октября 2026
+
+[Общий Android/iOS контракт, причины и проверки](../../docs/account-recovery-notice-2026-10-11.md). В собственной same-realm social переписке без explicit forwarder убрана только grey/noncritical AuthenticityNotGuaranteed из badge/popup и long-press summary. Raw provenance и строгая SDK инспекция сохраняются; UI не объявляет backup-ключи Verified. Critical, mismatch, changed identity, device/cleartext ошибки остаются. Android1.0.23; ключи, сервер и текущие чаты не сбрасывались.

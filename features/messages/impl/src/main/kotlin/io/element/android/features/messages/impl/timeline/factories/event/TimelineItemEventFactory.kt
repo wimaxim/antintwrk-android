@@ -127,7 +127,7 @@ class TimelineItemEventFactory(
             threadInfo = mappedThreadInfo,
             origin = currentTimelineItem.event.origin,
             timelineItemDebugInfoProvider = currentTimelineItem.event.timelineItemDebugInfoProvider,
-            messageShieldProvider = currentTimelineItem.event.messageShieldProvider,
+            messageShieldProvider = currentTimelineItem.event.messageShieldForAccountUi(matrixClient.sessionId),
             sendHandleProvider = currentTimelineItem.event.sendHandleProvider,
             forwarder = currentTimelineItem.event.forwarder,
             forwarderProfile = currentTimelineItem.event.forwarderProfile,
@@ -147,7 +147,10 @@ class TimelineItemEventFactory(
                 name = senderProfile.getDisambiguatedDisplayName(timelineItem.senderId),
                 url = senderProfile.getAvatarUrl(),
             ),
-            readReceiptState = receivedMatrixTimelineItem.computeReadReceiptState(roomMembers, renderReadReceipts)
+            readReceiptState = receivedMatrixTimelineItem.computeReadReceiptState(roomMembers, renderReadReceipts),
+            messageShieldProvider = receivedMatrixTimelineItem.event.messageShieldForAccountUi(matrixClient.sessionId),
+            forwarder = receivedMatrixTimelineItem.event.forwarder,
+            forwarderProfile = receivedMatrixTimelineItem.event.forwarderProfile,
         )
     }
 
