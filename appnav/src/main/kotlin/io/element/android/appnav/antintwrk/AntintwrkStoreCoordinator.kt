@@ -25,12 +25,18 @@ internal class AntintwrkStoreCoordinator(
         client.storeRequest(action, actor, session.csrf, fields + ("package" to packageName), cookies)
 
     suspend fun catalog(): JSONObject = lock.withLock {
+        // A failed refresh must not leave a previously offered checkout launchable.
+        products = emptyList()
+        accountId = null
         val result = request("store-catalog")
         val binding = result.getString("accountId").also { require(it.matches(Regex("[a-f0-9]{64}"))) }
         val items = result.getJSONArray("products")
         require(items.length() <= 20)
         products = (0 until items.length()).map { index ->
             val item = items.getJSONObject(index)
+            require(item.getString("purpose") in setOf("verification", "kindness"))
+            require(item.getString("type") in setOf("inapp", "subs"))
+            require(item.getString("purpose") != "kindness" || item.getString("type") == "inapp")
             AntintwrkStoreProduct(
                 item.getString("key"),
                 item.getString("productId"),
@@ -42,7 +48,6 @@ internal class AntintwrkStoreCoordinator(
                 item.optInt("points"),
             )
         }
-        accountId = binding
         val prices = store.prices(products)
         products = prices.map { it.product }
         accountId = binding

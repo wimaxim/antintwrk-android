@@ -90,6 +90,28 @@ class AntintwrkStoreCoordinatorTest {
         assertThat(order).doesNotContain(token)
     }
     @Test
+    fun `charity and unsupported product types cannot enter native checkout`() = runTest {
+        for ((purpose, type) in listOf("ukraine" to "inapp", "david" to "inapp", "foundation" to "inapp", "kindness" to "subs", "verification" to "unknown")) {
+            enqueue(""""accountId":"$account","products":[{"key":"forbidden","productId":"foreign","type":"$type","purpose":"$purpose"}]""")
+            assertThat(runCatching { coordinator.catalog() }.isFailure).isTrue()
+            server.takeRequest()
+            assertThat(runCatching { coordinator.purchase(JSONObject().put("key", "forbidden")) }.isFailure).isTrue()
+        }
+        assertThat(fake.launches).isEqualTo(0)
+        assertThat(server.requestCount).isEqualTo(5)
+    }
+    @Test
+    fun `failed catalog refresh cannot launch an old offer`() = runTest {
+        catalog()
+        fake.failPrices = true
+        enqueue(""""accountId":"$account","products":[{"key":"points","productId":"points_1000","type":"inapp","purpose":"kindness"}]""")
+        assertThat(runCatching { coordinator.catalog() }.isFailure).isTrue()
+        server.takeRequest()
+        assertThat(runCatching { coordinator.purchase(JSONObject().put("key", "points")) }.isFailure).isTrue()
+        assertThat(fake.launches).isEqualTo(0)
+        assertThat(server.requestCount).isEqualTo(2)
+    }
+    @Test
     fun `other social account purchase is ignored without any verification request`() = runTest {
         catalog()
         assertThat(coordinator.verify(AntintwrkStorePurchase(token, listOf("points_1000"), true, "d".repeat(64), profile))).isFalse()

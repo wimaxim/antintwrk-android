@@ -36,10 +36,8 @@ internal object AntintwrkNativeWebActions {
                     val allowed = when (uri.host) {
                         "play.google.com" -> uri.path == "/store/account/subscriptions" &&
                             uri.getQueryParameter("package") == context.packageName && uri.queryParameterNames.all { it in setOf("package", "sku") }
-                        "cerebralpalsycommunity.org" -> uri.path?.matches(Regex("/[a-z]{2}/give")) == true &&
-                            uri.getQueryParameter("source") == "heroworld" && uri.queryParameterNames.all { it in setOf("source", "ref", "donation_only") }
-                        "helpcp.org" -> uri.path?.matches(Regex("/[a-z]{2}/help/davidnewman")) == true &&
-                            uri.getQueryParameter("source") == "heroworld" && uri.queryParameterNames.all { it in setOf("source", "ref", "donation_only") }
+                        "cerebralpalsycommunity.org" -> uri.path?.matches(Regex("/[a-z]{2}/give")) == true && assistanceReferral(uri)
+                        "helpcp.org" -> uri.path?.matches(Regex("/[a-z]{2}/help/davidnewman")) == true && assistanceReferral(uri)
                         else -> false
                     }
                     require(allowed && uri.toString().length <= 1800)
@@ -91,4 +89,11 @@ internal object AntintwrkNativeWebActions {
             complete(false)
         }
     }
+
+    /** Signature authority stays with the beneficiary server; native links require the no-reward contract. */
+    private fun assistanceReferral(uri: Uri): Boolean =
+        uri.queryParameterNames == setOf("source", "ref", "donation_only") &&
+            uri.getQueryParameters("source") == listOf("heroworld") &&
+            uri.getQueryParameters("donation_only") == listOf("1") &&
+            uri.getQueryParameters("ref").singleOrNull()?.matches(Regex("[A-Za-z0-9_-]{1,1456}\\.[A-Za-z0-9_-]{43}")) == true
 }
