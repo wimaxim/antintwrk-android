@@ -7,6 +7,7 @@ import android.app.DatePickerDialog
 import android.view.ContextThemeWrapper
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,6 +40,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -269,28 +272,41 @@ fun AntintwrkWelcomeView(
 @Composable
 private fun AntintwrkAuthTermsNotice(registering: Boolean, onOpen: () -> Unit) {
     val label = stringResource(R.string.screen_ant_auth_rules_link)
-    val text = stringResource(if (registering) R.string.screen_ant_auth_register_terms_notice else R.string.screen_ant_auth_login_terms_notice, label)
-    val start = text.indexOf(label)
     val linkColor = ElementTheme.materialColors.primary
-    val annotated = buildAnnotatedString {
-        append(text)
-        addLink(
-            LinkAnnotation.Clickable(
-                tag = "antintwrk-terms",
-                styles = TextLinkStyles(style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)),
-                linkInteractionListener = { onOpen() },
-            ),
-            start,
-            start + label.length,
+    val style = ElementTheme.typography.fontBodySmRegular.copy(lineBreak = LineBreak.Paragraph)
+    val textMeasurer = rememberTextMeasurer()
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        // Keep the link together when it fits; preserve readable wrapping at large accessibility font sizes.
+        val displayLabel = if (textMeasurer.measure(label, style, softWrap = false).size.width <= constraints.maxWidth) {
+            label.replace(' ', '\u00A0')
+        } else {
+            label
+        }
+        val text = stringResource(
+            if (registering) R.string.screen_ant_auth_register_terms_notice else R.string.screen_ant_auth_login_terms_notice,
+            displayLabel,
+        )
+        val start = text.indexOf(displayLabel)
+        val annotated = buildAnnotatedString {
+            append(text)
+            addLink(
+                LinkAnnotation.Clickable(
+                    tag = "antintwrk-terms",
+                    styles = TextLinkStyles(style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)),
+                    linkInteractionListener = { onOpen() },
+                ),
+                start,
+                start + displayLabel.length,
+            )
+        }
+        Text(
+            annotated,
+            Modifier.fillMaxWidth(),
+            color = ElementTheme.colors.textSecondary,
+            style = style,
+            textAlign = TextAlign.Center,
         )
     }
-    Text(
-        annotated,
-        Modifier.fillMaxWidth(),
-        color = ElementTheme.colors.textSecondary,
-        style = ElementTheme.typography.fontBodySmRegular,
-        textAlign = TextAlign.Center,
-    )
 }
 
 internal class AntintwrkWelcomePreviewStates : PreviewParameterProvider<AntintwrkWelcomeState> {

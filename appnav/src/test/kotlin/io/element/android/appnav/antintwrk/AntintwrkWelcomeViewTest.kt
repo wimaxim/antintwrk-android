@@ -49,9 +49,9 @@ class AntintwrkWelcomeViewTest : RobolectricTest() {
             }
         }
         val sentence = if (page == AntintwrkPage.Login) {
-            "By signing in, you agree to the Terms of ANTINTWRK."
+            "By signing in, you agree to the Terms\u00A0of\u00A0ANTINTWRK."
         } else {
-            "By registering, you agree to the Terms of ANTINTWRK."
+            "By registering, you agree to the Terms\u00A0of\u00A0ANTINTWRK."
         }
         val notice = onNodeWithText(sentence, useUnmergedTree = true).performScrollTo().assertIsDisplayed()
         // Invoke the actual accessible link action: Robolectric's stub font gives it zero width.
