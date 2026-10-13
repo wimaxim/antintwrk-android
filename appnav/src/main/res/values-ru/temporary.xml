@@ -143,4 +143,15 @@
     <string name="screen_ant_media_video">Записать видео</string>
     <string name="screen_ant_camera_unavailable">Камера недоступна. Разрешите доступ к камере или выберите файл из галереи.</string>
     <string name="screen_ant_settings_kindness">Добро и поддержка проекта</string>
+
+    <string name="screen_ant_settings_verification">Верификация аккаунта</string>
+    <string name="screen_ant_settings_friend_requests">Заявки в друзья</string>
+    <string name="screen_ant_settings_game">HERO WORLD</string>
+    <string name="screen_ant_settings_contacts">Контакты</string>
+    <string name="screen_ant_settings_information">О проекте</string>
+    <string name="screen_ant_settings_manifesto">Манифест</string>
+    <string name="screen_ant_settings_legal">Правовая информация</string>
+    <string name="screen_ant_settings_community_rules">Правила сообщества</string>
+    <string name="screen_ant_settings_safety">Безопасность</string>
+    <string name="screen_ant_settings_copyright">Авторские права / DMCA</string>
 </resources>

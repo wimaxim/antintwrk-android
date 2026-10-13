@@ -814,6 +814,7 @@ internal fun AntintwrkNativeAppView(
                     when (path) {
                         "native-push" -> pushOpen = true
                         "native-licences" -> licencesOpen = true
+                        "native-game" -> webController.onExternalLink(AntintwrkWebPolicy(webController.origin).game(language))
                         "native-media", "native-screen-lock", "native-location", "native-messenger-notifications", "native-moderation" -> {
                             val target = requireNotNull(antintwrkAppPreference(path))
                             settingsFailed = false

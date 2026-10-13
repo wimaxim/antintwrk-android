@@ -143,4 +143,15 @@
     <string name="screen_ant_media_video">تسجيل فيديو</string>
     <string name="screen_ant_camera_unavailable">الكاميرا غير متاحة. اسمح بالوصول إليها أو اختر ملفًا من المعرض.</string>
     <string name="screen_ant_settings_kindness">Kindness ودعم المشروع</string>
+
+    <string name="screen_ant_settings_verification">توثيق الحساب</string>
+    <string name="screen_ant_settings_friend_requests">طلبات الصداقة</string>
+    <string name="screen_ant_settings_game">HERO WORLD</string>
+    <string name="screen_ant_settings_contacts">اتصل بنا</string>
+    <string name="screen_ant_settings_information">عن المشروع</string>
+    <string name="screen_ant_settings_manifesto">البيان</string>
+    <string name="screen_ant_settings_legal">معلومات قانونية</string>
+    <string name="screen_ant_settings_community_rules">قواعد المجتمع</string>
+    <string name="screen_ant_settings_safety">السلامة</string>
+    <string name="screen_ant_settings_copyright">حقوق النشر / DMCA</string>
 </resources>

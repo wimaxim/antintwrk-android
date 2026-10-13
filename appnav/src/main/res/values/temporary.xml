@@ -143,4 +143,15 @@
     <string name="screen_ant_media_video">Record video</string>
     <string name="screen_ant_camera_unavailable">Camera unavailable. Allow camera access or choose from your gallery.</string>
     <string name="screen_ant_settings_kindness">Kindness and project support</string>
+
+    <string name="screen_ant_settings_verification">Account verification</string>
+    <string name="screen_ant_settings_friend_requests">Friend requests</string>
+    <string name="screen_ant_settings_game">HERO WORLD</string>
+    <string name="screen_ant_settings_contacts">Contacts</string>
+    <string name="screen_ant_settings_information">About the project</string>
+    <string name="screen_ant_settings_manifesto">Manifesto</string>
+    <string name="screen_ant_settings_legal">Legal information</string>
+    <string name="screen_ant_settings_community_rules">Community rules</string>
+    <string name="screen_ant_settings_safety">Safety</string>
+    <string name="screen_ant_settings_copyright">Copyright / DMCA</string>
 </resources>

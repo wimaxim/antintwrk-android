@@ -143,4 +143,15 @@
     <string name="screen_ant_media_video">Video aufnehmen</string>
     <string name="screen_ant_camera_unavailable">Kamera nicht verfügbar. Erlaube den Kamerazugriff oder wähle eine Datei aus der Galerie.</string>
     <string name="screen_ant_settings_kindness">Kindness und Projektunterstützung</string>
+
+    <string name="screen_ant_settings_verification">Kontoverifizierung</string>
+    <string name="screen_ant_settings_friend_requests">Freundschaftsanfragen</string>
+    <string name="screen_ant_settings_game">HERO WORLD</string>
+    <string name="screen_ant_settings_contacts">Kontakt</string>
+    <string name="screen_ant_settings_information">Über das Projekt</string>
+    <string name="screen_ant_settings_manifesto">Manifest</string>
+    <string name="screen_ant_settings_legal">Rechtliche Informationen</string>
+    <string name="screen_ant_settings_community_rules">Community-Regeln</string>
+    <string name="screen_ant_settings_safety">Sicherheit</string>
+    <string name="screen_ant_settings_copyright">Urheberrecht / DMCA</string>
 </resources>

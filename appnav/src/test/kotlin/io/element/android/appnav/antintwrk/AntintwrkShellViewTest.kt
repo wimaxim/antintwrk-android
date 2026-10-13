@@ -20,6 +20,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runAndroidComposeUiTest
@@ -31,6 +32,37 @@ import org.junit.Test
 import org.robolectric.annotation.Config
 
 class AntintwrkShellViewTest : RobolectricTest() {
+    @Test
+    @Config(qualifiers = "w320dp-h480dp")
+    fun `social verification remains accessible while messenger settings are unavailable`() = runAndroidComposeUiTest {
+        var destination = ""
+        setSafeContent { ElementTheme { AntintwrkAppSettings({}, { destination = it }, {}, messengerSettingsReady = false) } }
+        onNodeWithText("Account verification").performScrollTo().assertIsDisplayed().performClick()
+        runOnIdle { assertThat(destination).isEqualTo("verification") }
+    }
+
+    @Test
+    @Config(qualifiers = "w320dp-h480dp")
+    fun `information and participation links can be reached on a small settings screen`() = runAndroidComposeUiTest {
+        var destination = ""
+        setSafeContent { ElementTheme { AntintwrkAppSettings({}, { destination = it }, {}) } }
+        for ((label, route) in listOf(
+            "Friend requests" to "friend-requests",
+            "My referrals" to "my-referrals",
+            "HERO WORLD" to "native-game",
+            "Contacts" to "contacts",
+            "About antintwrk" to "about",
+            "Manifesto" to "hero/maxim-novichkov/1755",
+            "Community rules" to "community",
+            "Safety" to "safety",
+            "Copyright / DMCA" to "dmca",
+        )) {
+            onNodeWithText(label).performScrollTo().assertIsDisplayed().performClick()
+            runOnIdle { assertThat(destination).isEqualTo(route) }
+        }
+        onNodeWithText("Sign out").performScrollTo().assertIsDisplayed()
+    }
+
     @Test
     fun `compact menu opens shared settings instead of listing account actions`() = runAndroidComposeUiTest {
         var route = ""

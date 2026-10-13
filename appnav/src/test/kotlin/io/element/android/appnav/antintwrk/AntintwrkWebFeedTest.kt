@@ -24,6 +24,72 @@ import org.junit.Test
 
 class AntintwrkWebFeedTest : RobolectricTest() {
     @Test
+    fun `web navigation destinations remain embedded for both social origins and every language`() {
+        val destinations = listOf(
+            "hero-feed",
+            "communities",
+            "hero/tester",
+            "discover",
+            "people",
+            "hero-compose",
+            "friend-requests",
+            "notifications",
+            "profile",
+            "verification",
+            "monetization",
+            "my-referrals",
+            "kindness",
+            "support",
+            "contacts",
+            "about",
+            "hero/maxim-novichkov/1755",
+            "how-it-works",
+            "terms",
+            "privacy",
+            "dmca",
+            "community",
+            "safety",
+        )
+        for (origin in listOf("https://antimsg.com", "https://antintwrk.com")) {
+            val rules = AntintwrkWebPolicy(origin)
+            for (language in AntintwrkAppLocale.languages.keys) {
+                for (destination in destinations) {
+                    val target = rules.route(language, destination)
+                    assertThat(rules.embedded(target)).isEqualTo(target)
+                    assertThat(rules.external(target)).isFalse()
+                }
+                val game = rules.game(language)
+                assertThat(rules.sameOrigin(game)).isTrue()
+                assertThat(rules.outbound(game)).isTrue()
+                assertThat(rules.embedded(game)).isNull()
+                assertThat(android.net.Uri.parse(game).getQueryParameters("to")).containsExactly("/$language/")
+            }
+        }
+    }
+
+    @Test
+    fun `new settings destinations preserve each retained social root`() {
+        for (section in AntintwrkSection.entries) {
+            val controller = AntintwrkWebFeedController()
+            controller.ownProfileIdentity = "tester"
+            val root = policy.root("en", section, "tester")
+            controller.selectSection(section, root)
+            val page = mockk<WebView>(relaxed = true)
+            controller.registerPage(section, page, root)
+            controller.pageFinished(page, root)
+            for (destination in listOf("verification", "friend-requests", "my-referrals", "contacts", "about", "dmca", "community", "safety")) {
+                controller.navigate(policy.route("en", destination))
+                assertThat(controller.additionalActive).isTrue()
+                controller.selectSection(section, root)
+                assertThat(controller.view).isSameInstanceAs(page)
+                assertThat(controller.currentUrl).isEqualTo(root)
+                assertThat(controller.loading).isFalse()
+            }
+            verify(exactly = 0) { page.loadUrl(any()) }
+        }
+    }
+
+    @Test
     fun `Ukraine gift referral stays in the public external browser for either social origin`() {
         val target = "https://antintwrk.com/ru/ukraine?app_ref=payload." + "a".repeat(43)
         for (origin in listOf("https://antimsg.com", "https://antintwrk.com")) {

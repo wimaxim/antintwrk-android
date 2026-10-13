@@ -95,12 +95,18 @@ internal fun AntintwrkAppSettings(
                 TextButton(stringResource(R.string.screen_ant_settings_language), { choosingLanguage = true })
                 SettingsGroup(R.string.screen_ant_settings_account, listOf(
                     "profile" to R.string.screen_ant_settings_profile,
+                    "verification" to R.string.screen_ant_settings_verification,
                     "native-push" to R.string.screen_ant_push_title,
                     "kindness" to R.string.screen_ant_settings_kindness,
                     "deleteaccount" to CommonStrings.action_delete_account,
                 ), onRoute)
                 HorizontalDivider(Modifier.padding(vertical = 12.dp))
                 TextButton(stringResource(CommonStrings.screen_ant_invite_friends), inviteFriends)
+                SettingsGroup(R.string.screen_ant_settings_participation, listOf(
+                    "friend-requests" to R.string.screen_ant_settings_friend_requests,
+                    "my-referrals" to R.string.screen_ant_menu_referrals,
+                    "native-game" to R.string.screen_ant_settings_game,
+                ), onRoute)
                 SettingsGroup(CommonStrings.common_app_settings, listOf(
                     "native-media" to CommonStrings.common_media_upload_quality,
                     "native-screen-lock" to CommonStrings.common_screen_lock,
@@ -111,8 +117,18 @@ internal fun AntintwrkAppSettings(
                 if (!messengerSettingsReady) Text(stringResource(CommonStrings.common_loading), color = ElementTheme.colors.textSecondary)
                 SettingsGroup(R.string.screen_ant_settings_help, listOf(
                     "support" to R.string.screen_ant_menu_support,
+                    "contacts" to R.string.screen_ant_settings_contacts,
+                ), onRoute)
+                SettingsGroup(R.string.screen_ant_settings_information, listOf(
+                    "about" to R.string.screen_ant_menu_about,
+                    "hero/maxim-novichkov/1755" to R.string.screen_ant_settings_manifesto,
+                ), onRoute)
+                SettingsGroup(R.string.screen_ant_settings_legal, listOf(
                     "terms" to R.string.screen_ant_menu_terms,
                     "privacy" to R.string.screen_ant_menu_privacy,
+                    "community" to R.string.screen_ant_settings_community_rules,
+                    "safety" to R.string.screen_ant_settings_safety,
+                    "dmca" to R.string.screen_ant_settings_copyright,
                     "native-licences" to R.string.screen_ant_licences,
                 ), onRoute)
                 HorizontalDivider()

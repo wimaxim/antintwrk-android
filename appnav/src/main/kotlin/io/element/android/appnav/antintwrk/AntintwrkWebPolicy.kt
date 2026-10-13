@@ -99,6 +99,12 @@ internal class AntintwrkWebPolicy(val origin: String) {
         return uri.buildUpon().clearQuery().appendQueryParameter("native_legal", "1").build().toString()
     }
     fun feed(language: String): String = route(language, "hero-feed")
+
+    /** Same authenticated transition as the web menu; destination stays server-controlled. */
+    fun game(language: String): String {
+        val selected = language.takeIf { it in languages } ?: "en"
+        return Uri.parse(route(selected, "goto")).buildUpon().appendQueryParameter("to", "/$selected/").build().toString()
+    }
     fun root(language: String, section: AntintwrkSection, ownProfileIdentity: String? = null): String = route(
         language,
         when (section) {
