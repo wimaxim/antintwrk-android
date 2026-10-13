@@ -154,4 +154,9 @@
     <string name="screen_ant_settings_community_rules">Normas de la comunidad</string>
     <string name="screen_ant_settings_safety">Seguridad</string>
     <string name="screen_ant_settings_copyright">Derechos de autor / DMCA</string>
+
+    <string name="screen_ant_auth_rules_link">Condiciones de ANTINTWRK</string>
+    <string name="screen_ant_auth_login_terms_notice">Al iniciar sesión, aceptas las %1$s.</string>
+    <string name="screen_ant_auth_register_terms_notice">Al registrarte, aceptas las %1$s.</string>
+    <string name="screen_ant_auth_terms_unavailable">Las condiciones no están disponibles temporalmente. Comprueba la conexión e inténtalo de nuevo.</string>
 </resources>

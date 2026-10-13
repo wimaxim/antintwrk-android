@@ -32,10 +32,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -137,6 +142,9 @@ fun AntintwrkWelcomeView(
                 Text(stringResource(R.string.screen_ant_auth_email_spam_hint), color = ElementTheme.colors.textSecondary)
                 AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_login), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) })
             } else {
+                if (state.page in setOf(AntintwrkPage.Login, AntintwrkPage.Register, AntintwrkPage.Profile)) {
+                    AntintwrkAuthTermsNotice(registering = state.page != AntintwrkPage.Login, onOpen = { termsOpen = true })
+                }
                 if (!state.nativeLogin) {
                     Text(stringResource(R.string.screen_antintwrk_preview), color = ElementTheme.colors.textSecondary)
                 }
@@ -214,9 +222,6 @@ fun AntintwrkWelcomeView(
                             })
                         }
                     )
-                    TextButton(stringResource(R.string.screen_antintwrk_terms), {
-                        termsOpen = true
-                    })
                     Row(Modifier.fillMaxWidth().toggleable(
                         state.agreed,
                         role = Role.Checkbox,
@@ -259,6 +264,33 @@ fun AntintwrkWelcomeView(
             if (onOpenLicences != null) TextButton(stringResource(R.string.screen_ant_licences), onOpenLicences, Modifier.align(Alignment.CenterHorizontally))
         }
     }
+}
+
+@Composable
+private fun AntintwrkAuthTermsNotice(registering: Boolean, onOpen: () -> Unit) {
+    val label = stringResource(R.string.screen_ant_auth_rules_link)
+    val text = stringResource(if (registering) R.string.screen_ant_auth_register_terms_notice else R.string.screen_ant_auth_login_terms_notice, label)
+    val start = text.indexOf(label)
+    val linkColor = ElementTheme.materialColors.primary
+    val annotated = buildAnnotatedString {
+        append(text)
+        addLink(
+            LinkAnnotation.Clickable(
+                tag = "antintwrk-terms",
+                styles = TextLinkStyles(style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)),
+                linkInteractionListener = { onOpen() },
+            ),
+            start,
+            start + label.length,
+        )
+    }
+    Text(
+        annotated,
+        Modifier.fillMaxWidth(),
+        color = ElementTheme.colors.textSecondary,
+        style = ElementTheme.typography.fontBodySmRegular,
+        textAlign = TextAlign.Center,
+    )
 }
 
 internal class AntintwrkWelcomePreviewStates : PreviewParameterProvider<AntintwrkWelcomeState> {

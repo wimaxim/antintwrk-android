@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
@@ -47,8 +48,8 @@ internal fun AntintwrkTermsDialog(onDismiss: () -> Unit) {
     }
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         AntintwrkBrandTheme {
-            Column(Modifier.fillMaxSize().background(AntintwrkBackground).safeDrawingPadding()) {
-                TextButton(stringResource(R.string.screen_antintwrk_back), onDismiss)
+            Column(Modifier.fillMaxSize().testTag("antintwrk-terms-reader").background(AntintwrkBackground).safeDrawingPadding()) {
+                TextButton(stringResource(R.string.screen_antintwrk_back), onDismiss, Modifier.testTag("antintwrk-terms-back"))
                 Box(Modifier.weight(1f)) {
                     AndroidView(modifier = Modifier.fillMaxSize(), factory = {
                         view.apply {
@@ -71,6 +72,8 @@ internal fun AntintwrkTermsDialog(onDismiss: () -> Unit) {
                                 }
                                 override fun onPageFinished(view: WebView, url: String) {
                                     loading = false
+                                    // The origin's maintenance fallback can be served with HTTP 200.
+                                    if (view.title in setOf("Just a moment...", "Just a moment…")) failed = true
                                 }
                                 override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                                     if (request.isForMainFrame) {
@@ -96,11 +99,11 @@ internal fun AntintwrkTermsDialog(onDismiss: () -> Unit) {
                             }
                             loadUrl(requireNotNull(policy.legalReader(policy.route(language, "terms"))))
                         }
-                    })
+                    }, update = { it.visibility = if (failed) android.view.View.INVISIBLE else android.view.View.VISIBLE })
                     if (loading) AntintwrkLoadingView(Modifier.fillMaxSize())
                     if (failed) {
                         Column(Modifier.align(Alignment.Center)) {
-                            Text(stringResource(R.string.screen_ant_auth_request_error))
+                            Text(stringResource(R.string.screen_ant_auth_terms_unavailable))
                             TextButton(stringResource(R.string.screen_ant_web_retry), { view.reload() })
                         }
                     }

@@ -154,4 +154,9 @@
     <string name="screen_ant_settings_community_rules">社区规则</string>
     <string name="screen_ant_settings_safety">安全</string>
     <string name="screen_ant_settings_copyright">版权 / DMCA</string>
+
+    <string name="screen_ant_auth_rules_link">ANTINTWRK 使用条款</string>
+    <string name="screen_ant_auth_login_terms_notice">登录即表示你同意%1$s。</string>
+    <string name="screen_ant_auth_register_terms_notice">注册即表示你同意%1$s。</string>
+    <string name="screen_ant_auth_terms_unavailable">条款暂时无法加载。请检查网络连接后重试。</string>
 </resources>
