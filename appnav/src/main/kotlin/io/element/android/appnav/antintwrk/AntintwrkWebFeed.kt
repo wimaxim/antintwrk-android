@@ -770,6 +770,7 @@ internal fun AntintwrkWebFeed(controller: AntintwrkWebFeedController, backEnable
                     setDownloadListener { url, _, _, _, _ ->
                         if (controller.view === this && (policy.external(url) || policy.outbound(url))) controller.onExternalLink(url)
                     }
+                    AntintwrkWebOverlays.prepare(this, policy)
                     loadUrl(startUrl)
                 }).also { view ->
                     (view.parent as? ViewGroup)?.removeView(view)

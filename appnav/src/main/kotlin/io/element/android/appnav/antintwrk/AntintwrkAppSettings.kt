@@ -105,7 +105,6 @@ internal fun AntintwrkAppSettings(
                 SettingsGroup(R.string.screen_ant_settings_participation, listOf(
                     "friend-requests" to R.string.screen_ant_settings_friend_requests,
                     "my-referrals" to R.string.screen_ant_menu_referrals,
-                    "native-game" to R.string.screen_ant_settings_game,
                 ), onRoute)
                 SettingsGroup(CommonStrings.common_app_settings, listOf(
                     "native-media" to CommonStrings.common_media_upload_quality,

@@ -49,7 +49,6 @@ class AntintwrkShellViewTest : RobolectricTest() {
         for ((label, route) in listOf(
             "Friend requests" to "friend-requests",
             "My referrals" to "my-referrals",
-            "HERO WORLD" to "native-game",
             "Contacts" to "contacts",
             "About antintwrk" to "about",
             "Manifesto" to "hero/maxim-novichkov/1755",
@@ -61,6 +60,7 @@ class AntintwrkShellViewTest : RobolectricTest() {
             runOnIdle { assertThat(destination).isEqualTo(route) }
         }
         onNodeWithText("Sign out").performScrollTo().assertIsDisplayed()
+        onNodeWithText("HERO WORLD").assertDoesNotExist()
     }
 
     @Test
