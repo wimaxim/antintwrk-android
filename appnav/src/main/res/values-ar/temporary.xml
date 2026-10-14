@@ -159,4 +159,7 @@
     <string name="screen_ant_auth_login_terms_notice">بتسجيل الدخول، فإنك توافق على %1$s.</string>
     <string name="screen_ant_auth_register_terms_notice">بإنشاء حساب، فإنك توافق على %1$s.</string>
     <string name="screen_ant_auth_terms_unavailable">الشروط غير متاحة مؤقتًا. تحقق من اتصالك وحاول مجددًا.</string>
+    <string name="screen_ant_auth_no_account">ليس لديك حساب بعد؟ %1$s</string>
+    <string name="screen_ant_auth_has_account">لديك حساب بالفعل؟ %1$s</string>
+    <string name="screen_ant_auth_register_link">إنشاء حساب</string>
 </resources>

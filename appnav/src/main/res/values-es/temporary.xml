@@ -159,4 +159,7 @@
     <string name="screen_ant_auth_login_terms_notice">Al iniciar sesión, aceptas las %1$s.</string>
     <string name="screen_ant_auth_register_terms_notice">Al registrarte, aceptas las %1$s.</string>
     <string name="screen_ant_auth_terms_unavailable">Las condiciones no están disponibles temporalmente. Comprueba la conexión e inténtalo de nuevo.</string>
+    <string name="screen_ant_auth_no_account">¿Aún no tienes cuenta? %1$s</string>
+    <string name="screen_ant_auth_has_account">¿Ya tienes cuenta? %1$s</string>
+    <string name="screen_ant_auth_register_link">Registrarse</string>
 </resources>

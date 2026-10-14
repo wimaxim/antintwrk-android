@@ -159,4 +159,7 @@
     <string name="screen_ant_auth_login_terms_notice">En vous connectant, vous acceptez les %1$s.</string>
     <string name="screen_ant_auth_register_terms_notice">En vous inscrivant, vous acceptez les %1$s.</string>
     <string name="screen_ant_auth_terms_unavailable">Les conditions sont temporairement indisponibles. Vérifiez votre connexion et réessayez.</string>
+    <string name="screen_ant_auth_no_account">Pas encore de compte ? %1$s</string>
+    <string name="screen_ant_auth_has_account">Déjà un compte ? %1$s</string>
+    <string name="screen_ant_auth_register_link">S’inscrire</string>
 </resources>

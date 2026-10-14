@@ -159,4 +159,7 @@
     <string name="screen_ant_auth_login_terms_notice">Входячи в акаунт, ви погоджуєтеся з %1$s.</string>
     <string name="screen_ant_auth_register_terms_notice">Реєструючись, ви погоджуєтеся з %1$s.</string>
     <string name="screen_ant_auth_terms_unavailable">Правила тимчасово недоступні. Перевірте з’єднання та спробуйте ще раз.</string>
+    <string name="screen_ant_auth_no_account">Ще немає облікового запису? %1$s</string>
+    <string name="screen_ant_auth_has_account">Уже є обліковий запис? %1$s</string>
+    <string name="screen_ant_auth_register_link">Зареєструватися</string>
 </resources>

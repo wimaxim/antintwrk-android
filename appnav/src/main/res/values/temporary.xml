@@ -159,4 +159,7 @@
     <string name="screen_ant_auth_login_terms_notice">By signing in, you agree to the %1$s.</string>
     <string name="screen_ant_auth_register_terms_notice">By registering, you agree to the %1$s.</string>
     <string name="screen_ant_auth_terms_unavailable">The terms are temporarily unavailable. Check your connection and try again.</string>
+    <string name="screen_ant_auth_no_account">Don’t have an account? %1$s</string>
+    <string name="screen_ant_auth_has_account">Already have an account? %1$s</string>
+    <string name="screen_ant_auth_register_link">Sign up</string>
 </resources>

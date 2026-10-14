@@ -159,4 +159,7 @@
     <string name="screen_ant_auth_login_terms_notice">Mit der Anmeldung stimmst du den %1$s zu.</string>
     <string name="screen_ant_auth_register_terms_notice">Mit der Registrierung stimmst du den %1$s zu.</string>
     <string name="screen_ant_auth_terms_unavailable">Die Nutzungsbedingungen sind vorübergehend nicht verfügbar. Prüfe deine Verbindung und versuche es erneut.</string>
+    <string name="screen_ant_auth_no_account">Noch kein Konto? %1$s</string>
+    <string name="screen_ant_auth_has_account">Schon ein Konto? %1$s</string>
+    <string name="screen_ant_auth_register_link">Registrieren</string>
 </resources>

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -51,6 +52,7 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.LayoutDirection
@@ -296,12 +298,58 @@ fun AntintwrkWelcomeView(
                 }
                 if (state.busy) CircularProgressIndicator()
             }
+            if (state.page in setOf(AntintwrkPage.Login, AntintwrkPage.Register, AntintwrkPage.Profile)) {
+                AntintwrkAccountSwitchLink(
+                    registering = state.page != AntintwrkPage.Login,
+                    enabled = !state.busy,
+                    onSwitch = {
+                        emit(AntintwrkWelcomeEvent.Open(if (state.page == AntintwrkPage.Login) AntintwrkPage.Register else AntintwrkPage.Login))
+                    },
+                )
+            }
             FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 if (state.page == AntintwrkPage.Login) {
                     TextButton(stringResource(R.string.screen_antintwrk_reset), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Reset)) })
                 }
                 if (onOpenLicences != null) TextButton(stringResource(R.string.screen_ant_licences), onOpenLicences)
             }
+        }
+    }
+}
+
+@Composable
+private fun AntintwrkAccountSwitchLink(registering: Boolean, enabled: Boolean, onSwitch: () -> Unit) {
+    val label = stringResource(if (registering) R.string.screen_antintwrk_login else R.string.screen_ant_auth_register_link)
+    val style = ElementTheme.typography.fontBodySmRegular.copy(lineBreak = LineBreak.Paragraph)
+    val textMeasurer = rememberTextMeasurer()
+    val color = ElementTheme.materialColors.primary.copy(alpha = if (enabled) 1f else 0.4f)
+    androidx.compose.material3.TextButton(
+        onClick = onSwitch,
+        enabled = enabled,
+        modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("antintwrk-auth-account-switch"),
+    ) {
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val displayLabel = if (textMeasurer.measure(label, style, softWrap = false).size.width <= constraints.maxWidth) {
+                label.replace(' ', '\u00A0')
+            } else {
+                label
+            }
+            val sentence = stringResource(
+                if (registering) R.string.screen_ant_auth_has_account else R.string.screen_ant_auth_no_account,
+                displayLabel,
+            )
+            val start = sentence.indexOf(displayLabel)
+            Text(
+                buildAnnotatedString {
+                    append(sentence.substring(0, start))
+                    withStyle(SpanStyle(color = color, textDecoration = TextDecoration.Underline)) { append(displayLabel) }
+                    append(sentence.substring(start + displayLabel.length))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                style = style,
+                color = ElementTheme.colors.textSecondary,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

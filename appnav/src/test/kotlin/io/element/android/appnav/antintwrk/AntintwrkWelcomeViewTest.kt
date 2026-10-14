@@ -91,6 +91,8 @@ class AntintwrkWelcomeViewTest : RobolectricTest() {
         assertThat(submit.top - notice.bottom).isEqualTo(8.dp)
         val header = onNodeWithTag("antintwrk-auth-header").getUnclippedBoundsInRoot()
         assertThat(header.bottom - header.top).isEqualTo(48.dp)
+        val link = onNodeWithTag("antintwrk-auth-account-switch").assertIsDisplayed()
+        assertThat(link.getUnclippedBoundsInRoot().top).isGreaterThan(submit.bottom)
     }
 
     @Test
