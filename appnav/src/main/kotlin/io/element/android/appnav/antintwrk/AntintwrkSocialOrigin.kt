@@ -53,8 +53,10 @@ internal class AntintwrkSocialOriginCoordinator(
     private var checkedAt: Long? = null
     private var outageAt: Long? = null
     fun nextCheckDelay(): Long = checkedAt?.let { (300_000 - (clock() - it)).coerceIn(30_000, 300_000) } ?: 300_000
-    private val http = OkHttpClient.Builder().followRedirects(false).followSslRedirects(false)
-        .callTimeout(2500, TimeUnit.MILLISECONDS).build()
+    private val http = io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.configure(
+        OkHttpClient.Builder()
+    ).followRedirects(false).followSslRedirects(false)
+        .callTimeout(4500, TimeUnit.MILLISECONDS).build()
 
     suspend fun preload(force: Boolean = true) = lock.withLock {
         if (!force && checkedAt?.let { clock() - it < 300_000 } == true) return@withLock
@@ -75,7 +77,9 @@ internal class AntintwrkSocialOriginCoordinator(
                 val source = response.body.source()
                 source.request(4097)
                 require(source.buffer.size <= 4096)
-                AntintwrkSocialOrigins.recommendation(JSONObject(source.buffer.readUtf8()))
+                AntintwrkSocialOrigins.recommendation(JSONObject(source.buffer.readUtf8())).also {
+                    io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.recordSocialRecommendation(it)
+                }
             }
         } catch (cancelled: CancellationException) {
             throw cancelled

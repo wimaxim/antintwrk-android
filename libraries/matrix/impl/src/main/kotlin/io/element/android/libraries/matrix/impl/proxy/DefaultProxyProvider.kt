@@ -34,6 +34,7 @@ class DefaultProxyProvider(
     private val context: Context
 ) : ProxyProvider {
     override fun provides(): String? {
+        io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.proxyUrl?.let { return it }
         val defaultProxy = context.getSystemService<ConnectivityManager>()?.defaultProxy
         if (defaultProxy == null) {
             // Note: can be tested by running:

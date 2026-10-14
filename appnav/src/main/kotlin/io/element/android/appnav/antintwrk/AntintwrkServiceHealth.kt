@@ -38,7 +38,9 @@ internal class AntintwrkHealthGate {
 }
 
 internal class AntintwrkServiceHealth {
-    private val http = OkHttpClient.Builder().followRedirects(false).callTimeout(5, TimeUnit.SECONDS).build()
+    private val http = io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.configure(
+        OkHttpClient.Builder()
+    ).followRedirects(false).callTimeout(5, TimeUnit.SECONDS).build()
     suspend fun reachable(messenger: Boolean, origin: String = BuildConfig.ANTINTWRK_SOCIAL_ORIGIN): Boolean = withContext(Dispatchers.IO) {
         val url = if (messenger) "https://matrix.antimsg.com/_matrix/client/versions" else "$origin/antintwrk_mobile.php"
         try {

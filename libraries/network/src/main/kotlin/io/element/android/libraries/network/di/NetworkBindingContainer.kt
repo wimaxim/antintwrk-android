@@ -29,7 +29,7 @@ object NetworkBindingContainer {
     fun providesOkHttpClient(
         userAgentInterceptor: UserAgentInterceptor,
         dynamicHttpLoggingInterceptor: DynamicHttpLoggingInterceptor,
-    ): OkHttpClient = OkHttpClient.Builder().apply {
+    ): OkHttpClient = io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.configure(OkHttpClient.Builder()).apply {
         connectTimeout(30, TimeUnit.SECONDS)
         readTimeout(60, TimeUnit.SECONDS)
         writeTimeout(60, TimeUnit.SECONDS)

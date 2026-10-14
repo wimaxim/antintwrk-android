@@ -81,6 +81,11 @@ internal fun AntintwrkNativeAppView(
     onOpenMessage: (suspend (String) -> Unit)? = null,
     messengerContent: (@Composable (Modifier) -> Unit)? = null,
 ) {
+        val webTransportReady by antintwrkWebTransportReady.collectAsState()
+        if (!webTransportReady) {
+            AntintwrkLoadingView(modifier)
+            return
+        }
         val unreadFlow = remember(messengerRooms, hiddenRooms) {
             messengerRooms?.summaries?.let { rooms ->
                 kotlinx.coroutines.flow.combine(rooms, hiddenRooms ?: kotlinx.coroutines.flow.MutableStateFlow(emptyMap())) { entries, hidden ->

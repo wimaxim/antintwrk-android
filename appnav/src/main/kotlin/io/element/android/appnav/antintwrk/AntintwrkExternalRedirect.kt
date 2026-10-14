@@ -10,7 +10,9 @@ import java.util.concurrent.TimeUnit
 
 /** Resolve our /go,/goto within the authenticated app; browser receives only the external destination. */
 internal suspend fun antintwrkExternalRedirect(url: String, policy: AntintwrkWebPolicy): String = withContext(Dispatchers.IO) {
-    val http = OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).callTimeout(10, TimeUnit.SECONDS).build()
+    val http = io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.configure(
+        OkHttpClient.Builder()
+    ).followRedirects(false).followSslRedirects(false).callTimeout(10, TimeUnit.SECONDS).build()
     var current = policy.canonical(url)
     repeat(5) {
         if (!policy.sameOrigin(current)) {

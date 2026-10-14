@@ -51,7 +51,12 @@ internal fun AntintwrkMessengerOAuth(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val http = remember { OkHttpClient.Builder().followRedirects(false).followSslRedirects(false).callTimeout(20, TimeUnit.SECONDS).build() }
+    val http =
+        remember {
+            io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.configure(
+            OkHttpClient.Builder()
+        ).followRedirects(false).followSslRedirects(false).callTimeout(20, TimeUnit.SECONDS).build()
+        }
     val view = remember(url) { WebView(context) }
     DisposableEffect(view) {
         onDispose {

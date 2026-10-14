@@ -34,7 +34,9 @@ internal data class AntintwrkAuthSession(
 /** No logging interceptor, password persistence, browser redirects or bearer tokens. */
 internal class AntintwrkNativeAuthClient(
     val origin: String = BuildConfig.ANTINTWRK_SOCIAL_ORIGIN,
-    private val http: OkHttpClient = OkHttpClient.Builder().followRedirects(false).followSslRedirects(false)
+    private val http: OkHttpClient = io.element.android.libraries.network.antintwrk.AntintwrkRegionalTransport.configure(
+        OkHttpClient.Builder()
+    ).followRedirects(false).followSslRedirects(false)
         .callTimeout(30, TimeUnit.SECONDS).build(),
     private val transferEpoch: Long? = null,
 ) {
