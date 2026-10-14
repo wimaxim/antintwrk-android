@@ -1,3 +1,7 @@
+## Internal Google Play milestone —14 October2026
+
+Shared report: `../docs/play-internal-release-2026-10-14.md` in the mobile workspace. Corresponding source `af55b4987a53726b5a61cfe01b306d02ba956ee1`; release1.0.37/code370 active only internally. Build/lintVital/bundletool/signature/manifest/64bit PT_LOAD/16KB ZIP passed; full16KB runtime remains pending. Distribution certificates require separate Google/passkey/push acceptance. Ordinary reviewer actors use normal social transport; private credentials stay out of Git in Console Sign-in details. No reviewer-only flags/admin privileges/security bypass. Public review, Billing activation and declarations remain separate gates; iOS requires own identities/acceptance.
+
 # Сохранение этапов разработки antintwrk
 
 ## Network geo refresh and project notices — 10 October 2026
