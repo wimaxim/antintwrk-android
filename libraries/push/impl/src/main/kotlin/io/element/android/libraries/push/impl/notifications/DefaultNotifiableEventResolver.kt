@@ -158,7 +158,14 @@ class DefaultNotifiableEventResolver(
         userId: SessionId,
         otherSessionUserIds: Set<UserId>,
     ): Result<ResolvedPushEvent> = runCatchingExceptions {
-        if (content.senderIdOrNull() in otherSessionUserIds) {
+        val sender = content.senderIdOrNull()
+        if (suppressNotificationSender(
+                sender,
+                userId,
+                otherSessionUserIds,
+                io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH,
+                call = content is NotificationContent.MessageLike.RtcNotification,
+            )) {
             throw NotificationResolverException.EventFilteredOut
         }
         when (val content = this.content) {
@@ -486,6 +493,10 @@ class DefaultNotifiableEventResolver(
         }
     }
 }
+
+/** Managed apps have one admitted actor; a formerly stored login is another caller. */
+internal fun suppressNotificationSender(sender: UserId?, current: SessionId, storedOthers: Set<UserId>, managed: Boolean, call: Boolean = true): Boolean =
+    if (managed) call && sender == UserId(current.value) else sender in storedOthers
 
 @Suppress("LongParameterList")
 internal fun buildNotifiableMessageEvent(

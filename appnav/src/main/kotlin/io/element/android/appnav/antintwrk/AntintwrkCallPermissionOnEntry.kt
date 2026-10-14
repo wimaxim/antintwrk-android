@@ -72,7 +72,13 @@ internal fun AntintwrkCallPermissionOnEntry(
         awaitingSettings = false
         gate.settingsReturned()
     }
-    val currentCheck by rememberUpdatedState(permissionCheck ?: { NotificationManagerCompat.from(context).canUseFullScreenIntent() })
+    val currentCheck by rememberUpdatedState(permissionCheck ?: {
+        // Do not overlap the ordinary notification dialog or open unusable call settings.
+        val notificationsAllowed = android.os.Build.VERSION.SDK_INT < 33 ||
+            androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        !notificationsAllowed || NotificationManagerCompat.from(context).canUseFullScreenIntent()
+    })
     val currentLaunch by rememberUpdatedState(settingsLaunch ?: { intent: Intent -> launcher.launch(intent) })
 
     DisposableEffect(lifecycle, gate, sdk) {

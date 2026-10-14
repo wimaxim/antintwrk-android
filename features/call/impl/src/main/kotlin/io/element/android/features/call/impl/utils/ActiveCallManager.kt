@@ -41,8 +41,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -358,11 +356,8 @@ class DefaultActiveCallManager(
                     Timber.tag(tag).d("Has room call status changed for ringing call: ${it.hasRoomCall}")
                     it.hasRoomCall to (callData.sessionId in it.activeRoomCallParticipants)
                 }
+                    .confirmedCallLifecycle()
             }
-            // We only want to check if the room active call status changes
-            .distinctUntilChanged()
-            // Skip the first one, we're not interested in it (if the check below passes, it had to be active anyway)
-            .drop(1)
             .onEach { (roomHasActiveCall, userIsInTheCall) ->
                 if (!roomHasActiveCall) {
                     // The call was cancelled

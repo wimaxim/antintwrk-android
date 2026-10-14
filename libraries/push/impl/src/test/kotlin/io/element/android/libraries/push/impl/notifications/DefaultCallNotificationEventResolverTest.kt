@@ -28,10 +28,36 @@ import io.element.android.libraries.push.impl.notifications.model.NotifiableMess
 import io.element.android.libraries.push.impl.notifications.model.NotifiableRingingCallEvent
 import io.element.android.services.appnavstate.test.FakeAppForegroundStateService
 import io.element.android.services.toolbox.test.strings.FakeStringProvider
+import io.element.android.services.toolbox.test.systemclock.FakeSystemClock
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class DefaultCallNotificationEventResolverTest {
+    @Test
+    fun `managed live ring does not wait for cached room membership`() = runTest {
+        org.junit.Assume.assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val client = FakeMatrixClient().apply {
+            givenGetRoomResult(A_ROOM_ID, FakeJoinedRoom(baseRoom = FakeBaseRoom(initialRoomInfo = aRoomInfo(hasRoomCall = false))))
+        }
+        val resolver = createDefaultNotifiableEventResolver(clientProvider = FakeMatrixClientProvider(getClient = { Result.success(client) }))
+        val result = resolver.resolveEvent(
+            A_SESSION_ID,
+            aNotificationData(content = NotificationContent.MessageLike.RtcNotification(A_USER_ID_2, RtcNotificationType.RING, CallIntent.AUDIO, 1567)),
+        )
+        assertThat(result.getOrThrow()).isInstanceOf(NotifiableRingingCallEvent::class.java)
+        assertThat(testScheduler.currentTime).isEqualTo(0)
+    }
+
+    @Test
+    fun `managed live ring remains visible before room cache restore`() = runTest {
+        org.junit.Assume.assumeTrue(io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH)
+        val result = createDefaultNotifiableEventResolver().resolveEvent(
+            A_SESSION_ID,
+            aNotificationData(content = NotificationContent.MessageLike.RtcNotification(A_USER_ID_2, RtcNotificationType.RING, CallIntent.VIDEO, 1567)),
+        )
+        assertThat(result.getOrThrow()).isInstanceOf(NotifiableRingingCallEvent::class.java)
+    }
+
     @Test
     fun `resolve CallNotify - RING when call is still ongoing`() = runTest {
         val room = FakeJoinedRoom(
@@ -171,5 +197,6 @@ class DefaultCallNotificationEventResolverTest {
         stringProvider = stringProvider,
         appForegroundStateService = appForegroundStateService,
         clientProvider = clientProvider,
+        systemClock = FakeSystemClock(),
     )
 }

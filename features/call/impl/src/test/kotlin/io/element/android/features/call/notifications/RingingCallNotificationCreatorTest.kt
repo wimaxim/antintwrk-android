@@ -21,13 +21,30 @@ import io.element.android.libraries.matrix.test.A_USER_ID_2
 import io.element.android.libraries.matrix.test.FakeMatrixClient
 import io.element.android.libraries.matrix.test.FakeMatrixClientProvider
 import io.element.android.libraries.matrix.ui.media.test.FakeImageLoaderHolder
+import io.element.android.libraries.push.api.notifications.NotificationBitmapLoader
 import io.element.android.libraries.push.test.notifications.push.FakeNotificationBitmapLoader
 import io.element.android.tests.testutils.lambda.lambdaRecorder
 import io.element.android.tests.testutils.robolectric.RobolectricTest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 
 class RingingCallNotificationCreatorTest : RobolectricTest() {
+    @Test
+    fun `slow avatar cannot delay the ringtone beyond its small deadline`() = runTest {
+        val creator = createRingingCallNotificationCreator(
+            matrixClientProvider = FakeMatrixClientProvider(getClient = { Result.success(FakeMatrixClient()) }),
+            notificationBitmapLoader = object : NotificationBitmapLoader by FakeNotificationBitmapLoader() {
+                override suspend fun getUserIcon(avatarData: AvatarData, imageLoader: ImageLoader): IconCompat? {
+                    delay(60_000)
+                    return null
+                }
+            },
+        )
+        assertThat(creator.createTestNotification()).isNotNull()
+        assertThat(testScheduler.currentTime).isEqualTo(300)
+    }
+
     @Test
     fun `createNotification - with no associated MatrixClient does nothing`() = runTest {
         val notificationCreator = createRingingCallNotificationCreator(
@@ -107,7 +124,7 @@ class RingingCallNotificationCreatorTest : RobolectricTest() {
     private fun createRingingCallNotificationCreator(
         matrixClientProvider: FakeMatrixClientProvider = FakeMatrixClientProvider(),
         imageLoaderHolder: FakeImageLoaderHolder = FakeImageLoaderHolder(),
-        notificationBitmapLoader: FakeNotificationBitmapLoader = FakeNotificationBitmapLoader(),
+        notificationBitmapLoader: NotificationBitmapLoader = FakeNotificationBitmapLoader(),
     ) = RingingCallNotificationCreator(
         context = InstrumentationRegistry.getInstrumentation().targetContext,
         matrixClientProvider = matrixClientProvider,

@@ -33,6 +33,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
 import io.element.android.libraries.push.api.notifications.NotificationBitmapLoader
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.seconds
 
 /**
@@ -73,15 +74,17 @@ class RingingCallNotificationCreator(
     ): Notification? {
         val matrixClient = matrixClientProvider.getOrRestore(sessionId).getOrNull() ?: return null
         val imageLoader = imageLoaderHolder.get(matrixClient)
-        val userIcon = notificationBitmapLoader.getUserIcon(
-            avatarData = AvatarData(
-                id = roomId.value,
-                name = roomName,
-                url = roomAvatarUrl,
-                size = AvatarSize.RoomDetailsHeader,
-            ),
-            imageLoader = imageLoader,
-        )
+        val userIcon = withTimeoutOrNull(300) {
+            notificationBitmapLoader.getUserIcon(
+                avatarData = AvatarData(
+                    id = roomId.value,
+                    name = roomName,
+                    url = roomAvatarUrl,
+                    size = AvatarSize.RoomDetailsHeader,
+                ),
+                imageLoader = imageLoader,
+            )
+        }
 
         val caller = Person.Builder()
             .setName(senderDisplayName)

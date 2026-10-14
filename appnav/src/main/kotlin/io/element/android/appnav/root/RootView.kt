@@ -33,6 +33,7 @@ fun RootView(
 ) {
     if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH &&
         io.element.android.appnav.antintwrk.LocalAntintwrkStartupReady.current) {
+        io.element.android.appnav.antintwrk.AntintwrkNotificationPermissionOnEntry()
         io.element.android.appnav.antintwrk.AntintwrkCallPermissionOnEntry()
     }
     Box(

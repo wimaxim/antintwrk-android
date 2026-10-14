@@ -921,12 +921,16 @@ class DefaultNotifiableEventResolverTest : RobolectricTest() {
         )
         val request = aPushRequest(A_SESSION_ID, A_ROOM_ID, AN_EVENT_ID, "firebase")
         val result = sut.resolveEvents(A_SESSION_ID, listOf(request))
-        assertThat(result.getEvent(request)?.exceptionOrNull()).isEqualTo(NotificationResolverException.EventFilteredOut)
+        val expected = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) null else NotificationResolverException.EventFilteredOut
+        assertThat(result.getEvent(request)?.exceptionOrNull()).isEqualTo(expected)
     }
 
     @Test
     fun `resolve RtcNotification sent by another session on the same device is filtered out`() = runTest {
         val sut = createDefaultNotifiableEventResolver(
+            callNotificationEventResolver = FakeCallNotificationEventResolver { _, _, _ ->
+                Result.success(io.element.android.libraries.push.impl.notifications.fixtures.aNotifiableCallEvent())
+            },
             notificationResult = Result.success(
                 mapOf(
                     AN_EVENT_ID to Result.success(
@@ -950,7 +954,8 @@ class DefaultNotifiableEventResolverTest : RobolectricTest() {
         )
         val request = aPushRequest(A_SESSION_ID, A_ROOM_ID, AN_EVENT_ID, "firebase")
         val result = sut.resolveEvents(A_SESSION_ID, listOf(request))
-        assertThat(result.getEvent(request)?.exceptionOrNull()).isEqualTo(NotificationResolverException.EventFilteredOut)
+        val expected = if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) null else NotificationResolverException.EventFilteredOut
+        assertThat(result.getEvent(request)?.exceptionOrNull()).isEqualTo(expected)
     }
 
     @Test

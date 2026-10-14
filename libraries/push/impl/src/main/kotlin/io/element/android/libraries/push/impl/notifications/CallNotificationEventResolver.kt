@@ -24,6 +24,7 @@ import io.element.android.libraries.push.impl.notifications.model.NotifiableEven
 import io.element.android.libraries.push.impl.notifications.model.NotifiableRingingCallEvent
 import io.element.android.services.appnavstate.api.AppForegroundStateService
 import io.element.android.services.toolbox.api.strings.StringProvider
+import io.element.android.services.toolbox.api.systemclock.SystemClock
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
@@ -52,6 +53,7 @@ class DefaultCallNotificationEventResolver(
     private val stringProvider: StringProvider,
     private val appForegroundStateService: AppForegroundStateService,
     private val clientProvider: MatrixClientProvider,
+    private val systemClock: SystemClock,
 ) : CallNotificationEventResolver {
     override suspend fun resolveEvent(
         sessionId: SessionId,
@@ -64,7 +66,7 @@ class DefaultCallNotificationEventResolver(
         val previousRingingCallStatus = appForegroundStateService.hasRingingCall.value
         // We need the sync service working to get the updated room info
         val isRoomCallActive = runCatchingExceptions {
-            if (content.type == RtcNotificationType.RING) {
+            if (content.type == RtcNotificationType.RING && !io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
                 appForegroundStateService.updateHasRingingCall(true)
 
                 val client = clientProvider.getOrRestore(
@@ -90,7 +92,15 @@ class DefaultCallNotificationEventResolver(
         }.getOrDefault(false)
 
         notificationData.run {
-            if (content.type == RtcNotificationType.RING && isRoomCallActive && !forceNotify) {
+            val isLiveRing = content.type == RtcNotificationType.RING && !forceNotify &&
+                if (io.element.android.libraries.matrix.api.BuildConfig.ANTINTWRK_NATIVE_AUTH) {
+                    // The SDK has authenticated and resolved this event for this recipient.
+                    // Its deadline is authoritative; a retained room snapshot can lag sync.
+                    content.expirationTimestampMillis > systemClock.epochMillis()
+                } else {
+                    isRoomCallActive
+                }
+            if (isLiveRing) {
                 Timber.d("Ringing call notification intent ${content.callIntent} in room $roomId")
                 NotifiableRingingCallEvent(
                     sessionId = sessionId,
