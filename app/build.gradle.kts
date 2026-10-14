@@ -168,7 +168,7 @@ android {
     logger.warnInBox("Building ${defaultConfig.applicationId} ($baseAppName) [$buildType]")
 
     buildTypes {
-        val oAuthRedirectSchemeBase = BuildTimeConfig.METADATA_HOST_REVERSED ?: "io.element.android"
+        val oAuthRedirectSchemeBase = if (nativeSocialApp) "com.antintwrk.app" else BuildTimeConfig.METADATA_HOST_REVERSED ?: "io.element.android"
         getByName("debug") {
             resValue("string", "app_name", if (nativeSocialApp) baseAppName else "$baseAppName dbg")
             resValue(
