@@ -34,7 +34,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import com.bumble.appyx.core.modality.BuildContext
@@ -55,6 +54,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
@@ -423,9 +423,12 @@ internal fun AntintwrkNativeAppView(
                 retainAdmission = false
                 serverMessage = error.messageForUser
                 failed = true
-            } catch (_: GetCredentialCancellationException) {
+            } catch (_: AntintwrkCredentialDismissed) {
                 // Dismissing the system picker never admits a session.
             } catch (cancelled: CancellationException) {
+                // A stale cookie response can be rejected while the UI job is still
+                // alive. Show a failure; only real job cancellation is silent.
+                if (currentCoroutineContext().isActive && operation == admissionEpoch.current) failed = true
                 throw cancelled
             } catch (_: Exception) {
                 checkCurrent()
@@ -520,7 +523,7 @@ internal fun AntintwrkNativeAppView(
         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
             foreground = true
             if (!accountPreferences.getBoolean("logged-out", false) &&
-                (session?.stage == AntintwrkAuthStage.AUTHENTICATED || !busy || (session == null && state.page == AntintwrkPage.Welcome))) {
+                antintwrkRevalidateOnResume(session?.stage, busy, state.page)) {
                 scope.launch { runRequest(revalidate = true) { readAdmission() } }
             }
         }
@@ -739,6 +742,7 @@ internal fun AntintwrkNativeAppView(
                 busy = true
                 webController.destroy()
                 val cookieSnapshot = client.clearLocalSession()
+                val credentialCleanup = AntintwrkNativeCredentials.cleanupToken()
                 AntintwrkMessengerRoutes.clear()
                 AntintwrkAppNavigation.clear()
                 accountPreferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", current.matrixUserId)
@@ -772,7 +776,7 @@ internal fun AntintwrkNativeAppView(
                     } catch (_: Exception) {
                         // The old server session cannot restore cookies or admission.
                     } finally {
-                        if (accountPreferences.getBoolean("logged-out", false)) runCatching { credentials.clear() }
+                        if (accountPreferences.getBoolean("logged-out", false)) runCatching { credentials.clear(credentialCleanup) }
                     }
                 }
                 runRequest { AntintwrkNativeAuthClient(webController.authOrigin).session() }
@@ -1015,7 +1019,7 @@ internal fun AntintwrkNativeAppView(
                     scope.launch {
                         runRequest {
                         if (accountPreferences.getBoolean("logged-out", false)) client.clearLocalSession()
-                        credentials.signIn(context, client, provider, (session ?: client.session()).csrf)
+                        credentials.signIn(context, client, provider)
                     }
                     }
                 } else if (!busy) {

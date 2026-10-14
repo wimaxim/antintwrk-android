@@ -22,6 +22,7 @@ internal data class AntintwrkSocialStatus(val notifications: Int, val profileIde
 internal class AntintwrkRegistrationRequired(val ticket: String, val email: String, val firstName: String, val surname: String) : Exception()
 internal class AntintwrkRequestError(val code: String, val httpStatus: Int? = null) : Exception()
 internal class AntintwrkAccountError(val messageForUser: String) : Exception()
+internal data class AntintwrkProviderChallenge(val csrf: String, val options: JSONObject)
 internal data class AntintwrkAuthSession(
     val stage: AntintwrkAuthStage,
     val csrf: String,
@@ -163,10 +164,17 @@ internal class AntintwrkNativeAuthClient(
     }
 
     suspend fun providerOptions(provider: String, csrf: String): JSONObject = JSONObject(post("$provider-options", mapOf("csrf" to csrf)))
+    suspend fun providerChallenge(provider: String): AntintwrkProviderChallenge {
+        require(provider in setOf("passkey", "google"))
+        // Login-page state can outlive the binding cookie, especially after logout.
+        // Capture a fresh cookie-backed CSRF and retain it for this one-use challenge.
+        val csrf = session().csrf
+        return AntintwrkProviderChallenge(csrf, providerOptions(provider, csrf))
+    }
     suspend fun providerSignIn(provider: String, credential: String, ticket: String, csrf: String): AntintwrkAuthSession {
         val result = post(provider, mapOf("credential" to credential, "ticket" to ticket, "csrf" to csrf)).trim()
         if (provider == "passkey") {
-            require(result.isEmpty() || result == "OK")
+            if (result.isNotEmpty() && result != "OK") throw accountError(result)
         } else {
             val json = JSONObject(result)
             if (json.has("registrationTicket")) {

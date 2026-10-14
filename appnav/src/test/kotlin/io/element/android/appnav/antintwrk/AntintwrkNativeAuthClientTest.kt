@@ -50,6 +50,43 @@ class AntintwrkNativeAuthClientTest {
     private fun session(stage: String) = MockResponse().setBody("{\"stage\":\"$stage\",\"csrf\":\"$csrf\"}")
 
     @Test
+    fun `provider challenge after logout uses a fresh binding for options and verification`() = runTest {
+        val origin = server.url("/").toString().trimEnd('/')
+        val freshCsrf = "b".repeat(64)
+        CookieManager.getInstance().setCookie(origin, "binding=old; Path=/")
+        client.clearLocalSession()
+        server.enqueue(
+            MockResponse().setBody("""{"stage":"LOGIN","csrf":"$freshCsrf"}""")
+            .setHeader("Set-Cookie", "binding=new; Path=/")
+        )
+        server.enqueue(MockResponse().setBody("""{"ticket":"one-use","options":{}}"""))
+        val challenge = client.providerChallenge("passkey")
+        assertThat(challenge.csrf).isEqualTo(freshCsrf)
+        assertThat(server.takeRequest().getHeader("Cookie").orEmpty()).doesNotContain("binding=old")
+        val options = server.takeRequest()
+        assertThat(options.getHeader("Cookie")).contains("binding=new")
+        assertThat(options.body.readUtf8()).isEqualTo("action=passkey-options&csrf=$freshCsrf")
+        server.enqueue(MockResponse().setResponseCode(302).setHeader("Location", "/"))
+        server.enqueue(session("AUTHENTICATED"))
+        assertThat(client.providerSignIn("passkey", "fixture", challenge.options.getString("ticket"), challenge.csrf).stage)
+            .isEqualTo(AntintwrkAuthStage.AUTHENTICATED)
+        val proof = server.takeRequest()
+        assertThat(proof.getHeader("Cookie")).contains("binding=new")
+        assertThat(proof.body.readUtf8()).contains("csrf=$freshCsrf")
+        assertThat(server.takeRequest().body.readUtf8()).isEqualTo("action=session")
+    }
+
+    @Test
+    fun `a refused passkey proof is shown as plain text and never grants admission`() = runTest {
+        server.enqueue(MockResponse().setBody("<b>The passkey request expired. Please try again.</b>"))
+        val error = runCatching { client.providerSignIn("passkey", "fixture", "one-use", csrf) }.exceptionOrNull()
+        assertThat(error).isInstanceOf(AntintwrkAccountError::class.java)
+        assertThat((error as AntintwrkAccountError).messageForUser).isEqualTo("The passkey request expired. Please try again.")
+        server.takeRequest()
+        assertThat(server.requestCount).isEqualTo(1)
+    }
+
+    @Test
     fun `expired and rate limited requests remain distinct and never trigger a login retry`() = runTest {
         for ((status, code) in listOf(403 to "SESSION_EXPIRED", 429 to "RATE_LIMITED", 503 to "UNAVAILABLE")) {
             server.enqueue(MockResponse().setResponseCode(status).setBody("""{"error":"$code"}"""))

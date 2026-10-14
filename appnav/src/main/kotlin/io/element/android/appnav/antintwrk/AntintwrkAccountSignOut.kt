@@ -19,6 +19,7 @@ internal object AntintwrkAccountSignOut {
         val push = AntintwrkSocialPushStore(context)
         val fid = push.fid
         val snapshot = client.clearLocalSession()
+        val credentialCleanup = AntintwrkNativeCredentials.cleanupToken()
         synchronized(io.element.android.libraries.push.api.PushAccountPolicyLock.monitor) {
             preferences.edit().putBoolean("logged-out", true).putString("logged-out-actor", matrixActor)
                 .remove("social-actor").remove("connect-messenger-for").commit()
@@ -31,7 +32,7 @@ internal object AntintwrkAccountSignOut {
         AntintwrkAppNavigation.clear()
         scope.launch {
             if (preferences.getBoolean("logged-out", false) && preferences.getString("social-actor", null) == null) {
-                runCatching { AntintwrkNativeCredentials(context).clear() }
+                runCatching { AntintwrkNativeCredentials(context).clear(credentialCleanup) }
             }
             // Revocation is best effort and uses only the old cookie snapshot. A new
             // social login must never receive cookie headers from this cleanup job.
