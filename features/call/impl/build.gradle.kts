@@ -17,6 +17,35 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+abstract class PrepareAntintwrkCallOverlay : Exec() {
+    @get:OutputDirectory
+    abstract val assetsDirectory: DirectoryProperty
+}
+
+val embeddedCallArtifact = configurations.create("antintwrkEmbeddedCallArtifact") {
+    isTransitive = false
+}
+dependencies.add(embeddedCallArtifact.name, "${libs.element.call.embedded.get()}@aar")
+val callOverlayAssets = layout.buildDirectory.dir("generated/antintwrkCall/assets")
+val prepareCallOverlay = tasks.register<PrepareAntintwrkCallOverlay>("prepareAntintwrkCallOverlay") {
+    val patchScript = rootProject.file("tools/antintwrk-call/patch_embedded_call.py")
+    inputs.files(embeddedCallArtifact, patchScript)
+    assetsDirectory.set(callOverlayAssets)
+    commandLine(
+        "python3",
+        patchScript.absolutePath,
+        "--version",
+        "0.26.0",
+        "--aar",
+        embeddedCallArtifact.singleFile.absolutePath,
+        "--output",
+        callOverlayAssets.get().asFile.absolutePath,
+    )
+}
+androidComponents.onVariants { variant ->
+    variant.sources.assets?.addGeneratedSourceDirectory(prepareCallOverlay, PrepareAntintwrkCallOverlay::assetsDirectory)
+}
+
 android {
     namespace = "io.element.android.features.call.impl"
 
@@ -85,7 +114,6 @@ dependencies {
     implementation(libs.androidx.webkit)
     implementation(libs.coil.compose)
     implementation(libs.serialization.json)
-    implementation(libs.element.call.embedded)
     api(projects.features.call.api)
 
     testCommonDependencies(libs, true)
