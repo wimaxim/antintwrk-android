@@ -44,7 +44,8 @@ import io.element.android.libraries.designsystem.utils.OnLifecycleEvent
 @Composable
 internal fun AntintwrkAuthBackdrop(
     modifier: Modifier = Modifier,
-    animated: Boolean = false,
+    animated: Boolean = true,
+    fullScreenArtwork: Boolean = false,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -62,7 +63,8 @@ internal fun AntintwrkAuthBackdrop(
         remember { mutableFloatStateOf(0f) }
     }
     Box(modifier.fillMaxSize().background(AntintwrkBackground).clipToBounds()) {
-        Canvas(Modifier.align(Alignment.BottomCenter).fillMaxWidth().then(if (animated) Modifier.fillMaxSize() else Modifier.height(260.dp))) {
+        // Motion is independent of artwork size: auth forms retain the compact footer.
+        Canvas(Modifier.align(Alignment.BottomCenter).fillMaxWidth().then(if (fullScreenArtwork) Modifier.fillMaxSize() else Modifier.height(260.dp))) {
             val center = Offset(size.width / 2, size.height * 0.68f)
             drawRect(Brush.radialGradient(listOf(Color(0xFF57C9B8).copy(alpha = 0.13f), Color.Transparent), center, size.width * 0.6f))
             drawRect(Brush.radialGradient(

@@ -70,7 +70,7 @@ import java.util.Locale
 
 @Composable
 fun AntintwrkLoadingView(modifier: Modifier = Modifier) = AntintwrkBrandTheme {
-    AntintwrkAuthBackdrop(modifier, animated = true) {
+    AntintwrkAuthBackdrop(modifier, fullScreenArtwork = true) {
         Column(
             Modifier.align(Alignment.Center).safeDrawingPadding().padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
