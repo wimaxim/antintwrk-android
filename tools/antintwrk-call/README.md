@@ -24,7 +24,8 @@ An unrecognised package fails the build rather than silently shipping unpatched.
 - Upstream: https://github.com/element-hq/element-call
 - Apply `call-pickup.patch` with `git apply` in either pinned checkout.
 - `call-pickup-tests.patch` adds the two reproducible synchronous consumer-order
-  regressions to the upstream lifecycle suite (validated with v0.26.0).
+  regressions to the upstream lifecycle suite (validated with v0.26.0). Apply
+  the test patch with `git apply --unidiff-zero call-pickup-tests.patch`.
 - Preserve upstream AGPL/commercial notices. These own modifications are AGPL-3.0-only.
 
 The packaged overlay does not require Node or a fresh web build. It verifies the
