@@ -161,14 +161,15 @@ android {
         }
     }
 
-    val baseAppName = if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) "antintwrk" else BuildTimeConfig.APPLICATION_NAME
+    val nativeSocialApp = providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()
+    val baseAppName = if (nativeSocialApp) "antintwrk" else BuildTimeConfig.APPLICATION_NAME
     val buildType = if (isEnterpriseBuild) "Enterprise" else "FOSS"
     logger.warnInBox("Building ${defaultConfig.applicationId} ($baseAppName) [$buildType]")
 
     buildTypes {
         val oAuthRedirectSchemeBase = BuildTimeConfig.METADATA_HOST_REVERSED ?: "io.element.android"
         getByName("debug") {
-            resValue("string", "app_name", "$baseAppName dbg")
+            resValue("string", "app_name", if (nativeSocialApp) baseAppName else "$baseAppName dbg")
             resValue(
                 "string",
                 "login_redirect_scheme",
