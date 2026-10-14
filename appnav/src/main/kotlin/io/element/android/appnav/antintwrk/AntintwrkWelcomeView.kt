@@ -9,6 +9,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +25,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.LinkAnnotation
@@ -46,9 +53,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.element.android.appnav.R
 import io.element.android.compound.theme.ElementTheme
+import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.preview.ElementPreview
 import io.element.android.libraries.designsystem.preview.PreviewsDayNight
 import io.element.android.libraries.designsystem.theme.components.CircularProgressIndicator
@@ -73,6 +82,7 @@ fun AntintwrkLoadingView(modifier: Modifier = Modifier) = AntintwrkBrandTheme {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AntintwrkWelcomeView(
     state: AntintwrkWelcomeState,
@@ -83,17 +93,38 @@ fun AntintwrkWelcomeView(
     var termsOpen by remember { mutableStateOf(false) }
     if (termsOpen) AntintwrkTermsDialog { termsOpen = false }
     val emit = state.eventSink
+    val welcome = state.page == AntintwrkPage.Welcome
     BackHandler(enabled = state.page != AntintwrkPage.Welcome) { emit(AntintwrkWelcomeEvent.Back) }
     AntintwrkAuthBackdrop(modifier) {
         Column(
             Modifier.align(Alignment.TopCenter).widthIn(max = 480.dp).fillMaxSize().safeDrawingPadding().imePadding()
-                .verticalScroll(rememberScrollState()).padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = if (welcome) 24.dp else 20.dp, vertical = if (welcome) 24.dp else 8.dp),
+            verticalArrangement = Arrangement.spacedBy(if (welcome) 16.dp else 8.dp),
         ) {
-            if (state.page != AntintwrkPage.Welcome) {
-                TextButton(stringResource(R.string.screen_antintwrk_back), { emit(AntintwrkWelcomeEvent.Back) })
+            if (!welcome) {
+                FlowRow(
+                    Modifier.fillMaxWidth().testTag("antintwrk-auth-header"),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = { emit(AntintwrkWelcomeEvent.Back) }) {
+                        Icon(CompoundIcons.ArrowLeft(), stringResource(R.string.screen_antintwrk_back))
+                    }
+                    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            AntintwrkBrandMark(40.dp, Modifier.testTag("antintwrk-auth-brand-mark"))
+                            AntintwrkWordmark(Modifier.testTag("antintwrk-auth-wordmark"), compact = true)
+                        }
+                    }
+                }
+            } else {
+                Spacer(Modifier.height(24.dp))
             }
-            Spacer(Modifier.height(if (state.page == AntintwrkPage.Welcome) 24.dp else 8.dp))
             val title = when (state.page) {
                 AntintwrkPage.Welcome -> R.string.screen_antintwrk_welcome
                 AntintwrkPage.Register -> R.string.screen_antintwrk_register
@@ -107,8 +138,10 @@ fun AntintwrkWelcomeView(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                AntintwrkBrandMark(if (state.page == AntintwrkPage.Welcome) 80.dp else 56.dp)
-                AntintwrkWordmark()
+                if (welcome) {
+                    AntintwrkBrandMark(80.dp, Modifier.testTag("antintwrk-auth-brand-mark"))
+                    AntintwrkWordmark(Modifier.testTag("antintwrk-auth-wordmark"))
+                }
                 Text(stringResource(title), Modifier.fillMaxWidth(), style = ElementTheme.typography.fontHeadingMdBold, textAlign = TextAlign.Center)
             }
             if (state.serverMessage.isNotEmpty()) Text(state.serverMessage, color = ElementTheme.colors.textCriticalPrimary)
@@ -145,9 +178,6 @@ fun AntintwrkWelcomeView(
                 Text(stringResource(R.string.screen_ant_auth_email_spam_hint), color = ElementTheme.colors.textSecondary)
                 AntintwrkPrimaryButton(stringResource(R.string.screen_antintwrk_login), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Login)) })
             } else {
-                if (state.page in setOf(AntintwrkPage.Login, AntintwrkPage.Register, AntintwrkPage.Profile)) {
-                    AntintwrkAuthTermsNotice(registering = state.page != AntintwrkPage.Login, onOpen = { termsOpen = true })
-                }
                 if (!state.nativeLogin) {
                     Text(stringResource(R.string.screen_antintwrk_preview), color = ElementTheme.colors.textSecondary)
                 }
@@ -253,18 +283,25 @@ fun AntintwrkWelcomeView(
                 if (state.unavailable && state.page != AntintwrkPage.Login && state.page != AntintwrkPage.Register) {
                     Text(stringResource(R.string.screen_antintwrk_unavailable), color = ElementTheme.colors.textSecondary)
                 }
-                AntintwrkPrimaryButton(
-                    stringResource(if (state.page == AntintwrkPage.Profile) R.string.screen_antintwrk_register else R.string.screen_antintwrk_continue),
-                    { emit(AntintwrkWelcomeEvent.Continue) },
-                    Modifier.fillMaxWidth(),
-                    enabled = !state.busy
-                )
+                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (state.page in setOf(AntintwrkPage.Login, AntintwrkPage.Register, AntintwrkPage.Profile)) {
+                        AntintwrkAuthTermsNotice(registering = state.page != AntintwrkPage.Login, onOpen = { termsOpen = true })
+                    }
+                    AntintwrkPrimaryButton(
+                        stringResource(if (state.page == AntintwrkPage.Profile) R.string.screen_antintwrk_register else R.string.screen_antintwrk_continue),
+                        { emit(AntintwrkWelcomeEvent.Continue) },
+                        Modifier.fillMaxWidth().testTag("antintwrk-auth-submit"),
+                        enabled = !state.busy
+                    )
+                }
                 if (state.busy) CircularProgressIndicator()
+            }
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 if (state.page == AntintwrkPage.Login) {
                     TextButton(stringResource(R.string.screen_antintwrk_reset), { emit(AntintwrkWelcomeEvent.Open(AntintwrkPage.Reset)) })
                 }
+                if (onOpenLicences != null) TextButton(stringResource(R.string.screen_ant_licences), onOpenLicences)
             }
-            if (onOpenLicences != null) TextButton(stringResource(R.string.screen_ant_licences), onOpenLicences, Modifier.align(Alignment.CenterHorizontally))
         }
     }
 }
@@ -275,7 +312,7 @@ private fun AntintwrkAuthTermsNotice(registering: Boolean, onOpen: () -> Unit) {
     val linkColor = ElementTheme.materialColors.primary
     val style = ElementTheme.typography.fontBodySmRegular.copy(lineBreak = LineBreak.Paragraph)
     val textMeasurer = rememberTextMeasurer()
-    BoxWithConstraints(Modifier.fillMaxWidth()) {
+    BoxWithConstraints(Modifier.fillMaxWidth().testTag("antintwrk-auth-terms-notice")) {
         // Keep the link together when it fits; preserve readable wrapping at large accessibility font sizes.
         val displayLabel = if (textMeasurer.measure(label, style, softWrap = false).size.width <= constraints.maxWidth) {
             label.replace(' ', '\u00A0')

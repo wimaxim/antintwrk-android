@@ -120,7 +120,7 @@ internal fun AntintwrkBrandMark(size: Dp, modifier: Modifier = Modifier) {
 }
 
 @Composable
-internal fun AntintwrkWordmark(modifier: Modifier = Modifier) {
+internal fun AntintwrkWordmark(modifier: Modifier = Modifier, compact: Boolean = false) {
     Text(
         buildAnnotatedString {
             append("anti")
@@ -128,7 +128,7 @@ internal fun AntintwrkWordmark(modifier: Modifier = Modifier) {
             append("ntwrk")
         },
         modifier = modifier,
-        style = ElementTheme.typography.fontHeadingLgBold,
+        style = if (compact) ElementTheme.typography.fontHeadingMdBold else ElementTheme.typography.fontHeadingLgBold,
     )
 }
 
