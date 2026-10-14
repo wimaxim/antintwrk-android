@@ -30,6 +30,7 @@ val callOverlayAssets = layout.buildDirectory.dir("generated/antintwrkCall/asset
 val prepareCallOverlay = tasks.register<PrepareAntintwrkCallOverlay>("prepareAntintwrkCallOverlay") {
     val patchScript = rootProject.file("tools/antintwrk-call/patch_embedded_call.py")
     inputs.files(embeddedCallArtifact, patchScript)
+    inputs.files(rootProject.file("tools/antintwrk-call/call-tone-loop.js"), rootProject.file("tools/antintwrk-call/generate_call_tones.py"))
     assetsDirectory.set(callOverlayAssets)
     commandLine(
         "python3",

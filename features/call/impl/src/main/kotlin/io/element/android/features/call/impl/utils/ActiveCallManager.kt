@@ -133,13 +133,20 @@ class DefaultActiveCallManager(
                 return
             }
 
-            appForegroundStateService.updateHasRingingCall(true)
             Timber.tag(tag).d("Received incoming call for room id: ${notificationData.roomId}, ringDuration(ms): $ringDuration")
-            if (activeCall.value != null) {
+            val existingCall = activeCall.value
+            if (existingCall != null) {
+                if (existingCall.callState == CallState.InCall &&
+                    existingCall.callData.sessionId == notificationData.sessionId &&
+                    existingCall.callData.roomId != notificationData.roomId
+                ) {
+                    coroutineScope.launch { declineIncomingCallAsBusy(notificationData, existingCall) }
+                }
                 displayMissedCallNotification(notificationData)
                 Timber.tag(tag).w("Already have an active call, ignoring incoming call: $notificationData")
                 return
             }
+            appForegroundStateService.updateHasRingingCall(true)
             activeCall.value = ActiveCall(
                 callData = CallData(
                     sessionId = notificationData.sessionId,
@@ -163,6 +170,15 @@ class DefaultActiveCallManager(
                 Timber.tag(tag).d("Acquiring partial wakelock")
                 activeWakeLock.acquire(ringDuration)
             }
+        }
+    }
+
+    private suspend fun declineIncomingCallAsBusy(notificationData: CallNotificationData, existingCall: ActiveCall) {
+        val room = matrixClientProvider.getOrRestore(notificationData.sessionId).getOrNull()
+            ?.getRoom(notificationData.roomId) ?: return
+        if (activeCall.value != existingCall || !room.isDm() || notificationData.expirationTimestamp <= systemClock.epochMillis()) return
+        room.declineCallAsBusy(notificationData.eventId).onFailure {
+            Timber.tag(tag).w(it, "Could not report account busy")
         }
     }
 

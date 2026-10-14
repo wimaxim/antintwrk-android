@@ -192,6 +192,13 @@ class FakeBaseRoom(
         return Result.success(Unit)
     }
 
+    val busyDeclines = mutableListOf<EventId>()
+
+    override suspend fun declineCallAsBusy(notificationEventId: EventId): Result<Unit> {
+        busyDeclines.add(notificationEventId)
+        return Result.success(Unit)
+    }
+
     override suspend fun subscribeToCallDecline(notificationEventId: EventId): Flow<UserId> {
         val flow = declineCallFlowMap.getOrPut(notificationEventId, { MutableSharedFlow() })
         return flow

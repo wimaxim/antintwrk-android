@@ -44,6 +44,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonObject
 import org.matrix.rustcomponents.sdk.CallDeclineListener
 import org.matrix.rustcomponents.sdk.RoomInfoListener
 import org.matrix.rustcomponents.sdk.use
@@ -273,6 +276,20 @@ class RustBaseRoom(
     override suspend fun declineCall(notificationEventId: EventId): Result<Unit> = withContext(roomDispatcher) {
         runCatchingExceptions {
             innerRoom.declineCall(notificationEventId.value)
+        }
+    }
+
+    override suspend fun declineCallAsBusy(notificationEventId: EventId): Result<Unit> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            check(isDm()) { "Busy declines apply only to personal calls" }
+            val content = buildJsonObject {
+                putJsonObject("m.relates_to") {
+                    put("rel_type", "m.reference")
+                    put("event_id", notificationEventId.value)
+                }
+                put("io.antintwrk.call.reason", "busy")
+            }
+            innerRoom.sendRaw("org.matrix.msc4310.rtc.decline", content.toString())
         }
     }
 

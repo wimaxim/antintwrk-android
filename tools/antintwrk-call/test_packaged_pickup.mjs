@@ -29,9 +29,10 @@ async function scenario(factory, outcome, firstConsumer) {
   const recipient = "@recipient:test.invalid";
   const memberships$ = new rx.BehaviorSubject({ value: outcome === "accept" ? [{ userId: recipient }] : [] });
   const notifications = new rx.Subject();
-  const receivedDecline$ = outcome === "decline" ? rx.of([{
+  const receivedDecline$ = outcome === "decline" || outcome === "busy" ? rx.of([{
     getRelation: () => ({ rel_type: "m.reference", event_id: "$notification" }),
     getSender: () => recipient,
+    getContent: () => outcome === "busy" ? { "io.antintwrk.call.reason": "busy" } : {},
   }]) : rx.NEVER;
   const lifecycle = factory({ scope, memberships$,
     matrixRoomMembers$: { value: new Map([[recipient, {}]]) },
@@ -59,7 +60,7 @@ const original = load(originalFile), patched = load(patchedFile);
 const broken = await scenario(original, "accept", "leave");
 assert.deepEqual(broken.ui, [], "Original must reproduce the lost pickup");
 assert.deepEqual(broken.late, [], "Original must lose the completed outcome");
-for (const outcome of ["accept", "decline", "timeout"]) {
+for (const outcome of ["accept", "decline", "timeout", "busy"]) {
   for (const first of ["leave", "ui"]) {
     const result = await scenario(patched, outcome, first);
     assert.deepEqual(result.ui, [outcome]);
@@ -67,4 +68,27 @@ for (const outcome of ["accept", "decline", "timeout"]) {
     assert.deepEqual(result.leave, outcome === "accept" ? [] : [outcome]);
   }
 }
-console.log(`Embedded ${version}: reproduced original lost pickup; six patched consumer-order/outcome cases passed`);
+// A reason is trusted only after matching both recipient and original notification.
+for (const invalid of ["sender", "event", "relation", "late"]) {
+  const scope = new ObservableScope(), recipient = "@recipient:test.invalid";
+  const notifications = new rx.Subject(), receivedDecline$ = new rx.Subject();
+  const memberships$ = new rx.BehaviorSubject({ value: invalid === "late" ? [{ userId: recipient }] : [] });
+  const lifecycle = patched({ scope, memberships$, sentCallNotification$: notifications, receivedDecline$,
+    matrixRoomMembers$: { value: new Map([[recipient, {}]]) },
+    options: { waitForCallPickup: true, autoLeaveWhenOthersLeft: false }, localUser: { userId: "@caller:test.invalid" },
+  });
+  const ui = [], leave = [];
+  lifecycle.autoLeave$.subscribe((v) => leave.push(v));
+  lifecycle.ringAttempts$.subscribe((v) => v.outcome$.subscribe((r) => ui.push(r)));
+  notifications.next({ event_id: "$notification", notification_type: "ring", lifetime: 5 });
+  receivedDecline$.next([{
+    getRelation: () => ({ rel_type: invalid === "relation" ? "m.annotation" : "m.reference", event_id: invalid === "event" ? "$other" : "$notification" }),
+    getSender: () => invalid === "sender" ? "@stranger:test.invalid" : recipient,
+    getContent: () => ({ "io.antintwrk.call.reason": "busy" }),
+  }]);
+  await new Promise((resolve) => setTimeout(resolve, 15));
+  assert.deepEqual(ui, [invalid === "late" ? "accept" : "timeout"]);
+  assert.deepEqual(leave, invalid === "late" ? [] : ["timeout"]);
+  scope.end();
+}
+console.log(`Embedded ${version}: eight outcome/order cases and four authenticated/late-busy guards passed; original lost pickup reproduced`);

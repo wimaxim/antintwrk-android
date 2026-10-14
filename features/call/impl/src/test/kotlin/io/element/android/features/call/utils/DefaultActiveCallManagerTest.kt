@@ -46,7 +46,9 @@ import io.element.android.tests.testutils.lambda.lambdaRecorder
 import io.element.android.tests.testutils.lambda.value
 import io.element.android.tests.testutils.plantTestTimber
 import io.element.android.tests.testutils.robolectric.RobolectricTest
+import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -505,6 +507,39 @@ class DefaultActiveCallManagerTest : RobolectricTest() {
 
         assertThat(manager.activeWakeLock?.isHeld).isFalse()
         verify(exactly = 0) { notificationManagerCompat.notify(notificationId, any()) }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `ongoing account call reports busy only for fresh personal calls on the same actor`() = runTest {
+        for ((isDm, sameActor, sameRoom, expired) in listOf(
+            listOf(true, true, false, false),
+            listOf(false, true, false, false),
+            listOf(true, false, false, false),
+            listOf(true, true, true, false),
+            listOf(true, true, false, true),
+        )) {
+            val room = mockk<JoinedRoom>(relaxed = true)
+            every { room.isDm() } returns isDm
+            coEvery { room.declineCallAsBusy(AN_EVENT_ID) } returns Result.success(Unit)
+            val roomId = if (sameRoom) A_ROOM_ID else A_ROOM_ID_2
+            val client = FakeMatrixClient().apply { givenGetRoomResult(roomId, room) }
+            val manager = createActiveCallManager(matrixClientProvider = FakeMatrixClientProvider({ Result.success(client) }))
+            val current = CallData(A_SESSION_ID, A_ROOM_ID, false)
+            manager.joinedCall(current)
+            val before = manager.activeCall.value
+            val incoming = aCallNotificationData(
+                roomId = roomId,
+                sessionId = if (sameActor) A_SESSION_ID else SessionId("@other:test.invalid"),
+                expirationTimestamp = if (expired) A_FAKE_TIMESTAMP - 1 else A_FAKE_TIMESTAMP + 30_000,
+            )
+            manager.registerIncomingCall(incoming)
+            runCurrent()
+            coVerify(exactly = if (isDm && sameActor && !sameRoom && !expired) 1 else 0) {
+                room.declineCallAsBusy(incoming.eventId)
+            }
+            assertThat(manager.activeCall.value).isEqualTo(before)
+        }
     }
 
     private fun setupShadowPowerManager() {

@@ -233,6 +233,9 @@ interface BaseRoom : Closeable {
      */
     suspend fun declineCall(notificationEventId: EventId): Result<Unit>
 
+    /** Decline a personal call because this account already has an active call. */
+    suspend fun declineCallAsBusy(notificationEventId: EventId): Result<Unit>
+
     /**
      * Emits the id of each user who declines the call advertised by the given notification.
      * Used to stop ringing once the callee has declined from another device.
