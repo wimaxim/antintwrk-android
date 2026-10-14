@@ -162,4 +162,6 @@
     <string name="screen_ant_auth_no_account">Ещё нет аккаунта? %1$s</string>
     <string name="screen_ant_auth_has_account">Уже есть аккаунт? %1$s</string>
     <string name="screen_ant_auth_register_link">Зарегистрироваться</string>
+    <string name="screen_ant_auth_passkey_provider_error">Менеджер ключей не смог завершить вход с Passkey (%1$s). Повторите попытку или войдите через email.</string>
+    <string name="screen_ant_auth_passkey_verification_error">Не удалось проверить Passkey (%1$s). Повторите попытку или войдите через email.</string>
 </resources>

@@ -162,4 +162,6 @@
     <string name="screen_ant_auth_no_account">Ще немає облікового запису? %1$s</string>
     <string name="screen_ant_auth_has_account">Уже є обліковий запис? %1$s</string>
     <string name="screen_ant_auth_register_link">Зареєструватися</string>
+    <string name="screen_ant_auth_passkey_provider_error">Менеджер ключів не зміг завершити вхід із Passkey (%1$s). Спробуйте ще раз або увійдіть через email.</string>
+    <string name="screen_ant_auth_passkey_verification_error">Не вдалося перевірити Passkey (%1$s). Спробуйте ще раз або увійдіть через email.</string>
 </resources>

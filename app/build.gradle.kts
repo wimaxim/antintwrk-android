@@ -82,7 +82,8 @@ android {
             "string",
             "antintwrk_native_asset_statements",
             if (providers.gradleProperty("antintwrkNativeAuth").orElse("false").get().toBoolean()) {
-                "[{\\\"include\\\":\\\"https://antimsg.com/.well-known/assetlinks.json\\\"}]"
+                "[{\\\"include\\\":\\\"https://antintwrk.com/.well-known/assetlinks.json\\\"}," +
+                    "{\\\"include\\\":\\\"https://antimsg.com/.well-known/assetlinks.json\\\"}]"
             } else {
                 "[]"
             }

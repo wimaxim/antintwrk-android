@@ -172,7 +172,12 @@ internal class AntintwrkNativeAuthClient(
         return AntintwrkProviderChallenge(csrf, providerOptions(provider, csrf))
     }
     suspend fun providerSignIn(provider: String, credential: String, ticket: String, csrf: String): AntintwrkAuthSession {
-        val result = post(provider, mapOf("credential" to credential, "ticket" to ticket, "csrf" to csrf)).trim()
+        val result = try {
+            post(provider, mapOf("credential" to credential, "ticket" to ticket, "csrf" to csrf)).trim()
+        } catch (error: AntintwrkRequestError) {
+            if (provider == "passkey" && error.code == "CREDENTIAL_INVALID") throw AntintwrkPasskeyFailure("PK-VERIFY", verification = true)
+            throw error
+        }
         if (provider == "passkey") {
             if (result.isNotEmpty() && result != "OK") throw accountError(result)
         } else {
@@ -187,7 +192,10 @@ internal class AntintwrkNativeAuthClient(
             }
             require(json.optBoolean("ok"))
         }
-        return session().also { require(it.stage != AntintwrkAuthStage.LOGIN) }
+        return session().also {
+            if (it.stage == AntintwrkAuthStage.LOGIN && provider == "passkey") throw AntintwrkPasskeyFailure("PK-SESSION", verification = true)
+            require(it.stage != AntintwrkAuthStage.LOGIN)
+        }
     }
 
     suspend fun requestAccount(action: String, fields: Map<String, String>, csrf: String) {

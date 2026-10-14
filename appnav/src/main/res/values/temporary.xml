@@ -162,4 +162,6 @@
     <string name="screen_ant_auth_no_account">Don’t have an account? %1$s</string>
     <string name="screen_ant_auth_has_account">Already have an account? %1$s</string>
     <string name="screen_ant_auth_register_link">Sign up</string>
+    <string name="screen_ant_auth_passkey_provider_error">Your password manager could not finish signing in with this passkey (%1$s). Try again or sign in using email.</string>
+    <string name="screen_ant_auth_passkey_verification_error">The passkey could not be verified (%1$s). Try again or sign in using email.</string>
 </resources>

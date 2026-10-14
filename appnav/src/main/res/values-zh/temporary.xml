@@ -162,4 +162,6 @@
     <string name="screen_ant_auth_no_account">还没有账号？%1$s</string>
     <string name="screen_ant_auth_has_account">已有账号？%1$s</string>
     <string name="screen_ant_auth_register_link">注册</string>
+    <string name="screen_ant_auth_passkey_provider_error">密码管理器未能使用此通行密钥完成登录（%1$s）。请重试或使用邮箱登录。</string>
+    <string name="screen_ant_auth_passkey_verification_error">无法验证通行密钥（%1$s）。请重试或使用邮箱登录。</string>
 </resources>

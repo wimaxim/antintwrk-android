@@ -162,4 +162,6 @@
     <string name="screen_ant_auth_no_account">Pas encore de compte ? %1$s</string>
     <string name="screen_ant_auth_has_account">Déjà un compte ? %1$s</string>
     <string name="screen_ant_auth_register_link">S’inscrire</string>
+    <string name="screen_ant_auth_passkey_provider_error">Votre gestionnaire de mots de passe n’a pas pu terminer la connexion avec cette clé d’accès (%1$s). Réessayez ou connectez-vous par e-mail.</string>
+    <string name="screen_ant_auth_passkey_verification_error">Impossible de vérifier la clé d’accès (%1$s). Réessayez ou connectez-vous par e-mail.</string>
 </resources>

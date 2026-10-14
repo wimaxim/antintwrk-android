@@ -147,6 +147,8 @@ internal fun AntintwrkNativeAppView(
         val passwordError = stringResource(R.string.screen_ant_auth_password_requirements)
         val sessionExpiredError = stringResource(R.string.screen_ant_auth_session_expired)
         val rateLimitError = stringResource(R.string.screen_ant_auth_rate_limited)
+        val passkeyProviderError = stringResource(R.string.screen_ant_auth_passkey_provider_error, "%1\$s")
+        val passkeyVerificationError = stringResource(R.string.screen_ant_auth_passkey_verification_error, "%1\$s")
         var session by (retainedSurface?.admission ?: remember { mutableStateOf<AntintwrkAuthSession?>(null) })
         AntintwrkStoreBinding(socialClient, webController.routedSession?.takeIf { it.matrixUserId == session?.matrixUserId }, webController)
         val actor = session?.matrixUserId
@@ -417,6 +419,11 @@ internal fun AntintwrkNativeAppView(
                     "RATE_LIMITED" -> rateLimitError
                     else -> ""
                 }
+                failed = true
+            } catch (error: AntintwrkPasskeyFailure) {
+                checkCurrent()
+                retainAdmission = false
+                serverMessage = (if (error.verification) passkeyVerificationError else passkeyProviderError).replace("%1\$s", error.code)
                 failed = true
             } catch (error: AntintwrkAccountError) {
                 checkCurrent()

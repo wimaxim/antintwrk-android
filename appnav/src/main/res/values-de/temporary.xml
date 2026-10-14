@@ -162,4 +162,6 @@
     <string name="screen_ant_auth_no_account">Noch kein Konto? %1$s</string>
     <string name="screen_ant_auth_has_account">Schon ein Konto? %1$s</string>
     <string name="screen_ant_auth_register_link">Registrieren</string>
+    <string name="screen_ant_auth_passkey_provider_error">Dein Passwortmanager konnte die Anmeldung mit diesem Passkey nicht abschließen (%1$s). Versuche es erneut oder melde dich per E-Mail an.</string>
+    <string name="screen_ant_auth_passkey_verification_error">Der Passkey konnte nicht überprüft werden (%1$s). Versuche es erneut oder melde dich per E-Mail an.</string>
 </resources>
