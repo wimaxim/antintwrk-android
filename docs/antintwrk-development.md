@@ -1,5 +1,7 @@
 ## Internal Google Play milestone —14 October2026
 
+Owner-approved main-only production Passkey association applied14October: current com.antintwrk.app Play signer plus preserved debug signer, strict cryptographic/admission checks unchanged. Public canonical RP assetlinks verified200 and official Google DAL linked=true for credentials/links. Isolated signature/UV/challenge/counter/origin positive and negative tests passed; actual Play-installed Passkey/OAuth/FCM acceptance still separate. No APK rebuild for these two server metadata files. RU host metadata unchanged; see shared internal-release report for exact scope/rollback/hashes.
+
 Shared report: `../docs/play-internal-release-2026-10-14.md` in the mobile workspace. Corresponding source `af55b4987a53726b5a61cfe01b306d02ba956ee1`; release1.0.37/code370 active only internally. Build/lintVital/bundletool/signature/manifest/64bit PT_LOAD/16KB ZIP passed; full16KB runtime remains pending. Distribution certificates require separate Google/passkey/push acceptance. Ordinary reviewer actors use normal social transport; private credentials stay out of Git in Console Sign-in details. No reviewer-only flags/admin privileges/security bypass. Public review, Billing activation and declarations remain separate gates; iOS requires own identities/acceptance.
 
 # Сохранение этапов разработки antintwrk
