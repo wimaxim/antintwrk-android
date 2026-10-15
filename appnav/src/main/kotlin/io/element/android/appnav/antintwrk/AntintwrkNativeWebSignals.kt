@@ -59,8 +59,10 @@ internal object AntintwrkNativeWebSignals {
                 }
                 "share", "copy", "download", "open-external" -> if (json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
                 "store-catalog", "store-purchase", "store-restore" -> {
-                    val route = android.net.Uri.parse(currentUrl).pathSegments.getOrNull(1)
-                    if (route in setOf("verification", "kindness") && json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
+                    // Gratitude checkout is mounted inside feed/profile/publication pages too.
+                    // The outer guard keeps the exact origin, main frame and embedded-route policy;
+                    // the actor-bound coordinator and server still authorize every store operation.
+                    if (json.optString("id").matches(Regex("[A-Za-z0-9-]{1,64}"))) onRequest(json)
                 }
                 "editor" -> if (json.opt("active") is Boolean) controller.updateEditor(json.getBoolean("active"), json.opt("dialog") == true)
                 "draft" -> controller.markDraft()

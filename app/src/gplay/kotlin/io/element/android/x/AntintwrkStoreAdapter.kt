@@ -37,13 +37,17 @@ internal class AntintwrkStoreAdapter(
         offers.clear()
         if (products.isEmpty()) return emptyList()
         require(products.size <= 20 && products.distinctBy { it.key }.size == products.size)
-        val response = transport.products(products.map { product ->
-            QueryProductDetailsParams.Product.newBuilder().setProductId(product.productId)
-                .setProductType(if (product.subscription) BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP).build()
-        })
-        check(response.successful)
+        // Play requires a homogeneous product type per query. The server catalogue has both.
+        val detailsByType = products.groupBy { it.subscription }.values.flatMap { group ->
+            val response = transport.products(group.map { product ->
+                QueryProductDetailsParams.Product.newBuilder().setProductId(product.productId)
+                    .setProductType(if (product.subscription) BillingClient.ProductType.SUBS else BillingClient.ProductType.INAPP).build()
+            })
+            check(response.successful)
+            response.value.orEmpty()
+        }
         for (product in products) {
-            val details = response.value.orEmpty().singleOrNull { it.productId == product.productId } ?: continue
+            val details = detailsByType.singleOrNull { it.productId == product.productId } ?: continue
             val offer = if (product.subscription) {
                 details.subscriptionOfferDetails?.singleOrNull {
                     it.basePlanId == product.basePlanId && it.offerId == null && it.installmentPlanDetails == null

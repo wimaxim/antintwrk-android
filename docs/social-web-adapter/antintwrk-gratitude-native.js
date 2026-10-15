@@ -10,6 +10,7 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
   const choices = get('[data-gratitude-gift-amounts]');
   const products = get('[data-gratitude-products]');
   const storeStatus = get('[data-gratitude-store-status]');
+  const storeRetry = get('[data-gratitude-store-retry]');
   const status = dialog.querySelector('[data-gratitude-status]');
   const pay = dialog.querySelector('[data-gratitude-pay]');
   const review = get('[data-gratitude-review]');
@@ -65,11 +66,11 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
     } catch (error) { if (current(generation)) { balance = null; status.textContent = error.message === 'AUTH_REQUIRED' ? labels.session : labels.giftFailed; } }
     finally { if (current(generation)) { balanceBusy = false; update(); if (balanceAgain) { balanceAgain = false; load(); } } }
   };
-  const storeError = error => error?.message === 'STORE_CANCELLED' ? '' : error?.message === 'STORE_ALREADY_OWNED' ? labels.owned : labels.unavailable;
+  const storeError = error => error?.message === 'STORE_CANCELLED' ? '' : error?.message === 'STORE_ALREADY_OWNED' ? labels.owned : labels.failed;
   const catalog = async () => {
     if (!active || busy || catalogBusy) return;
-    products.replaceChildren(); storeStatus.textContent = labels.loading;
-    if (!window.antintwrkStoreRequest) { storeStatus.textContent = labels.unavailable; return; }
+    products.replaceChildren(); storeRetry.hidden = true; storeStatus.textContent = labels.loading;
+    if (!window.antintwrkStoreRequest) { storeStatus.textContent = labels.failed; storeRetry.hidden = false; return; }
     catalogBusy = true; const generation = revision;
     try {
       const result = await window.antintwrkStoreRequest({type:'store-catalog'});
@@ -85,8 +86,9 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
         button.addEventListener('click', () => purchase({type:'store-purchase', key:product.key}));
         products.appendChild(button);
       }
-      storeStatus.textContent = products.childElementCount ? '' : labels.unavailable;
-    } catch (error) { if (current(generation)) storeStatus.textContent = storeError(error); }
+      storeStatus.textContent = products.childElementCount ? '' : labels.failed;
+      storeRetry.hidden = products.childElementCount > 0;
+    } catch (error) { if (current(generation)) { storeStatus.textContent = storeError(error); storeRetry.hidden = false; } }
     finally { if (current(generation)) catalogBusy = false; }
   };
   const purchase = async payload => {
@@ -108,7 +110,6 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
     update();
   });
   get('[data-gratitude-store-retry]').addEventListener('click', () => { load(); catalog(); });
-  get('[data-gratitude-store-restore]').addEventListener('click', () => purchase({type:'store-restore'}));
   window.addEventListener('antintwrk-native-ready', catalog);
   window.addEventListener('antintwrk-store-updated', load);
   window.addEventListener('antintwrk-native-active', load);

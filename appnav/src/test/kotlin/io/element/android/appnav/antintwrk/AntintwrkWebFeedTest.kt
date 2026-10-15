@@ -575,6 +575,43 @@ class AntintwrkWebFeedTest : RobolectricTest() {
     }
 
     @Test
+    fun `store requests from inline gratitude use the same trusted frame and route guards`() {
+        val routes = listOf("hero-feed", "hero/maxim", "profile", "channel/example", "group/example", "reels", "verification", "kindness")
+        for (origin in listOf("https://antimsg.com", "https://antintwrk.com")) {
+            val selected = AntintwrkWebPolicy(origin)
+            for (language in listOf("en", "ru", "uk", "de", "es", "fr", "it", "ar", "zh")) {
+                for (route in routes) {
+                    for (type in listOf("store-catalog", "store-purchase", "store-restore")) {
+                        var accepted = 0
+                        val current = "$origin/$language/$route?app=1"
+                        val message = """{"type":"$type","id":"inline-store-request"}"""
+                        fun send(page: String, sender: String, main: Boolean, body: String = message) =
+                            AntintwrkNativeWebSignals.accept(
+                                AntintwrkWebFeedController(),
+                                selected,
+                                page,
+                                sender,
+                                main,
+                                body,
+                                {},
+                                { accepted++ }
+                            )
+                        send(current, origin, true)
+                        assertThat(accepted).isEqualTo(1)
+                        send(current, "https://evil.example", true)
+                        send(current, origin, false)
+                        send("$origin/en/logoff", origin, true)
+                        send("$origin/en/goto", origin, true)
+                        send("$origin/en/not-an-app-page", origin, true)
+                        send(current, origin, true, """{"type":"$type","id":"bad id"}""")
+                        assertThat(accepted).isEqualTo(1)
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun `back from a messenger profile returns through the host once`() {
         val controller = AntintwrkWebFeedController()
         var returns = 0
