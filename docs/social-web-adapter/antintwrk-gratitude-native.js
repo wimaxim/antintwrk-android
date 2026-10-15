@@ -41,17 +41,19 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
     choices.disabled = busy || pending !== null;
     review.hidden = !confirmed || buy;
     root.hidden = review.hidden;
+    choices.classList.toggle('ant-gratitude-wide-prices', Array.from(products.values()).some(offer => offer.price.length > 9));
     choices.querySelectorAll('input').forEach(input => {
       const option = input.closest('label'), offer = products.get(String(Number(input.value) * 1000));
-      // Split the store-formatted string only for the shared two-line layout.
-      // Never calculate a price, currency conversion or a missing SKU.
-      const parts = offer?.price.match(/^([^\p{N}]*)([\p{N}][\p{N}.,\s\u00a0\u202f]*)([^\p{N}]*)$/u);
-      option.querySelector('[data-gratitude-money]').textContent = parts ? parts[2].trim() : offer?.price || '—';
-      option.querySelector('[data-gratitude-currency]').textContent = parts ? (parts[1] + parts[3]).trim() || '\u00a0' : '\u00a0';
+      // Keep the complete localized store price together; never reconstruct a currency.
+      option.querySelector('[data-gratitude-money]').textContent = offer?.price || '—';
+      option.querySelector('[data-gratitude-currency]').hidden = true;
       input.disabled = !offer && (balance === null || BigInt(Number(input.value) * 1000) > balance) && pending === null;
     });
 
     get('[data-gratitude-confirm-amount]').textContent = format(selected());
+    const price = get('[data-gratitude-confirm-price]');
+    price.textContent = product?.price || price.dataset.unavailable;
+
     root.querySelectorAll('button').forEach(button => { button.disabled = busy || catalogBusy; });
   };
   const request = async data => {

@@ -17,3 +17,5 @@ The gratitude-native module keeps Kindness selection, current Google prices and 
 The selected amount controls the sole main action. A sufficient balance leads to explicit gift review; otherwise only an exact matching store product can be purchased, using its real localized price. No repeated product buttons, automatic gift on purchase, fabricated price, or automatic multi-package purchase is allowed.
 
 The gratitude entry dialog now uses the same monetary amount fieldset and styling as the ordinary web page. Store-formatted prices remain visible regardless of balance; there is no separate points-only selector or balance/recipient header. Review and idempotent gift handling remain a separate confirmation state. Unavailable store products are not assigned fabricated prices.
+
+15 October2026: keep the complete localized store price on one compact line. Gift review shows selected package price and points, explicitly stating no additional payment for a gift deducted from the existing balance. Missing prices are never fabricated.
