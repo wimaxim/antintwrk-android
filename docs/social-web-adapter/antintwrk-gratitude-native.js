@@ -8,7 +8,8 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
   const labels = config.labels;
   const get = selector => root.querySelector(selector);
   const choices = get('[data-gratitude-gift-amounts]');
-  const products = get('[data-gratitude-products]');
+  const store = get('[data-gratitude-store]');
+  let products = new Map();
   const storeStatus = get('[data-gratitude-store-status]');
   const storeRetry = get('[data-gratitude-store-retry]');
   const status = dialog.querySelector('[data-gratitude-status]');
@@ -25,13 +26,24 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
     try { if (pending) window.sessionStorage.setItem(storageKey(), JSON.stringify(pending)); else window.sessionStorage.removeItem(storageKey()); } catch (_) {}
   };
   const current = generation => active && generation === revision;
+  const needsPurchase = () => balance !== null && BigInt(selected()) > balance && pending === null;
   const update = () => {
-    pay.textContent = confirmed ? labels.send : labels.review;
-    pay.disabled = busy || balance === null || BigInt(selected()) > balance;
+    const buy = needsPurchase(), product = products.get(selected());
+    pay.textContent = buy ? (product ? `${labels.purchase} · ${product.price}` : labels.purchase) : confirmed ? labels.send : labels.review;
+    pay.disabled = busy || balance === null || (buy && (!product || catalogBusy));
     choices.disabled = busy || pending !== null;
-    review.hidden = !confirmed;
+    review.hidden = !confirmed || buy;
+    store.hidden = !buy;
+    choices.querySelectorAll('input').forEach(input => {
+      const price = input.closest('label').querySelector('[data-gratitude-gift-price]');
+      const offer = products.get(input.value);
+      price.textContent = balance !== null && BigInt(input.value) > balance && offer ? offer.price : '';
+      price.hidden = !price.textContent;
+    });
+    if (buy && !catalogBusy && !product) { storeStatus.textContent = labels.unavailable; storeRetry.hidden = false; }
+    else if (product && storeStatus.textContent === labels.unavailable) { storeStatus.textContent = ''; storeRetry.hidden = true; }
     get('[data-gratitude-confirm-amount]').textContent = format(selected());
-    root.querySelectorAll('button').forEach(button => { button.disabled = busy; });
+    root.querySelectorAll('button').forEach(button => { button.disabled = busy || catalogBusy; });
   };
   const request = async data => {
     const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 15000);
@@ -69,9 +81,9 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
   const storeError = error => error?.message === 'STORE_CANCELLED' ? '' : error?.message === 'STORE_ALREADY_OWNED' ? labels.owned : labels.failed;
   const catalog = async () => {
     if (!active || busy || catalogBusy) return;
-    products.replaceChildren(); storeRetry.hidden = true; storeStatus.textContent = labels.loading;
-    if (!window.antintwrkStoreRequest) { storeStatus.textContent = labels.failed; storeRetry.hidden = false; return; }
-    catalogBusy = true; const generation = revision;
+    products = new Map(); storeRetry.hidden = true; storeStatus.textContent = labels.loading;
+    if (!window.antintwrkStoreRequest) { storeStatus.textContent = labels.failed; storeRetry.hidden = false; update(); return; }
+    catalogBusy = true; update(); const generation = revision;
     try {
       const result = await window.antintwrkStoreRequest({type:'store-catalog'});
       if (!current(generation)) return;
@@ -80,16 +92,13 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
         if (product.purpose !== 'kindness' || !/^[a-z0-9][a-z0-9._-]{0,99}$/.test(product.key || '') || keys.has(product.key) ||
             !/^[1-9][0-9]{0,6}$/.test(String(product.points)) || Number(product.points) > 1000000 || typeof product.price !== 'string' || !product.price.trim()) continue;
         keys.add(product.key);
-        const button = dialog.ownerDocument.createElement('button');
-        button.type = 'button'; button.className = 'hw-button hw-button-secondary';
-        button.textContent = `${format(String(product.points))} · ${product.price}`;
-        button.addEventListener('click', () => purchase({type:'store-purchase', key:product.key}));
-        products.appendChild(button);
+        const points = String(product.points);
+        if (!products.has(points)) products.set(points, {key:product.key, price:product.price});
       }
-      storeStatus.textContent = products.childElementCount ? '' : labels.failed;
-      storeRetry.hidden = products.childElementCount > 0;
+      storeStatus.textContent = products.size ? '' : labels.failed;
+      storeRetry.hidden = products.size > 0;
     } catch (error) { if (current(generation)) { storeStatus.textContent = storeError(error); storeRetry.hidden = false; } }
-    finally { if (current(generation)) catalogBusy = false; }
+    finally { if (current(generation)) { catalogBusy = false; update(); } }
   };
   const purchase = async payload => {
     if (!active || busy || !window.antintwrkStoreRequest) return;
@@ -118,7 +127,7 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
       const target = result.recipient;
       if (result.isOwnPublication === true || !target || !/^[1-9][0-9]{0,18}$/.test(target.id || '') || target.id === config.actor || typeof target.name !== 'string' || !target.name.trim()) return false;
       revision++; active = true; recipient = target; balance = null; confirmed = false; pending = null;
-      balanceBusy = false; balanceAgain = false; catalogBusy = false; busy = false; root.hidden = false; status.textContent = labels.loading;
+      balanceBusy = false; balanceAgain = false; catalogBusy = false; products = new Map(); busy = false; root.hidden = false; status.textContent = labels.loading;
       choices.querySelector('input').checked = true;
       get('[data-gratitude-balance]').textContent = '—';
       get('[data-gratitude-recipient]').textContent = target.name;
@@ -136,6 +145,11 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
     close() { revision++; active = false; busy = false; setBusy(false); root.hidden = true; },
     async submit() {
       if (!active || busy || pay.disabled) return;
+      if (needsPurchase()) {
+        const product = products.get(selected());
+        if (product) await purchase({type:'store-purchase', key:product.key});
+        return;
+      }
       if (!confirmed) { confirmed = true; status.textContent = ''; update(); return; }
       const generation = revision;
       if (!pending) pending = {action:'gift', recipientId:recipient.id, amount:selected(), requestKey:key()};
