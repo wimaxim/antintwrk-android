@@ -212,4 +212,14 @@ For managed same-realm social actors/senders without explicit third-party forwar
 
 ## Подарочное Добро и выпускные материалы — 11 октября 2026
 
-Добро — подарочные баллы. Поддержка ANTINTWRK через store Billing дарит Добро; внешняя благотворительность также сохраняет подарок после verified receipt. Не отключать эти направления/начисления самостоятельно. Signed gift policy и scoped campaign actor сохраняются при выходе в browser без глобального social login; pending/replay/refund и account isolation обязательны. Исторические уже оплаченные snapshots не переписывать. Store title/descriptions на9 языках и сначала EN-screenshot сценарий обязательно согласовать с владельцем до внесения/публикации; не создавать локализованные серии до EN approval. AAB/APK upload в Google Play только по отдельной команде. См. ../docs/gift-points-and-support-2026-10-11.md и ../docs/play-store-marketing-draft-2026-10-11.md.
+Добро — подарочные баллы. Поддержка ANTINTWRK через store Billing дарит Добро; внешняя благотворительность также сохраняет подарок после verified receipt. Не отключать эти направления/начисления самостоятельно. Signed gift policy и scoped campaign actor сохраняются при выходе в browser без глобального social login; pending/replay/refund и account isolation обязательны. Исторические уже оплаченные snapshots не переписывать. Store title/descriptions на9 языках и сначала EN-screenshot сценарий обязательно согласовать с владельцем до внесения/публикации; не создавать локализованные серии до EN approval. С14 октября2026 готовые проверенные Android-версии автоматически загружать и выпускать в существующий Google Play Internal testing; отдельная команда для каждого такого обновления больше не нужна. Production/public release остаётся только по отдельной команде. См. ../docs/gift-points-and-support-2026-10-11.md и ../docs/play-store-marketing-draft-2026-10-11.md.
+
+
+## Automatic Play internal delivery —14 October2026
+
+Owner now requires completed verified Android builds to be uploaded and released
+to the existing Internal testing track automatically, using the approved tester
+list. Verify availability, not merely successful file upload/draft. This overrides
+the earlier per-AAB command requirement. Production/public rollout and GitHub push
+remain subject to their separate instructions. Record the delivered version and
+checks in shared docs. Do not reset app data/history to test an update.
