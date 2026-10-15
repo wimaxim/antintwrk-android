@@ -1,3 +1,5 @@
+Mobile gratitude fourth choice is now 500000 points (nominal USD500); web remains1000000. Store prices are ProductDetails only. Preserve reconciliation of pre-existing million-point pending gifts. Shared audit: `../../../docs/gratitude-mobile-500-2026-10-15.md`.
+
 # Social web adapter source
 
 Operator: Super David Universe LLC. Author: [Maxim Novichkov](https://antintwrk.com/en/hero/2266620).

@@ -8,6 +8,13 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
   const labels = config.labels;
   const get = selector => root.querySelector(selector);
   const choices = dialog.querySelector('[data-gratitude-amounts]');
+  const largestChoice = choices.querySelector('input[value="1000"]');
+  const setLargestAmount = amount => {
+    largestChoice.value = String(amount);
+    const points = largestChoice.closest('label').querySelector('[data-gratitude-option-points]');
+    points.dataset.gratitudeOptionPoints = String(amount * 1000);
+    points.textContent = String(amount * 1000).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  };
   let products = new Map(), catalogFailed = false;
   const status = dialog.querySelector('[data-gratitude-status]');
   const pay = dialog.querySelector('[data-gratitude-pay]');
@@ -128,13 +135,16 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
       if (result.isOwnPublication === true || !target || !/^[1-9][0-9]{0,18}$/.test(target.id || '') || target.id === config.actor || typeof target.name !== 'string' || !target.name.trim()) return false;
       revision++; active = true; recipient = target; balance = null; confirmed = false; pending = null;
       balanceBusy = false; balanceAgain = false; catalogBusy = false; products = new Map(); busy = false; root.hidden = true; status.textContent = labels.loading;
+      setLargestAmount(500);
       choices.querySelector('input').checked = true;
       get('[data-gratitude-confirm-recipient]').textContent = target.name;
       try {
         const saved = JSON.parse(window.sessionStorage.getItem(storageKey()));
         if (saved?.action === 'gift' && saved.recipientId === target.id && /^[a-f0-9]{32}$/.test(saved.requestKey) &&
-            ['1000','10000','100000','1000000'].includes(saved.amount)) {
+            ['1000','10000','100000','500000','1000000'].includes(saved.amount)) {
           pending = saved; confirmed = true;
+          // Preserve reconciliation of a previously submitted million-point gift.
+          if (saved.amount === '1000000') setLargestAmount(1000);
           choices.querySelectorAll('input').forEach(input => { input.checked = String(Number(input.value) * 1000) === saved.amount; });
         }
       } catch (_) {}
