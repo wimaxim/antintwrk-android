@@ -16,6 +16,7 @@ import io.element.android.appnav.antintwrk.AntintwrkStorePurchase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import java.lang.ref.WeakReference
 
@@ -30,6 +31,17 @@ internal class AntintwrkStoreAdapter(
     private val offers = mutableMapOf<AntintwrkStoreProduct, Offer>()
     override val connection = transport.connection.map { AntintwrkStoreConnection.valueOf(it.name) }
         .stateIn(scope, SharingStarted.Eagerly, AntintwrkStoreConnection.Disconnected)
+    override val failures = transport.purchaseUpdates.mapNotNull { result ->
+        if (result.successful) {
+            null
+        } else {
+            when (result.code) {
+                BillingClient.BillingResponseCode.USER_CANCELED -> "STORE_CANCELLED"
+                BillingClient.BillingResponseCode.ITEM_ALREADY_OWNED -> "STORE_ALREADY_OWNED"
+                else -> "STORE_UNAVAILABLE"
+            }
+        }
+    }
     override val updates = transport.purchaseUpdates.map { result ->
         if (result.successful) result.value.orEmpty().map(::candidate) else emptyList()
     }

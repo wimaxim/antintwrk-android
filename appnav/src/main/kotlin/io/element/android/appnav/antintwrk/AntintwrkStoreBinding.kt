@@ -68,6 +68,18 @@ internal fun AntintwrkStoreBinding(client: AntintwrkNativeAuthClient, session: A
     LaunchedEffect(coordinator) {
         if (coordinator == null || store == null) return@LaunchedEffect
         launch {
+            store.failures.collect { error ->
+                val requestKey = coordinator.currentGratitudeRequestKey() ?: return@collect
+                if (current.value?.stage == AntintwrkAuthStage.AUTHENTICATED && current.value?.matrixUserId == actor) {
+                    val page = controller.view ?: return@collect
+                    if (AntintwrkWebPolicy(client.origin).embedded(page.url.orEmpty()) != null) {
+                        val detail = JSONObject().put("requestKey", requestKey).put("error", error)
+                        page.evaluateJavascript("window.dispatchEvent(new CustomEvent('antintwrk-store-failed',{detail:$detail}))", null)
+                    }
+                }
+            }
+        }
+        launch {
             store.updates.collect { candidates ->
                 for (candidate in candidates) {
                     try {

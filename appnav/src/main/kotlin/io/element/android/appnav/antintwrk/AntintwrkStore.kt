@@ -33,6 +33,7 @@ enum class AntintwrkStoreLaunch { Started, Cancelled, AlreadyOwned, Unavailable 
 internal class AntintwrkStoreError(val code: String) : Exception(code)
 interface AntintwrkStore {
     val connection: StateFlow<AntintwrkStoreConnection>
+    val failures: Flow<String> get() = kotlinx.coroutines.flow.emptyFlow()
     val updates: Flow<List<AntintwrkStorePurchase>>
     suspend fun prices(products: List<AntintwrkStoreProduct>): List<AntintwrkStorePrice>
     suspend fun owned(): List<AntintwrkStorePurchase>

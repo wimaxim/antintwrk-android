@@ -1,4 +1,4 @@
-Mobile gratitude fourth choice is now 500000 points (nominal USD500); web remains1000000. Store prices are ProductDetails only. Preserve reconciliation of pre-existing million-point pending gifts. Shared audit: `../../../docs/gratitude-mobile-500-2026-10-15.md`.
+Mobile gratitude fourth choice is now 500000 points (nominal USD500); web remains1000000. Store prices are ProductDetails only. Historical orders retain their original snapshots. Shared audit: `../../../docs/gratitude-mobile-500-2026-10-15.md`.
 
 # Social web adapter source
 
@@ -12,10 +12,8 @@ Serve app/editor/viewport as ES modules with the editor and viewport next to app
 
 The copied sources must be refreshed whenever the deployed adapters change. Public source publication must include the exact adapters used by each distributed build. Signing material, Google publisher credentials and QSNEmain are excluded from the client repository.
 
-The gratitude-native module keeps Kindness selection, current Google prices and a single context-sensitive gift/purchase action inside the gratitude dialog. Purchases replenish only the sender; sending a gift requires a separate explicit confirmation. Interrupted gifts retain an actor/recipient-bound retry identity; no Google token or authoritative balance is stored by the adapter. The existing independent web module supplies the modal/CSRF context. Native binaries are unchanged by this source mirror.
+The gratitude-native module implements a paid author gift. Select an exact store product and press the one payment button: the authenticated server resolves the publication/reel author and binds that author to the order before Google checkout. Only a verified, granted receipt credits the author directly. The payer balance is not used, and no separate gift confirmation or send step follows payment.
 
-The selected amount controls the sole main action. A sufficient balance leads to explicit gift review; otherwise only an exact matching store product can be purchased, using its real localized price. No repeated product buttons, automatic gift on purchase, fabricated price, or automatic multi-package purchase is allowed.
+The shared monetary selector keeps real localized ProductDetails prices on a compact line and shows the recipient, selected price and points. There are no duplicate package buttons or fabricated prices. Pending/cancel/retry/close/reopen states retain a non-secret actor/target-bound request identity; success appears only after the server confirms the author credit. Repeated checkout reconciles an existing order first. Refunds reverse the corresponding author credit. Native capability `gratitudePurchaseVersion: 1` is required; older binaries must update rather than fall back to a purchase for the payer.
 
-The gratitude entry dialog now uses the same monetary amount fieldset and styling as the ordinary web page. Store-formatted prices remain visible regardless of balance; there is no separate points-only selector or balance/recipient header. Review and idempotent gift handling remain a separate confirmation state. Unavailable store products are not assigned fabricated prices.
-
-15 October2026: keep the complete localized store price on one compact line. Gift review shows selected package price and points, explicitly stating no additional payment for a gift deducted from the existing balance. Missing prices are never fabricated.
+Android 1.0.44 (440) adds this binding. iOS needs the equivalent StoreKit/server integration; the shared web presentation alone does not establish iOS billing parity. See `../../../docs/gratitude-paid-author-2026-10-15.md` for the contract and acceptance limits.

@@ -190,4 +190,58 @@ class AntintwrkStoreCoordinatorTest {
         assertThat(purchase.toString()).doesNotContain(token)
         assertThat(purchase.toString()).doesNotContain(profile)
     }
+    private fun gratitudeRequest() = JSONObject().put("key", "points").put(
+        "gratitude",
+        JSONObject().put("targetKind", "publication").put("targetId", "42").put("requestKey", "e".repeat(32))
+    )
+
+    @Test
+    fun `author purchase passes publication and stable request to server before launch`() = runTest {
+        catalog()
+        enqueue("\"accountId\":\"$account\",\"profileId\":\"$profile\",\"checkoutAllowed\":true")
+        coordinator.purchase(gratitudeRequest())
+        val body = server.takeRequest().body.readUtf8()
+        assertThat(body).contains("gratitudeTargetKind=publication")
+        assertThat(body).contains("gratitudeTargetId=42")
+        assertThat(body).contains("requestKey=" + "e".repeat(32))
+        assertThat(fake.launches).isEqualTo(1)
+        assertThat(coordinator.currentGratitudeRequestKey()).isEqualTo("e".repeat(32))
+    }
+
+    @Test
+    fun `already bound author payment never launches another charge`() = runTest {
+        catalog()
+        enqueue("\"accountId\":\"$account\",\"profileId\":\"$profile\",\"checkoutAllowed\":false")
+        assertThat(coordinator.purchase(gratitudeRequest()).getBoolean("pending")).isTrue()
+        server.takeRequest()
+        assertThat(fake.launches).isEqualTo(0)
+    }
+
+    @Test
+    fun `unconsumed author purchase is verified before any repeat checkout`() = runTest {
+        catalog()
+        fake.ownedPurchases = listOf(AntintwrkStorePurchase(token, listOf("points_1000"), true, account, profile))
+        enqueue("\"accountId\":\"$account\",\"profileId\":\"$profile\",\"checkoutAllowed\":true,\"replayed\":true")
+        enqueue("\"verified\":true")
+        coordinator.purchase(gratitudeRequest())
+        server.takeRequest()
+        assertThat(server.takeRequest().body.readUtf8()).contains("action=store-verify")
+        assertThat(fake.launches).isEqualTo(0)
+    }
+
+    @Test
+    fun `invalid gratitude context cannot fall back to buying for the payer`() = runTest {
+        catalog()
+        for (request in listOf(
+            JSONObject().put("key", "points").put("gratitude", "invalid"),
+            gratitudeRequest().also { it.getJSONObject("gratitude").put("targetKind", "profile") },
+            gratitudeRequest().also { it.getJSONObject("gratitude").put("targetId", "0") },
+            gratitudeRequest().also { it.getJSONObject("gratitude").put("requestKey", "invalid") },
+            gratitudeRequest().put("applicationId", 1),
+        )) {
+            assertThat(runCatching { coordinator.purchase(request) }.isFailure).isTrue()
+        }
+        assertThat(server.requestCount).isEqualTo(1)
+        assertThat(fake.launches).isEqualTo(0)
+    }
 }

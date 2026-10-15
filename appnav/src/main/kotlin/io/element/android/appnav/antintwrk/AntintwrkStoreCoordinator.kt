@@ -18,6 +18,8 @@ internal class AntintwrkStoreCoordinator(
 ) {
     private val actor = requireNotNull(session.matrixUserId)
     private val lock = Mutex()
+    private var gratitudeRequestKey: String? = null
+    fun currentGratitudeRequestKey(): String? = gratitudeRequestKey
     private var accountId: String? = null
     private var products = emptyList<AntintwrkStoreProduct>()
     private val launchedProfiles = mutableMapOf<String, String>()
@@ -51,7 +53,7 @@ internal class AntintwrkStoreCoordinator(
         val prices = store.prices(products)
         products = prices.map { it.product }
         accountId = binding
-        JSONObject().put("ok", true).put("products", JSONArray().apply {
+        JSONObject().put("ok", true).put("gratitudePurchaseVersion", 1).put("products", JSONArray().apply {
             prices.forEach {
                 put(JSONObject().put("key", it.product.key).put("price", it.formatted).put("subscription", it.product.subscription)
                     .put("purpose", it.product.purpose).put("plan", it.product.plan).put("points", it.product.points))
@@ -64,14 +66,40 @@ internal class AntintwrkStoreCoordinator(
         val binding = requireNotNull(accountId)
         val application = json.opt("applicationId")
         require(application == null || application is Int || application is Long)
-        val fields = mapOf(
+        val gratitude = json.optJSONObject("gratitude")
+        require(!json.has("gratitude") || gratitude != null)
+        if (gratitude != null) {
+            require(product.purpose == "kindness" && application == null)
+            require(gratitude.optString("targetKind") in setOf("publication", "reel"))
+            require(gratitude.optString("targetId").matches(Regex("[1-9][0-9]{0,18}")))
+            require(gratitude.optString("requestKey").matches(Regex("[a-f0-9]{32}")))
+        }
+        val fields = mutableMapOf(
             "key" to product.key,
             "applicationId" to (application?.toString() ?: "0"),
-            "requestKey" to UUID.randomUUID().toString().replace("-", ""),
+            "requestKey" to (gratitude?.getString("requestKey") ?: UUID.randomUUID().toString().replace("-", "")),
         )
+        if (gratitude != null) {
+            fields["gratitudeTargetKind"] = gratitude.getString("targetKind")
+            fields["gratitudeTargetId"] = gratitude.getString("targetId")
+        }
         val order = request("store-order", fields)
         require(order.getString("accountId") == binding)
         val profile = order.getString("profileId").also { require(it.matches(Regex("[a-f0-9]{64}"))) }
+        // A restored or delayed purchase must be verified before another checkout can open.
+        if (gratitude != null) {
+            gratitudeRequestKey = gratitude.getString("requestKey")
+            val owned = if (order.optBoolean("replayed")) store.owned().filter { it.profileId == profile } else emptyList()
+            for (purchase in owned) {
+                require(purchase.accountId == binding && purchase.products == listOf(product.productId))
+                request("store-verify", mapOf("profileId" to profile, "purchaseToken" to purchase.token))
+            }
+            if (owned.isNotEmpty() || !order.optBoolean("checkoutAllowed", false)) {
+                return@withLock JSONObject().put("ok", true).put("pending", true)
+            }
+        } else {
+            gratitudeRequestKey = null
+        }
         launchedProfiles[product.productId] = profile
         when (store.launch(product, binding, profile)) {
             AntintwrkStoreLaunch.Started -> Unit
