@@ -11,15 +11,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -27,6 +30,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import io.element.android.appnav.R
 import io.element.android.compound.theme.ElementTheme
+import io.element.android.compound.tokens.generated.CompoundIcons
 import io.element.android.libraries.designsystem.theme.components.Text
 import io.element.android.libraries.designsystem.theme.components.TextButton
 import io.element.android.libraries.ui.strings.CommonStrings
@@ -153,7 +157,21 @@ internal fun AntintwrkAppSettings(
 private fun SettingsGroup(title: Int, routes: List<Pair<String, Int>>, onRoute: (String) -> Unit, enabled: Boolean = true) {
     HorizontalDivider(Modifier.padding(vertical = 12.dp))
     Text(stringResource(title), color = ElementTheme.colors.textSecondary, style = ElementTheme.typography.fontBodySmRegular)
-    routes.forEach { (route, label) -> TextButton(stringResource(label), { onRoute(route) }, enabled = enabled) }
+    routes.forEach { (route, label) ->
+        if (route == "verification") {
+            androidx.compose.material3.TextButton(onClick = { onRoute(route) }, enabled = enabled) {
+                Text(stringResource(label))
+                Icon(
+                    imageVector = CompoundIcons.Verified(),
+                    contentDescription = null,
+                    tint = Color(0xFF3897F0),
+                    modifier = Modifier.padding(start = 8.dp).size(20.dp),
+                )
+            }
+        } else {
+            TextButton(stringResource(label), { onRoute(route) }, enabled = enabled)
+        }
+    }
 }
 
 /** Actual applied social origin; Matrix remains on the Russian transport in both cases. */
