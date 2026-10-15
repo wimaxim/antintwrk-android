@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import com.bumble.appyx.core.modality.BuildContext
 import com.bumble.appyx.core.node.Node
 import io.element.android.appnav.R
@@ -890,6 +892,28 @@ internal fun AntintwrkNativeAppView(
                 }
             }) { messengerContent?.invoke(contentModifier) }
         }
+        val callLifecycle by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+        AntintwrkIncomingCall(
+            service = remember(messengerBindings) { messengerBindings.incomingCallService() },
+            socialActor = navigationActor.takeUnless { accountPreferences.getBoolean("logged-out", false) },
+            matrixActor = matrixUserId,
+            resumed = callLifecycle.isAtLeast(Lifecycle.State.RESUMED),
+            onRevealMessenger = {
+                navigationSequence++
+                navigationEpoch.advance()
+                navigationSnackbar.currentSnackbarData?.dismiss()
+                directJob?.cancel()
+                directBusy = false
+                directFailed = false
+                chatsRequested = false
+                AntintwrkMessengerRoutes.clear()
+                settingsOpen = false
+                licencesOpen = false
+                pushOpen = false
+                shellState.eventSink(AntintwrkShellEvent.Mode(AntintwrkMode.Messenger))
+            },
+        )
+
         @Composable
         fun SocialAdmission(modifier: Modifier) {
         if (busy && (session == null || session?.stage == AntintwrkAuthStage.AUTHENTICATED)) {

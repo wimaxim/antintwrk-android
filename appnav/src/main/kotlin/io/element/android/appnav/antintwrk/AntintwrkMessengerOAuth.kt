@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit
 interface AntintwrkMessengerBindings {
     fun matrixAuthenticationService(): MatrixAuthenticationService
     fun oauthRedirectUrlProvider(): OAuthRedirectUrlProvider
+    fun incomingCallService(): io.element.android.features.call.api.IncomingCallService
     fun sessionStore(): io.element.android.libraries.sessionstorage.api.SessionStore
 }
 

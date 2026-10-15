@@ -111,7 +111,10 @@ class IncomingCallActivity : AppCompatActivity() {
         }
 
         activeCallManager.activeCall
-            .filter { it?.callState !is CallState.Ringing }
+            .filter {
+                val ringing = (it?.callState as? CallState.Ringing)?.notificationData
+                ringing?.sessionId != notificationData.sessionId || ringing.eventId != notificationData.eventId
+            }
             .onEach { finish() }
             .launchIn(lifecycleScope)
     }

@@ -1,0 +1,10 @@
+<!-- Copyright 2026 Super David Universe LLC. SPDX-License-Identifier: AGPL-3.0-only -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M5,2.5 L8,2.5 Q8.7,2.5 8.9,3.2 L10,7 Q10.2,7.7 9.7,8.2 L8,9.8 Q10.1,13.9 14.2,16 L15.8,14.3 Q16.3,13.8 17,14 L20.8,15.1 Q21.5,15.3 21.5,16 L21.5,19 Q21.5,21.5 19,21.5 Q12.3,21.3 7.4,16.6 Q2.7,11.7 2.5,5 Q2.5,2.5 5,2.5 Z" />
+</vector>

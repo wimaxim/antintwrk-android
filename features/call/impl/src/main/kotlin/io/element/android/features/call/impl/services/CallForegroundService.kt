@@ -25,7 +25,6 @@ import androidx.core.content.ContextCompat
 import io.element.android.features.call.impl.R
 import io.element.android.features.call.impl.ui.ElementCallActivity
 import io.element.android.libraries.core.extensions.runCatchingExceptions
-import io.element.android.libraries.designsystem.utils.CommonDrawables
 import io.element.android.libraries.push.api.notifications.ForegroundServiceType
 import io.element.android.libraries.push.api.notifications.NotificationIdProvider
 import timber.log.Timber
@@ -68,7 +67,7 @@ class CallForegroundService : Service() {
         val callActivityIntent = Intent(this, ElementCallActivity::class.java)
         val pendingIntent = PendingIntentCompat.getActivity(this, 0, callActivityIntent, 0, false)
         val notification = NotificationCompat.Builder(this, foregroundServiceChannel.id)
-            .setSmallIcon(CommonDrawables.ic_notification)
+            .setSmallIcon(R.drawable.ic_call_notification)
             .setContentTitle(getString(R.string.call_foreground_service_title_android))
             .setContentText(getString(R.string.call_foreground_service_message_android))
             .setContentIntent(pendingIntent)

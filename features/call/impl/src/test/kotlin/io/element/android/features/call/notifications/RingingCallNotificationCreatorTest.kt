@@ -65,6 +65,7 @@ class RingingCallNotificationCreatorTest : RobolectricTest() {
         val result = notificationCreator.createTestNotification()
 
         assertThat(result).isNotNull()
+        assertThat(result?.smallIcon?.resId).isEqualTo(io.element.android.features.call.impl.R.drawable.ic_call_notification)
     }
 
     @Test
