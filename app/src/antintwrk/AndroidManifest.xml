@@ -4,4 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools">
     <!-- Distribution uses Play updates. Attachments remain downloadable/shareable. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" tools:node="remove" />
+    <!-- This distribution does not provide GPS sharing. Regional routing uses server-side GeoIP. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:node="remove" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" tools:node="remove" />
+    <application>
+        <service
+            android:name="io.element.android.features.location.impl.live.service.LiveLocationSharingService"
+            tools:node="remove" />
+    </application>
 </manifest>
