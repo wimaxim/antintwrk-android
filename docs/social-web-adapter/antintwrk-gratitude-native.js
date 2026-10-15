@@ -1,7 +1,7 @@
 // Copyright 2026 Super David Universe LLC.
 // SPDX-License-Identifier: AGPL-3.0-only
 // Buy for the publication's author. Only the server's settled order means success.
-export function createNativeGratitude({window, dialog, config, setBusy}) {
+export function createNativeGratitude({window, dialog, config, setBusy, onPaid}) {
   const root = dialog.querySelector('[data-gratitude-native]');
   if (!root || !/^[1-9][0-9]{0,18}$/.test(config.actor || '')) return null;
   const labels = config.labels, choices = dialog.querySelector('[data-gratitude-amounts]');
@@ -57,7 +57,7 @@ export function createNativeGratitude({window, dialog, config, setBusy}) {
       if(result.state==='paid') {paid=true;pending=null;persist();status.textContent=labels.paid;clearTimeout(pollTimer);}
       else if(result.state==='refunded') {pending=null;persist();status.textContent=labels.refunded;}
       else status.textContent=labels.pending;
-      update();return result.state;
+      update();if(paid)onPaid?.('play:'+attempt.requestKey);return result.state;
     } catch(error){if(current(generation))status.textContent=error.message==='AUTH_REQUIRED'?labels.session:labels.confirmationPending;return null;}
     finally {if(current(generation)){checking=false;update();if(checkAgain){checkAgain=false;check();}else schedule();}}
   };
