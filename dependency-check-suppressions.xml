@@ -155,19 +155,7 @@
   </suppress>
   
   
-  <suppress until="2027-01-09Z">
-    
-    
-    <notes>pkg:maven/io.element.android/element-call-embedded@0.26.0; Embedded Element Call component, not Element Classic Android app PIN/logging. https://github.com/element-hq/element-call and https://github.com/element-hq/element-android/security/advisories/GHSA-632v-9pm3-m8ch Reviewed 2026-10-09. Exact artifact version and incorrect CPE only; all other identities/CVEs still checked.</notes>
-    
-    
-    <sha1>10b40679206af54442b508c11c3253fa25e5bd9e</sha1>
-    
-    
-    <cpe>cpe:/a:element:element:0.26.0:</cpe>
-    
   
-  </suppress>
   
   
   <suppress until="2027-01-09Z">
