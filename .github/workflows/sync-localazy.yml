@@ -43,6 +43,17 @@ jobs:
           curl -sS https://dist.localazy.com/debian/pubkey.gpg | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/localazy.gpg
           echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/localazy.gpg] https://maven.localazy.com/repository/apt/ stable main" | sudo tee /etc/apt/sources.list.d/localazy.list
           sudo apt-get update && sudo apt-get install localazy
+      - name: Configure screenshot failure diagnostics
+        run: |
+          mkdir -p "$GRADLE_USER_HOME/init.d"
+          cat > "$GRADLE_USER_HOME/init.d/translation-test-diagnostics.gradle" <<'GRADLE'
+          allprojects {
+            tasks.withType(org.gradle.api.tasks.testing.Test).configureEach {
+              failFast = true
+              testLogging { exceptionFormat = 'FULL' }
+            }
+          }
+          GRADLE
       - name: Run Localazy script
         shell: bash
         run: |
@@ -63,3 +74,15 @@ jobs:
           branch: sync-localazy
           base: ${{ github.event.repository.default_branch }}
           labels: enhancement
+      - name: Upload translation test diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: translation-test-diagnostics
+          path: |
+            tests/uitests/build/test-results/
+            tests/uitests/build/reports/tests/
+          if-no-files-found: ignore
+      - name: Remove screenshot diagnostics init script
+        if: always()
+        run: rm -f "$GRADLE_USER_HOME/init.d/translation-test-diagnostics.gradle"

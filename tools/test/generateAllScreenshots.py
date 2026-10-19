@@ -9,6 +9,7 @@
 
 import os
 import re
+import subprocess
 import sys
 import time
 
@@ -25,7 +26,7 @@ def generateAllScreenshots(languages):
     # If languages is empty, generate all screenshots
     if len(languages) == 0:
         print("Generating all screenshots...")
-        os.system("./gradlew recordPaparazziDebug -PallLanguages")
+        subprocess.run(["./gradlew", "recordPaparazziDebug", "-PallLanguages"], check=True)
     else:
         tFile = "tests/uitests/src/test/kotlin/translations/TranslationsScreenshotTest.kt"
         print("Generating screenshots for languages: %s" % languages)
@@ -35,12 +36,15 @@ def generateAllScreenshots(languages):
             # Patch file TranslationsScreenshotTest.kt, replace `@TestParameter(value = ["de"])` with `@TestParameter(value = [<the languages>])`
             with open(tFile, "r") as file:
                 data = file.read()
+            original_data = data
             data = data.replace("@TestParameter(value = [\"de\"])", "@TestParameter(value = [\"%s\"])" % lang)
             with open(tFile, "w") as file:
                 file.write(data)
-            os.system("./gradlew recordPaparazziDebug -PallLanguagesNoEnglish")
-            # Git reset the change on file TranslationsScreenshotTest.kt
-            os.system("git checkout HEAD -- %s" % tFile)
+            try:
+                subprocess.run(["./gradlew", "recordPaparazziDebug", "-PallLanguagesNoEnglish"], check=True)
+            finally:
+                with open(tFile, "w") as file:
+                    file.write(original_data)
 
 
 def detectLanguages():
